@@ -12,8 +12,7 @@ export default function AboutPage() {
       <header className="text-center py-16 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-3xl">
         <Badge className="bg-accent/15 text-accent-foreground border-accent/30 mb-6">
           ✨ Nossa História ✨
-        </Badge>
-        <h1 className="text-5xl md:text-6xl font-headline text-primary mb-6">
+        </Badge>        <h1 className="text-5xl md:text-6xl font-headline text-primary mb-6">
           Conhece a Maria Clara
         </h1>
         <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
@@ -23,10 +22,9 @@ export default function AboutPage() {
 
       {/* Maria Clara's Story */}
       <section className="grid lg:grid-cols-2 gap-12 items-center">
-        <div className="relative aspect-square lg:aspect-auto lg:h-[600px] rounded-2xl overflow-hidden shadow-2xl order-2 lg:order-1">
-          <Image 
+        <div className="relative aspect-square lg:aspect-auto lg:h-[600px] rounded-2xl overflow-hidden shadow-2xl order-2 lg:order-1">          <Image 
             src="/maria.png" 
-            alt="Maria Clara - Fundadora da Miçangueria" 
+            alt="Maria Clara - Fundadora da Miçangaria" 
             fill
             className="object-cover"
             priority
@@ -52,9 +50,8 @@ export default function AboutPage() {
               Mas desde pequena, sempre fui <span className="text-secondary font-semibold">apaixonada por moda</span>. 
               Passava horas folheando revistas, criando looks e sonhando com peças únicas que contassem histórias. 
               Era como se houvesse uma parte de mim que sempre soube que um dia seguiria esse caminho.
-            </p>
-            <p className="text-lg leading-relaxed text-muted-foreground">
-              A Miçangueria nasceu quando finalmente decidi <span className="text-accent font-semibold">perseguir essa paixão</span>. 
+            </p>            <p className="text-lg leading-relaxed text-muted-foreground">
+              A Miçangaria nasceu quando finalmente decidi <span className="text-accent font-semibold">perseguir essa paixão</span>. 
               Descobri que uma das coisas que mais amo fazer é <span className="text-primary font-semibold">procurar e curar peças especiais</span> 
               - acessórios únicos que capturam a essência do estilo boho e celebram nossa rica cultura brasileira.
             </p>
@@ -86,9 +83,8 @@ export default function AboutPage() {
 
       {/* Mission & Values */}
       <section className="space-y-12">
-        <div className="text-center">
-          <h2 className="text-4xl font-headline text-primary mb-6">
-            Minha Missão com a Miçangueria
+        <div className="text-center">          <h2 className="text-4xl font-headline text-primary mb-6">
+            Minha Missão com a Miçangaria
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Cada peça que escolho carrega uma história, uma emoção, um pedacinho de arte que merece ser celebrado.
