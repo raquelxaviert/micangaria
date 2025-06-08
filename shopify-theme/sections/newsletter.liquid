@@ -1,0 +1,373 @@
+{% comment %}
+  Seção de Newsletter - mantendo o design sofisticado do miçangaria
+{% endcomment %}
+
+<section class="newsletter-section py-16" style="background: linear-gradient(135deg, hsl(var(--primary) / 0.05), hsl(var(--secondary) / 0.05));">
+  <div class="container">
+    <div class="max-w-2xl mx-auto text-center">
+      
+      <!-- Ícone -->
+      <div class="mb-6">
+        <i data-lucide="mail-heart" class="text-primary mx-auto" style="width: 3rem; height: 3rem;"></i>
+      </div>
+      
+      <!-- Título -->
+      <h2 class="font-headline text-3xl md:text-4xl text-primary mb-4">
+        {{ section.settings.title | default: "Receba Novidades Exclusivas" }}
+      </h2>
+      
+      <!-- Subtítulo -->
+      <p class="text-muted-foreground text-lg mb-8">
+        {{ section.settings.description | default: "Seja a primeira a saber sobre novos produtos, ofertas especiais e dicas de estilo boho." }}
+      </p>
+      
+      <!-- Formulário de newsletter -->
+      <div class="newsletter-form-container">
+        {% form 'customer', class: 'newsletter-form' %}
+          <input type="hidden" name="contact[tags]" value="newsletter">
+          
+          {% if form.posted_successfully? %}
+            <div class="newsletter-success">
+              <i data-lucide="check-circle" style="width: 2rem; height: 2rem; margin-bottom: 1rem;"></i>
+              <h3 class="font-headline text-xl text-primary mb-2">
+                {{ section.settings.success_title | default: "Obrigada!" }}
+              </h3>
+              <p class="text-muted-foreground">
+                {{ section.settings.success_message | default: "Você foi inscrita com sucesso. Em breve receberá nossas novidades!" }}
+              </p>
+            </div>
+          {% else %}
+            
+            {% if form.errors %}
+              <div class="alert alert-error mb-6">
+                <div class="flex items-center justify-center">
+                  <i data-lucide="alert-circle" style="width: 1.25rem; height: 1.25rem; margin-right: 0.5rem;"></i>
+                  <span class="font-medium">Erro ao inscrever</span>
+                </div>
+                <ul class="mt-2 text-sm">
+                  {% for error in form.errors %}
+                    <li>{{ error }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+            
+            <div class="newsletter-input-container">
+              <div class="flex flex-col md:flex-row gap-4 max-w-md mx-auto">
+                <div class="flex-1 relative">
+                  <input 
+                    type="email" 
+                    name="contact[email]" 
+                    class="newsletter-input"
+                    placeholder="{{ section.settings.placeholder | default: 'Digite seu e-mail...' }}"
+                    required
+                    aria-label="E-mail para newsletter"
+                  >
+                  <i data-lucide="mail" class="newsletter-input-icon"></i>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg newsletter-submit">
+                  <span class="submit-text">
+                    {{ section.settings.button_text | default: "Inscrever" }}
+                  </span>
+                  <span class="submit-loading" style="display: none;">
+                    <span class="spinner"></span>
+                  </span>
+                  <i data-lucide="arrow-right" style="width: 1rem; height: 1rem; margin-left: 0.5rem;"></i>
+                </button>
+              </div>
+            </div>
+            
+        {% endif %}
+        
+        {% endform %}
+      </div>
+      
+      <!-- Benefícios -->
+      {% unless form.posted_successfully? %}
+        <div class="newsletter-benefits mt-12">
+          <h3 class="font-headline text-lg text-primary mb-6">
+            {{ section.settings.benefits_title | default: "O que você ganha:" }}
+          </h3>
+          
+          <div class="grid md:grid-cols-3 gap-6">
+            <div class="benefit-item">
+              <i data-lucide="gift" class="text-secondary mb-3" style="width: 2rem; height: 2rem;"></i>
+              <h4 class="font-medium text-foreground mb-2">
+                {{ section.settings.benefit_1_title | default: "Ofertas Exclusivas" }}
+              </h4>
+              <p class="text-sm text-muted-foreground">
+                {{ section.settings.benefit_1_text | default: "Descontos especiais só para assinantes" }}
+              </p>
+            </div>
+            
+            <div class="benefit-item">
+              <i data-lucide="zap" class="text-secondary mb-3" style="width: 2rem; height: 2rem;"></i>
+              <h4 class="font-medium text-foreground mb-2">
+                {{ section.settings.benefit_2_title | default: "Lançamentos Primeiro" }}
+              </h4>
+              <p class="text-sm text-muted-foreground">
+                {{ section.settings.benefit_2_text | default: "Acesso antecipado a novos produtos" }}
+              </p>
+            </div>
+            
+            <div class="benefit-item">
+              <i data-lucide="sparkles" class="text-secondary mb-3" style="width: 2rem; height: 2rem;"></i>
+              <h4 class="font-medium text-foreground mb-2">
+                {{ section.settings.benefit_3_title | default: "Dicas de Estilo" }}
+              </h4>
+              <p class="text-sm text-muted-foreground">
+                {{ section.settings.benefit_3_text | default: "Conteúdo exclusivo sobre moda boho" }}
+              </p>
+            </div>
+          </div>
+        </div>
+      {% endunless %}
+      
+      <!-- Política de privacidade -->
+      <p class="text-xs text-muted-foreground mt-8">
+        {{ section.settings.privacy_text | default: "Respeitamos sua privacidade. Você pode cancelar a inscrição a qualquer momento." }}
+        {% if section.settings.privacy_link %}
+          <a href="{{ section.settings.privacy_link }}" class="text-secondary hover:text-primary transition-colors">
+            Política de Privacidade
+          </a>
+        {% endif %}
+      </p>
+      
+    </div>
+  </div>
+</section>
+
+<style>
+  .newsletter-section {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .newsletter-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f7f3ed' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+    pointer-events: none;
+  }
+  
+  .newsletter-form {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .newsletter-input {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.5rem;
+    background-color: hsl(var(--card));
+    color: hsl(var(--foreground));
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+  
+  .newsletter-input:focus {
+    outline: none;
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.2), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+  
+  .newsletter-input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1rem;
+    height: 1rem;
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+  }
+  
+  .newsletter-submit {
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .newsletter-submit.loading .submit-text {
+    opacity: 0;
+  }
+  
+  .newsletter-submit.loading .submit-loading {
+    display: flex !important;
+    align-items: center;
+    position: absolute;
+    inset: 0;
+    justify-content: center;
+  }
+  
+  .newsletter-success {
+    text-align: center;
+    padding: 2rem;
+    background-color: hsl(var(--card));
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .benefit-item {
+    text-align: center;
+    padding: 1.5rem;
+    background-color: hsl(var(--card) / 0.5);
+    border-radius: 0.75rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+  
+  /* Mobile adjustments */
+  @media (max-width: 767px) {
+    .newsletter-input-container .flex {
+      flex-direction: column;
+    }
+    
+    .newsletter-submit {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Adicionar estado de loading ao botão
+    const form = document.querySelector('.newsletter-form');
+    const submitBtn = document.querySelector('.newsletter-submit');
+    
+    if (form && submitBtn) {
+      form.addEventListener('submit', function() {
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+      });
+    }
+    
+    // Inicializar ícones Lucide
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Newsletter",
+  "tag": "section",
+  "class": "newsletter-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Título",
+      "default": "Receba Novidades Exclusivas"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Descrição",
+      "default": "Seja a primeira a saber sobre novos produtos, ofertas especiais e dicas de estilo boho."
+    },
+    {
+      "type": "text",
+      "id": "placeholder",
+      "label": "Placeholder do e-mail",
+      "default": "Digite seu e-mail..."
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Texto do botão",
+      "default": "Inscrever"
+    },
+    {
+      "type": "header",
+      "content": "Mensagem de sucesso"
+    },
+    {
+      "type": "text",
+      "id": "success_title",
+      "label": "Título de sucesso",
+      "default": "Obrigada!"
+    },
+    {
+      "type": "textarea",
+      "id": "success_message",
+      "label": "Mensagem de sucesso",
+      "default": "Você foi inscrita com sucesso. Em breve receberá nossas novidades!"
+    },
+    {
+      "type": "header",
+      "content": "Benefícios"
+    },
+    {
+      "type": "text",
+      "id": "benefits_title",
+      "label": "Título dos benefícios",
+      "default": "O que você ganha:"
+    },
+    {
+      "type": "text",
+      "id": "benefit_1_title",
+      "label": "Benefício 1 - Título",
+      "default": "Ofertas Exclusivas"
+    },
+    {
+      "type": "text",
+      "id": "benefit_1_text",
+      "label": "Benefício 1 - Texto",
+      "default": "Descontos especiais só para assinantes"
+    },
+    {
+      "type": "text",
+      "id": "benefit_2_title",
+      "label": "Benefício 2 - Título",
+      "default": "Lançamentos Primeiro"
+    },
+    {
+      "type": "text",
+      "id": "benefit_2_text",
+      "label": "Benefício 2 - Texto",
+      "default": "Acesso antecipado a novos produtos"
+    },
+    {
+      "type": "text",
+      "id": "benefit_3_title",
+      "label": "Benefício 3 - Título",
+      "default": "Dicas de Estilo"
+    },
+    {
+      "type": "text",
+      "id": "benefit_3_text",
+      "label": "Benefício 3 - Texto",
+      "default": "Conteúdo exclusivo sobre moda boho"
+    },
+    {
+      "type": "header",
+      "content": "Privacidade"
+    },
+    {
+      "type": "textarea",
+      "id": "privacy_text",
+      "label": "Texto sobre privacidade",
+      "default": "Respeitamos sua privacidade. Você pode cancelar a inscrição a qualquer momento."
+    },
+    {
+      "type": "url",
+      "id": "privacy_link",
+      "label": "Link para política de privacidade"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Newsletter"
+    }
+  ]
+}
+{% endschema %}

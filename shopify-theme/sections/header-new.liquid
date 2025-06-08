@@ -1,0 +1,131 @@
+<!-- Header - Replicando exatamente o design do Next.js -->
+<header class="site-header">
+  <div class="container py-4">
+    <!-- Layout desktop: tudo em uma linha -->
+    <div class="hidden md:flex items-center justify-between gap-4">
+      <!-- Logo à esquerda -->
+      <a href="{{ routes.root_url }}" class="site-logo">
+        miçangaria
+      </a>
+      
+      <!-- Barra de pesquisa centralizada -->
+      <form action="{{ routes.search_url }}" method="get" class="search-form">
+        <div class="relative flex">
+          <input
+            type="search"
+            name="q"
+            placeholder="Buscar produtos..."
+            value="{{ search.terms | escape }}"
+            class="search-input"
+          />
+          <button type="submit" class="search-button">
+            <i data-lucide="search" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </form>
+      
+      <!-- Navegação à direita -->
+      <nav class="main-nav">
+        <a href="{{ routes.all_products_collection_url }}" class="nav-link">
+          <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+          <span>Produtos</span>
+        </a>
+        <a href="/pages/style-advisor" class="nav-link">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
+          <span>Consultor de Estilo</span>
+        </a>
+        <a href="/pages/about" class="nav-link">
+          <i data-lucide="info" class="w-5 h-5"></i>
+          <span>Sobre Nós</span>
+        </a>
+        <a href="{{ routes.cart_url }}" class="nav-link">
+          <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+          <span class="hidden lg:inline">Carrinho</span>
+          {% if cart.item_count > 0 %}
+            <span class="badge badge-primary rounded-full px-2 py-1 text-xs">{{ cart.item_count }}</span>
+          {% endif %}
+        </a>
+      </nav>
+    </div>
+
+    <!-- Layout mobile: empilhado -->
+    <div class="md:hidden space-y-4">
+      <!-- Primeira linha: Logo e navegação compacta -->
+      <div class="flex items-center justify-between">
+        <a href="{{ routes.root_url }}" class="site-logo text-2xl">
+          miçangaria
+        </a>
+        
+        <!-- Menu compacto mobile -->
+        <nav class="flex items-center space-x-3">
+          <a href="{{ routes.all_products_collection_url }}" class="nav-link p-2">
+            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+          </a>
+          <a href="/pages/style-advisor" class="nav-link p-2">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </a>
+          <a href="/pages/about" class="nav-link p-2">
+            <i data-lucide="info" class="w-5 h-5"></i>
+          </a>
+          <a href="{{ routes.cart_url }}" class="nav-link p-2 relative">
+            <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+            {% if cart.item_count > 0 %}
+              <span class="absolute -top-1 -right-1 badge badge-primary rounded-full px-1.5 py-0.5 text-xs">{{ cart.item_count }}</span>
+            {% endif %}
+          </a>
+        </nav>
+      </div>
+      
+      <!-- Segunda linha: Barra de pesquisa -->
+      <form action="{{ routes.search_url }}" method="get" class="w-full">
+        <div class="relative flex">
+          <input
+            type="search"
+            name="q"
+            placeholder="Buscar produtos..."
+            value="{{ search.terms | escape }}"
+            class="search-input"
+          />
+          <button type="submit" class="search-button">
+            <i data-lucide="search" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</header>
+
+<script>
+  // Inicializar ícones após o DOM carregar
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": [
+    {
+      "type": "text",
+      "id": "logo_text",
+      "label": "Logo Text",
+      "default": "miçangaria"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_search",
+      "label": "Enable Search",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cart_count",
+      "label": "Show Cart Count",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

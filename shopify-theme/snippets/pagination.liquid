@@ -1,0 +1,184 @@
+{% comment %}
+  Snippet de paginação - mantendo o design sofisticado do miçangaria
+  Uso: {% render 'pagination', paginate: paginate %}
+{% endcomment %}
+
+{% if paginate.pages > 1 %}
+  <nav class="pagination" aria-label="Navegação de páginas">
+    <div class="flex items-center justify-center gap-2">
+      
+      <!-- Primeira página -->
+      {% if paginate.current_page != 1 %}
+        <a href="{{ paginate.first.url }}" 
+           class="pagination-btn" 
+           aria-label="Primeira página"
+           title="Primeira página">
+          <i data-lucide="chevrons-left" style="width: 1rem; height: 1rem;"></i>
+        </a>
+      {% endif %}
+      
+      <!-- Página anterior -->
+      {% if paginate.previous %}
+        <a href="{{ paginate.previous.url }}" 
+           class="pagination-btn" 
+           aria-label="Página anterior"
+           title="Página anterior">
+          <i data-lucide="chevron-left" style="width: 1rem; height: 1rem;"></i>
+        </a>
+      {% endif %}
+      
+      <!-- Números das páginas -->
+      {% for part in paginate.parts %}
+        {% if part.is_link %}
+          <a href="{{ part.url }}" 
+             class="pagination-number"
+             aria-label="Ir para página {{ part.title }}">
+            {{ part.title }}
+          </a>
+        {% else %}
+          {% if part.title == paginate.current_page %}
+            <span class="pagination-number pagination-current" 
+                  aria-current="page"
+                  aria-label="Página atual, página {{ part.title }}">
+              {{ part.title }}
+            </span>
+          {% else %}
+            <span class="pagination-ellipsis">{{ part.title }}</span>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+      
+      <!-- Próxima página -->
+      {% if paginate.next %}
+        <a href="{{ paginate.next.url }}" 
+           class="pagination-btn" 
+           aria-label="Próxima página"
+           title="Próxima página">
+          <i data-lucide="chevron-right" style="width: 1rem; height: 1rem;"></i>
+        </a>
+      {% endif %}
+      
+      <!-- Última página -->
+      {% if paginate.current_page != paginate.pages %}
+        <a href="{{ paginate.last.url }}" 
+           class="pagination-btn" 
+           aria-label="Última página"
+           title="Última página">
+          <i data-lucide="chevrons-right" style="width: 1rem; height: 1rem;"></i>
+        </a>
+      {% endif %}
+      
+    </div>
+    
+    <!-- Informações da página -->
+    <div class="pagination-info text-center mt-4">
+      <p class="text-muted-foreground text-sm">
+        Página {{ paginate.current_page }} de {{ paginate.pages }}
+        ({{ paginate.items }} 
+        {% if paginate.items == 1 %}item{% else %}itens{% endif %} 
+        no total)
+      </p>
+    </div>
+  </nav>
+
+  <style>
+    .pagination {
+      margin: 2rem 0;
+    }
+    
+    .pagination-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      border: 1px solid hsl(var(--border));
+      border-radius: 0.375rem;
+      background-color: hsl(var(--background));
+      color: hsl(var(--foreground));
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    
+    .pagination-btn:hover {
+      background-color: hsl(var(--primary));
+      color: hsl(var(--primary-foreground));
+      border-color: hsl(var(--primary));
+      transform: translateY(-1px);
+    }
+    
+    .pagination-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.5rem;
+      height: 2.5rem;
+      padding: 0 0.75rem;
+      border: 1px solid hsl(var(--border));
+      border-radius: 0.375rem;
+      background-color: hsl(var(--background));
+      color: hsl(var(--foreground));
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .pagination-number:hover {
+      background-color: hsl(var(--accent) / 0.1);
+      border-color: hsl(var(--accent));
+      color: hsl(var(--accent-foreground));
+    }
+    
+    .pagination-current {
+      background-color: hsl(var(--primary));
+      color: hsl(var(--primary-foreground));
+      border-color: hsl(var(--primary));
+      font-weight: 600;
+    }
+    
+    .pagination-current:hover {
+      background-color: hsl(var(--primary));
+      color: hsl(var(--primary-foreground));
+      transform: none;
+    }
+    
+    .pagination-ellipsis {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.5rem;
+      height: 2.5rem;
+      color: hsl(var(--muted-foreground));
+      font-weight: 500;
+    }
+    
+    .pagination-info {
+      margin-top: 1rem;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 640px) {
+      .pagination-btn,
+      .pagination-number {
+        width: 2rem;
+        height: 2rem;
+        min-width: 2rem;
+        font-size: 0.875rem;
+      }
+      
+      .pagination-ellipsis {
+        min-width: 2rem;
+        height: 2rem;
+      }
+    }
+  </style>
+{% endif %}
+
+<script>
+  // Inicializar ícones Lucide
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+  });
+</script>

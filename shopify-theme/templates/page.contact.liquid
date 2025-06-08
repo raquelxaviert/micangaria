@@ -1,0 +1,193 @@
+{% comment %}
+  Contact page template for miçangaria
+{% endcomment %}
+
+<div class="container py-12">
+  <!-- Page Header -->
+  <div class="text-center mb-12">
+    <h1 class="headline text-primary mb-4" style="font-size: 2.5rem;">Entre em Contato</h1>
+    <p class="text-muted-foreground text-lg" style="max-width: 32rem; margin: 0 auto;">
+      Tem alguma dúvida sobre nossos produtos ou precisa de ajuda? Estamos aqui para você.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 lg-grid-cols-2" style="gap: 3rem; max-width: 64rem; margin: 0 auto;">
+    <!-- Contact Form -->
+    <div class="card">
+      <h2 class="headline text-foreground mb-6" style="font-size: 1.5rem;">Envie uma Mensagem</h2>
+      
+      {% if form.posted_successfully? %}
+        <div class="alert alert-success mb-6">
+          <i data-lucide="check-circle" style="width: 1.25rem; height: 1.25rem;"></i>
+          <div>
+            <p style="margin: 0; font-weight: 500;">Mensagem enviada com sucesso!</p>
+            <p style="margin: 0.25rem 0 0; font-size: 0.875rem;">Entraremos em contato em breve.</p>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if form.errors %}
+        <div class="alert alert-destructive mb-6">
+          <i data-lucide="alert-circle" style="width: 1.25rem; height: 1.25rem;"></i>
+          <div>
+            <p style="margin: 0; font-weight: 500;">Erro ao enviar mensagem</p>
+            <ul style="margin: 0.25rem 0 0; font-size: 0.875rem; padding-left: 1rem;">
+              {% for field in form.errors %}
+                <li>{{ field | first | capitalize }}: {{ field | last }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      {% endif %}
+
+      {% form 'contact' %}
+        <div class="space-y-4" style="margin-bottom: 1.5rem;">
+          <div class="grid grid-cols-1 md-grid-cols-2" style="gap: 1rem;">
+            <div>
+              <label for="contact-name" class="label">Nome *</label>
+              <input 
+                type="text" 
+                id="contact-name"
+                name="contact[name]"
+                class="input"
+                required
+                value="{% if form.name %}{{ form.name }}{% endif %}"
+                style="background: hsl(var(--background)); border-color: hsl(var(--border));"
+              >
+            </div>
+            <div>
+              <label for="contact-email" class="label">E-mail *</label>
+              <input 
+                type="email" 
+                id="contact-email"
+                name="contact[email]"
+                class="input"
+                required
+                value="{% if form.email %}{{ form.email }}{% endif %}"
+                style="background: hsl(var(--background)); border-color: hsl(var(--border));"
+              >
+            </div>
+          </div>
+          
+          <div>
+            <label for="contact-phone" class="label">Telefone</label>
+            <input 
+              type="tel" 
+              id="contact-phone"
+              name="contact[phone]"
+              class="input"
+              value="{% if form.phone %}{{ form.phone }}{% endif %}"
+              style="background: hsl(var(--background)); border-color: hsl(var(--border));"
+            >
+          </div>
+
+          <div>
+            <label for="contact-subject" class="label">Assunto *</label>
+            <select 
+              id="contact-subject"
+              name="contact[subject]"
+              class="input"
+              required
+              style="background: hsl(var(--background)); border-color: hsl(var(--border));"
+            >
+              <option value="">Selecione um assunto</option>
+              <option value="Dúvida sobre produto">Dúvida sobre produto</option>
+              <option value="Pedido personalizado">Pedido personalizado</option>
+              <option value="Consultor de estilo">Consultor de estilo</option>
+              <option value="Problema com pedido">Problema com pedido</option>
+              <option value="Parceria">Parceria</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="contact-message" class="label">Mensagem *</label>
+            <textarea 
+              id="contact-message"
+              name="contact[body]"
+              rows="5"
+              class="input"
+              required
+              placeholder="Como podemos ajudar?"
+              style="background: hsl(var(--background)); border-color: hsl(var(--border)); resize: vertical;"
+            >{% if form.body %}{{ form.body }}{% endif %}</textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary w-full">
+          <i data-lucide="send" style="width: 1rem; height: 1rem; margin-right: 0.5rem;"></i>
+          Enviar Mensagem
+        </button>
+      {% endform %}
+    </div>
+
+    <!-- Contact Information -->
+    <div>
+      <h2 class="headline text-foreground mb-6" style="font-size: 1.5rem;">Outras Formas de Contato</h2>
+      
+      <div class="space-y-6">
+        <!-- Email -->
+        <div class="flex items-start" style="gap: 1rem;">
+          <div class="p-3 bg-primary/10 rounded-lg" style="background: hsl(var(--primary) / 0.1);">
+            <i data-lucide="mail" style="width: 1.5rem; height: 1.5rem; color: hsl(var(--primary));"></i>
+          </div>
+          <div>
+            <h3 class="font-medium text-foreground mb-1">E-mail</h3>
+            <p class="text-muted-foreground text-sm mb-2">Resposta em até 24 horas</p>
+            <a href="mailto:contato@micangaria.com.br" class="text-primary hover-underline">
+              contato@micangaria.com.br
+            </a>
+          </div>
+        </div>
+
+        <!-- WhatsApp -->
+        <div class="flex items-start" style="gap: 1rem;">
+          <div class="p-3 bg-primary/10 rounded-lg" style="background: hsl(var(--primary) / 0.1);">
+            <i data-lucide="message-circle" style="width: 1.5rem; height: 1.5rem; color: hsl(var(--primary));"></i>
+          </div>
+          <div>
+            <h3 class="font-medium text-foreground mb-1">WhatsApp</h3>
+            <p class="text-muted-foreground text-sm mb-2">Segunda a sexta, 9h às 18h</p>
+            <a href="https://wa.me/5511999999999" class="text-primary hover-underline" target="_blank">
+              (11) 99999-9999
+            </a>
+          </div>
+        </div>
+
+        <!-- Social Media -->
+        <div class="flex items-start" style="gap: 1rem;">
+          <div class="p-3 bg-primary/10 rounded-lg" style="background: hsl(var(--primary) / 0.1);">
+            <i data-lucide="instagram" style="width: 1.5rem; height: 1.5rem; color: hsl(var(--primary));"></i>
+          </div>
+          <div>
+            <h3 class="font-medium text-foreground mb-1">Redes Sociais</h3>
+            <p class="text-muted-foreground text-sm mb-2">Siga-nos para novidades</p>
+            <div class="flex" style="gap: 0.75rem;">
+              <a href="#" class="text-primary hover-text-primary/80" style="transition: color 0.3s ease;">
+                <i data-lucide="instagram" style="width: 1.25rem; height: 1.25rem;"></i>
+              </a>
+              <a href="#" class="text-primary hover-text-primary/80" style="transition: color 0.3s ease;">
+                <i data-lucide="facebook" style="width: 1.25rem; height: 1.25rem;"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ Link -->
+      <div class="card mt-8" style="background: hsl(var(--muted)); border-color: hsl(var(--border));">
+        <h3 class="headline text-foreground mb-2" style="font-size: 1.125rem;">Perguntas Frequentes</h3>
+        <p class="text-muted-foreground text-sm mb-4">
+          Muitas dúvidas já foram respondidas em nossa página de FAQ.
+        </p>
+        <a href="/pages/faq" class="btn-outline">
+          <i data-lucide="help-circle" style="width: 1rem; height: 1rem; margin-right: 0.5rem;"></i>
+          Ver FAQ
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Newsletter Section (anchor for footer newsletter form) -->
+<div id="newsletter"></div>

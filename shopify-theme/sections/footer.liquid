@@ -1,3 +1,182 @@
-<footer class="site-footer" style="padding: 2em 0; text-align: center; background: {{ settings.card_color }}; color: {{ settings.text_color }};">
-  <p style="margin: 0;">&copy; {{ 'now' | date: '%Y' }} miçangaria. Todos os direitos reservados.</p>
+<footer class="bg-card border-t" style="border-color: hsl(var(--border)); margin-top: 4rem;">
+  <div class="container py-12">
+    <!-- Newsletter Section -->
+    <div class="text-center mb-12">
+      <h3 class="headline text-primary mb-4" style="font-size: 1.5rem;">Fique por dentro das novidades</h3>
+      <p class="text-muted-foreground mb-6" style="max-width: 28rem; margin: 0 auto;">
+        Receba ofertas exclusivas, novos produtos e dicas de estilo diretamente no seu e-mail.
+      </p>
+      
+      <form action="/contact#newsletter" method="post" accept-charset="UTF-8" class="newsletter-form">
+        <input type="hidden" name="form_type" value="customer">
+        <input type="hidden" name="utf8" value="✓">
+        <input type="hidden" name="contact[tags]" value="newsletter">
+        
+        <div class="flex max-w-md mx-auto" style="gap: 0.5rem;">
+          <input 
+            type="email" 
+            name="contact[email]" 
+            placeholder="Digite seu e-mail"
+            required
+            class="input flex-1"
+            style="background: hsl(var(--background)); border-color: hsl(var(--border));"
+          >
+          <button type="submit" class="btn-primary" style="white-space: nowrap;">
+            <i data-lucide="send" style="width: 1rem; height: 1rem; margin-right: 0.5rem;"></i>
+            Inscrever
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Footer Links -->
+    <div class="grid grid-cols-1 md-grid-cols-4" style="gap: 2rem; margin-bottom: 3rem;">
+      <!-- About -->
+      <div>
+        <h4 class="headline text-foreground mb-4" style="font-size: 1.125rem;">miçangaria</h4>
+        <p class="text-muted-foreground text-sm mb-4">
+          Peças artesanais únicas que contam histórias através de miçangas, cores e texturas.
+        </p>
+        <div class="flex" style="gap: 1rem;">
+          <a href="#" class="text-muted-foreground hover-text-primary" style="transition: color 0.3s ease;">
+            <i data-lucide="instagram" style="width: 1.25rem; height: 1.25rem;"></i>
+          </a>
+          <a href="#" class="text-muted-foreground hover-text-primary" style="transition: color 0.3s ease;">
+            <i data-lucide="facebook" style="width: 1.25rem; height: 1.25rem;"></i>
+          </a>
+          <a href="#" class="text-muted-foreground hover-text-primary" style="transition: color 0.3s ease;">
+            <i data-lucide="mail" style="width: 1.25rem; height: 1.25rem;"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Shop -->
+      <div>
+        <h4 class="headline text-foreground mb-4" style="font-size: 1.125rem;">Loja</h4>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          <li class="mb-2">
+            <a href="/collections/all" class="text-muted-foreground text-sm hover-text-primary" style="text-decoration: none; transition: color 0.3s ease;">
+              Todos os Produtos
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="/collections/colares" class="text-muted-foreground text-sm hover-text-primary" style="text-decoration: none; transition: color 0.3s ease;">
+              Colares
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="/collections/brincos" class="text-muted-foreground text-sm hover-text-primary" style="text-decoration: none; transition: color 0.3s ease;">
+              Brincos
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="/collections/pulseiras" class="text-muted-foreground text-sm hover-text-primary" style="text-decoration: none; transition: color 0.3s ease;">
+              Pulseiras
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="/collections/aneis" class="text-muted-foreground text-sm hover-text-primary" style="text-decoration: none; transition: color 0.3s ease;">
+              Anéis
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Help -->
+      <div>
+        <h4 class="headline text-foreground mb-4" style="font-size: 1.125rem;">Ajuda</h4>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          <li class="mb-2">
+            <a href="/pages/style-advisor" class="text-muted-foreground text-sm hover-text-primary" style="text-decoration: none; transition: color 0.3s ease;">
+              Consultor de Estilo
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="/pages/shipping" class="text-muted-foreground text-sm hover-text-primary" style="text-decoration: none; transition: color 0.3s ease;">
+              Envios e Devoluções
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="/pages/size-guide" class="text-muted-foreground text-sm hover-text-primary" style="text-decoration: none; transition: color 0.3s ease;">
+              Guia de Tamanhos
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="/pages/care" class="text-muted-foreground text-sm hover-text-primary" style="text-decoration: none; transition: color 0.3s ease;">
+              Cuidados
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="/pages/contact" class="text-muted-foreground text-sm hover-text-primary" style="text-decoration: none; transition: color 0.3s ease;">
+              Contato
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Legal -->
+      <div>
+        <h4 class="headline text-foreground mb-4" style="font-size: 1.125rem;">Legal</h4>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          <li class="mb-2">
+            <a href="/pages/privacy" class="text-muted-foreground text-sm hover-text-primary" style="text-decoration: none; transition: color 0.3s ease;">
+              Política de Privacidade
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="/pages/terms" class="text-muted-foreground text-sm hover-text-primary" style="text-decoration: none; transition: color 0.3s ease;">
+              Termos de Serviço
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="/pages/refund" class="text-muted-foreground text-sm hover-text-primary" style="text-decoration: none; transition: color 0.3s ease;">
+              Política de Reembolso
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="/pages/about" class="text-muted-foreground text-sm hover-text-primary" style="text-decoration: none; transition: color 0.3s ease;">
+              Sobre Nós
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="pt-6 border-t" style="border-color: hsl(var(--border));">
+      <div class="flex flex-col md-flex-row justify-between items-center" style="gap: 1rem;">
+        <p class="text-muted-foreground text-sm" style="margin: 0;">
+          &copy; {{ 'now' | date: '%Y' }} miçangaria. Todos os direitos reservados.
+        </p>
+        
+        <div class="flex items-center" style="gap: 1rem;">
+          <span class="text-muted-foreground text-sm">Formas de pagamento:</span>
+          <div class="flex" style="gap: 0.5rem;">
+            <i data-lucide="credit-card" style="width: 1.5rem; height: 1.5rem; color: hsl(var(--muted-foreground));"></i>
+            <i data-lucide="smartphone" style="width: 1.5rem; height: 1.5rem; color: hsl(var(--muted-foreground));"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </footer>
+
+{% schema %}
+{
+  "name": "Footer",
+  "settings": [
+    {
+      "type": "text",
+      "id": "newsletter_heading",
+      "label": "Newsletter Heading",
+      "default": "Fique por dentro das novidades"
+    },
+    {
+      "type": "textarea",
+      "id": "newsletter_text",
+      "label": "Newsletter Text",
+      "default": "Receba ofertas exclusivas, novos produtos e dicas de estilo diretamente no seu e-mail."
+    }
+  ]
+}
+{% endschema %}

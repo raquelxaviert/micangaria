@@ -1,11 +1,155 @@
-<div class="product-card card">
-  <a href="{{ product.url }}" style="text-decoration: none; color: inherit;">
-    <img src="{{ product.featured_image | img_url: '400x' }}" alt="{{ product.title }}" style="width: 100%; border-radius: 8px; margin-bottom: 1em;" />
-    <h3 class="headline" style="font-size: 1.2em; margin-bottom: 0.5em;">{{ product.title }}</h3>
-    <p style="margin-bottom: 0.5em; font-weight: 600; color: {{ settings.primary_color }};">{{ product.price | money }}</p>
-    <form action="/cart/add" method="post">
+<div class="card" style="background: hsl(var(--card)); border-radius: 0.75rem; overflow: hidden; transition: all 0.5s ease; border: none; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); height: 100%; display: flex; flex-direction: column; position: relative; group">
+  <!-- Image Container -->
+  <div class="card-header" style="padding: 0; position: relative; overflow: hidden;">
+    <div style="aspect-ratio: 1; position: relative; width: 100%; overflow: hidden;">
+      <img 
+        src="{{ product.featured_image | img_url: '600x' }}" 
+        alt="{{ product.title }}" 
+        class="card-image"
+        style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s ease;"
+      />
+      
+      <!-- Gradient overlay on hover -->
+      <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.2), transparent); opacity: 0; transition: opacity 0.3s ease;" class="hover-overlay"></div>
+      
+      <!-- Badges -->
+      <div style="position: absolute; top: 0.75rem; left: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
+        {% if product.available and product.compare_at_price > product.price %}
+          <span class="badge badge-destructive badge-new" style="display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; background: hsl(var(--destructive)); color: hsl(var(--destructive-foreground)); box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <i data-lucide="tag" style="width: 0.75rem; height: 0.75rem; margin-right: 0.25rem;"></i>
+            OFERTA
+          </span>
+        {% endif %}
+        {% comment %} You can add other conditions for NEW badge {% endcomment %}
+      </div>
+      
+      <!-- Heart Icon -->
+      <button 
+        class="wishlist-btn"
+        style="position: absolute; top: 0.75rem; right: 0.75rem; background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; opacity: 0;"
+        onclick="toggleWishlist(this)"
+      >
+        <i data-lucide="heart" style="width: 1rem; height: 1rem; color: hsl(var(--foreground));"></i>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Content -->
+  <div class="card-content" style="padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; gap: 0.75rem;">
+    <!-- Badges for category/type -->
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      {% if product.type != blank %}
+        <span class="badge badge-primary" style="display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600; text-transform: capitalize; background: hsl(var(--primary) / 0.1); color: hsl(var(--primary)); border: 1px solid hsl(var(--primary) / 0.3);">
+          {{ product.type }}
+        </span>
+      {% endif %}
+      {% if product.vendor != blank %}
+        <span class="badge badge-secondary" style="display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600; text-transform: capitalize; background: hsl(var(--secondary) / 0.1); color: hsl(var(--secondary)); border: 1px solid hsl(var(--secondary) / 0.3);">
+          {{ product.vendor }}
+        </span>
+      {% endif %}
+    </div>
+    
+    <!-- Title -->
+    <h3 class="headline" style="font-size: 1.25rem; font-family: 'Playfair Display', serif; color: hsl(var(--primary)); transition: color 0.3s ease; line-height: 1.2; margin: 0;">
+      {{ product.title }}
+    </h3>
+    
+    <!-- Description -->
+    <p style="font-size: 0.875rem; color: hsl(var(--muted-foreground)); line-height: 1.5; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+      {{ product.description | truncate: 100 }}
+    </p>
+    
+    <!-- Price and Rating -->
+    <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 0.5rem;">
+      <div>
+        {% if product.compare_at_price > product.price %}
+          <span style="text-decoration: line-through; color: hsl(var(--muted-foreground)); font-size: 0.875rem; margin-right: 0.5rem;">
+            {{ product.compare_at_price | money }}
+          </span>
+        {% endif %}
+        <span style="font-size: 1.5rem; font-weight: bold; color: hsl(var(--foreground));">
+          {{ product.price | money }}
+        </span>
+      </div>
+      <div style="display: flex; color: #fbbf24;">
+        {% for i in (1..5) %}
+          <i data-lucide="star" style="width: 1rem; height: 1rem; fill: currentColor;"></i>
+        {% endfor %}
+      </div>
+    </div>
+    
+    <!-- Promotion details -->
+    {% if product.compare_at_price > product.price %}
+      <div style="background: hsl(var(--accent) / 0.1); border: 1px solid hsl(var(--accent) / 0.2); border-radius: 0.5rem; padding: 0.75rem; margin-top: 0.75rem;">
+        <p style="font-size: 0.875rem; color: hsl(var(--accent-foreground)); font-weight: 500; margin: 0; display: flex; align-items: center;">
+          <i data-lucide="tag" style="width: 1rem; height: 1rem; margin-right: 0.5rem;"></i>
+          Economia de {{ product.compare_at_price | minus: product.price | money }}
+        </p>
+      </div>
+    {% endif %}
+  </div>
+  
+  <!-- Footer -->
+  <div class="card-footer" style="padding: 0 1.5rem 1.5rem;">
+    <form action="/cart/add" method="post" style="margin: 0;">
       <input type="hidden" name="id" value="{{ product.variants.first.id }}">
-      <button type="submit" class="btn-primary" style="width: 100%; margin-top: 0.5em;">Adicionar ao carrinho</button>
+      <button 
+        type="submit" 
+        class="btn btn-primary"
+        style="width: 100%; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); font-weight: 500; padding: 0.75rem; border-radius: 0.5rem; transition: all 0.3s ease; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem;"
+        {% unless product.available %}disabled{% endunless %}
+      >
+        {% if product.available %}
+          Adicionar ao carrinho
+          <i data-lucide="arrow-right" style="width: 1rem; height: 1rem; transition: transform 0.3s ease;"></i>
+        {% else %}
+          Produto esgotado
+        {% endif %}
+      </button>
     </form>
-  </a>
+  </div>
 </div>
+
+<style>
+  .card:hover .card-image {
+    transform: scale(1.1);
+  }
+  
+  .card:hover .hover-overlay {
+    opacity: 1;
+  }
+  
+  .card:hover .wishlist-btn {
+    opacity: 1;
+  }
+  
+  .card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+  
+  .card:hover .btn-primary i {
+    transform: translateX(0.25rem);
+  }
+  
+  .wishlist-btn:hover {
+    background: white;
+    color: hsl(var(--destructive));
+  }
+</style>
+
+<script>
+  function toggleWishlist(btn) {
+    const icon = btn.querySelector('i');
+    const isLiked = btn.classList.contains('liked');
+    
+    if (isLiked) {
+      btn.classList.remove('liked');
+      icon.style.fill = 'none';
+    } else {
+      btn.classList.add('liked');
+      icon.style.fill = 'currentColor';
+    }
+  }
+</script>
