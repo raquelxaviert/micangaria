@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2024-12-18.acacia',
 });
 
 export async function POST(request: NextRequest) {
@@ -75,7 +75,7 @@ async function handleSuccessfulPayment(session: Stripe.Checkout.Session) {
       currency: session.currency,
       paymentStatus: session.payment_status,
       items: fullSession.line_items?.data || [],
-      shippingAddress: session.shipping_details?.address,
+      shippingAddress: session.shipping_address_collection,
       createdAt: new Date(),
     };
 

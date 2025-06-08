@@ -374,7 +374,7 @@ function ProductForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="type">Categoria</Label>
-          <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
+          <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value as any })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -393,7 +393,7 @@ function ProductForm({
 
         <div>
           <Label htmlFor="style">Estilo</Label>
-          <Select value={formData.style} onValueChange={(value) => setFormData({ ...formData, style: value })}>
+          <Select value={formData.style} onValueChange={(value) => setFormData({ ...formData, style: value as any })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
