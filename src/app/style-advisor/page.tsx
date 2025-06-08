@@ -116,36 +116,36 @@ export default function StyleAdvisorPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <Card className="shadow-xl bg-card">
-        <CardHeader className="text-center">
-          <Wand2 className="mx-auto h-12 w-12 text-primary mb-2" />
-          <CardTitle className="text-4xl font-headline text-primary">Consultor de Estilo AI</CardTitle>
-          <CardDescription className="text-lg text-muted-foreground">
+    <div className="max-w-4xl mx-auto px-2 sm:px-4 py-4">
+      <Card className="shadow-xl bg-card w-full">
+        <CardHeader className="text-center pb-2 sm:pb-4">
+          <Wand2 className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-primary mb-1 sm:mb-2" />
+          <CardTitle className="text-2xl sm:text-4xl font-headline text-primary">Consultor de Estilo AI</CardTitle>
+          <CardDescription className="text-base sm:text-lg text-muted-foreground">
             Deixe nossa IA ajudar você a escolher os acessórios perfeitos! Descreva sua ocasião, preferências ou envie uma foto do seu look.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
             <div>
-              <Label htmlFor="occasion" className="text-lg font-medium">Ocasião (Opcional)</Label>
-              <Input id="occasion" {...register('occasion')} placeholder="Ex: Festa na praia, Jantar formal" className="mt-1 bg-input" />
-              {errors.occasion && <p className="text-sm text-destructive mt-1">{errors.occasion.message}</p>}
+              <Label htmlFor="occasion" className="text-base sm:text-lg font-medium">Ocasião (Opcional)</Label>
+              <Input id="occasion" {...register('occasion')} placeholder="Ex: Festa na praia, Jantar formal" className="mt-1 bg-input text-base sm:text-lg py-2" />
+              {errors.occasion && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.occasion.message}</p>}
             </div>
 
             <div>
-              <Label htmlFor="preferences" className="text-lg font-medium">Suas Preferências (Opcional)</Label>
-              <Textarea id="preferences" {...register('preferences')} placeholder="Ex: Amo prata, prefiro designs minimalistas, alergia a níquel" rows={4} className="mt-1 bg-input" />
-              {errors.preferences && <p className="text-sm text-destructive mt-1">{errors.preferences.message}</p>}
+              <Label htmlFor="preferences" className="text-base sm:text-lg font-medium">Suas Preferências (Opcional)</Label>
+              <Textarea id="preferences" {...register('preferences')} placeholder="Ex: Amo prata, prefiro designs minimalistas, alergia a níquel" rows={3} className="mt-1 bg-input text-base sm:text-lg py-2" />
+              {errors.preferences && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.preferences.message}</p>}
             </div>
 
             <div>
-              <Label htmlFor="outfitPhoto" className="text-lg font-medium">Foto do Look (Opcional)</Label>
+              <Label htmlFor="outfitPhoto" className="text-base sm:text-lg font-medium">Foto do Look (Opcional)</Label>
               <div className="mt-1 flex items-center justify-center w-full">
-                  <label htmlFor="outfitPhoto" className="flex flex-col items-center justify-center w-full h-32 border-2 border-border border-dashed rounded-lg cursor-pointer bg-background hover:bg-muted transition-colors">
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
-                          <p className="mb-1 text-sm text-muted-foreground">
+                  <label htmlFor="outfitPhoto" className="flex flex-col items-center justify-center w-full h-28 sm:h-32 border-2 border-border border-dashed rounded-lg cursor-pointer bg-background hover:bg-muted transition-colors">
+                      <div className="flex flex-col items-center justify-center pt-3 pb-4 sm:pt-5 sm:pb-6">
+                          <UploadCloud className="w-7 h-7 sm:w-8 sm:h-8 mb-1 sm:mb-2 text-muted-foreground" />
+                          <p className="mb-1 text-xs sm:text-sm text-muted-foreground">
                             <span className="font-semibold">Clique para enviar</span> ou arraste e solte
                           </p>
                           <p className="text-xs text-muted-foreground">PNG, JPG ou WEBP (MÁX. 5MB)</p>
@@ -154,10 +154,10 @@ export default function StyleAdvisorPage() {
                       <Input id="outfitPhoto" type="file" {...register('outfitPhoto', { onChange: handleFileChange })} className="hidden" accept=".png,.jpg,.jpeg,.webp" />
                   </label>
               </div>
-              {errors.outfitPhoto && <p className="text-sm text-destructive mt-1">{errors.outfitPhoto.message}</p>}
+              {errors.outfitPhoto && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.outfitPhoto.message}</p>}
             </div>
 
-            <Button type="submit" disabled={isLoading} className="w-full text-lg py-3 bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button type="submit" disabled={isLoading} className="w-full text-base sm:text-lg py-3 bg-primary hover:bg-primary/90 text-primary-foreground">
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Obtendo Aconselhamento...
@@ -171,7 +171,7 @@ export default function StyleAdvisorPage() {
           </form>
 
           {error && (
-             <Alert variant="destructive" className="mt-6">
+             <Alert variant="destructive" className="mt-4 sm:mt-6">
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Erro</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
@@ -179,15 +179,15 @@ export default function StyleAdvisorPage() {
           )}
 
           {recommendations && !isLoading && (
-            <Card className="mt-8 bg-input border-primary">
+            <Card className="mt-6 sm:mt-8 bg-input border-primary">
               <CardHeader>
-                <CardTitle className="text-2xl font-headline text-primary flex items-center">
-                  <CheckCircle2 className="mr-2 h-7 w-7 text-green-500" /> Suas Recomendações de Estilo
+                <CardTitle className="text-lg sm:text-2xl font-headline text-primary flex items-center">
+                  <CheckCircle2 className="mr-2 h-6 w-6 sm:h-7 sm:w-7 text-green-500" /> Suas Recomendações de Estilo
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 sm:space-y-4">
                 <div>
-                  <h4 className="font-semibold text-lg text-foreground mb-2">Acessórios Recomendados:</h4>
+                  <h4 className="font-semibold text-base sm:text-lg text-foreground mb-1 sm:mb-2">Acessórios Recomendados:</h4>
                   {recommendations.recommendations.length > 0 ? (
                     <ul className="list-disc list-inside space-y-1 pl-2 text-foreground">
                       {recommendations.recommendations.map((rec, index) => (
@@ -199,10 +199,10 @@ export default function StyleAdvisorPage() {
                   )}
                 </div>
                 <div>
-                  <h4 className="font-semibold text-lg text-foreground mb-2">Justificativa:</h4>
+                  <h4 className="font-semibold text-base sm:text-lg text-foreground mb-1 sm:mb-2">Justificativa:</h4>
                   <p className="text-foreground whitespace-pre-wrap">{recommendations.reasoning}</p>
                 </div>
-                 <Button variant="outline" onClick={() => { setRecommendations(null); reset(); setFileName(null); }} className="mt-4 text-primary border-primary hover:bg-primary hover:text-primary-foreground">
+                 <Button variant="outline" onClick={() => { setRecommendations(null); reset(); setFileName(null); }} className="mt-3 sm:mt-4 text-primary border-primary hover:bg-primary hover:text-primary-foreground">
                     Começar de Novo
                 </Button>
               </CardContent>
