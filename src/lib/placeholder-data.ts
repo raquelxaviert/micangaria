@@ -16,7 +16,7 @@ export interface Product {
 export const products: Product[] = [  {
     id: '1',
     name: 'Anel Yara da Floresta',
-    description: 'Anel artesanal inspirado na lenda da Iara, com pedras naturais brasileiras e acabamento em prata. Simboliza a conexão com as águas sagradas.',
+    description: 'Anel elegante inspirado na lenda da Iara, com pedras naturais brasileiras e acabamento em prata. Simboliza a conexão com as águas sagradas.',
     price: 125.90,
     imageUrl: '/products/anel.jpg',
     imageHint: 'forest goddess silver ring with natural Brazilian stones',
@@ -28,7 +28,7 @@ export const products: Product[] = [  {
   {
     id: '2',
     name: 'Bolsa Amazônia Tecida',
-    description: 'Bolsa artesanal tecida à mão com fibras naturais da Amazônia. Design sustentável que carrega a alma da floresta brasileira.',
+    description: 'Bolsa única tecida à mão com fibras naturais da Amazônia. Design sustentável que carrega a alma da floresta brasileira.',
     price: 189.50,
     imageUrl: '/products/bolsa.jpg',
     imageHint: 'handwoven Amazon fiber bag with natural patterns',
@@ -205,7 +205,7 @@ export const products: Product[] = [  {
   {
     id: '17',
     name: 'Pulseira Mãe-da-Mata',
-    description: 'Pulseira artesanal dedicada à Mãe-da-Mata, protetora da floresta. Feita com cipó e sementes coletadas sustentavelmente.',
+    description: 'Pulseira especial dedicada à Mãe-da-Mata, protetora da floresta. Feita com cipó e sementes coletadas sustentavelmente.',
     price: 78.90,
     imageUrl: '/products/pulseira.jpg',
     imageHint: 'forest mother bracelet with sustainable vine and seeds',
@@ -216,15 +216,14 @@ export const products: Product[] = [  {
   {
     id: '18',
     name: 'Sandália Pajé Sagrada',
-    description: 'Sandália artesanal com símbolos xamânicos bordados à mão. Feita com couro vegetal e sola de borracha natural da Amazônia.',
+    description: 'Sandália exclusiva com símbolos xamânicos bordados à mão. Feita com couro vegetal e sola de borracha natural da Amazônia.',
     price: 245.75,
     imageUrl: '/products/sandalia.jpg',
     imageHint: 'sacred shaman sandals with hand-embroidered symbols and natural rubber',
     type: 'sandalia',
     style: 'indígena',
-    colors: ['couro natural', 'bordado multicolor', 'sola borracha'],
-    isPromotion: true,
-    promotionDetails: 'Artesania Brasileira - Frete Grátis!',
+    colors: ['couro natural', 'bordado multicolor', 'sola borracha'],    isPromotion: true,
+    promotionDetails: 'Coleção Brasileira - Frete Grátis!',
   }
 ];
 

@@ -135,9 +135,8 @@ export default function AboutPage() {
 
       {/* Why Choose Us */}
       <section className="bg-gradient-to-r from-muted/30 to-accent/5 py-16 rounded-3xl">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-headline text-primary mb-6">
-            Por que Escolher a Miçangueria?
+        <div className="text-center mb-12">          <h2 className="text-4xl font-headline text-primary mb-6">
+            Por que Escolher a Miçangaria?
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Minha experiência como personal trainer me ensinou a importância do cuidado, da dedicação e do atendimento personalizado.
@@ -192,10 +191,9 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto">
           <h2 className="text-4xl font-headline text-primary mb-8">
             Uma Mensagem Pessoal
-          </h2>
-          <blockquote className="text-xl italic text-muted-foreground leading-relaxed mb-8 border-l-4 border-accent pl-8">
+          </h2>          <blockquote className="text-xl italic text-muted-foreground leading-relaxed mb-8 border-l-4 border-accent pl-8">
             "Acredito que quando você encontra algo que realmente ama fazer, não é trabalho - é paixão. 
-            A Miçangueria é minha forma de compartilhar essa paixão com você, oferecendo não apenas acessórios, 
+            A Miçangaria é minha forma de compartilhar essa paixão com você, oferecendo não apenas acessórios, 
             mas pequenos tesouros que fazem seus olhos brilharem da mesma forma que os meus brilham quando os encontro."
           </blockquote>
           <div className="flex items-center justify-center gap-4">
@@ -206,10 +204,9 @@ export default function AboutPage() {
                 fill
                 className="object-cover"
               />
-            </div>
-            <div className="text-left">
+            </div>            <div className="text-left">
               <p className="font-semibold text-primary">Maria Clara</p>
-              <p className="text-sm text-muted-foreground">Fundadora da Miçangueria</p>
+              <p className="text-sm text-muted-foreground">Fundadora da Miçangaria</p>
             </div>
           </div>
         </div>

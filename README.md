@@ -1,6 +1,6 @@
-# Miçangueria - Acessórios Boho & Indígenas
+# Miçangaria - Acessórios Boho & Indígenas
 
-Este é um projeto Next.js para uma loja online de acessórios artesanais.
+Este é um projeto Next.js para uma loja online de acessórios boho cuidadosamente selecionados.
 
 ## Como executar
 
