@@ -142,18 +142,28 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="space-y-20">
-      {/* Hero Section - Enhanced */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/5 via-background to-secondary/5 min-h-[80vh] flex items-center">
+    <div className="space-y-20">      {/* Hero Section - Enhanced */}
+      <section className="relative overflow-hidden rounded-3xl min-h-[60vh] flex items-center">
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent" />
-          <div className="absolute top-10 right-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-10 left-10 w-96 h-96 bg-secondary/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}} />
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-accent/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}} />
+          <Image
+            src="/banner/banner.jpg"
+            alt="Banner de acessórios boho"
+            fill
+            className="object-cover blur-[2px]"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-white/70 to-white/30" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" /> {/* Existing gradient for subtle color effect */}
+          <div className="absolute top-10 right-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-10 left-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}} />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}} />
         </div>
         
         <div className="relative z-10 container mx-auto px-6 py-20 md:py-32 text-center">
-          <div className="max-w-5xl mx-auto space-y-10">            <div className="space-y-6">              <Badge className="bg-accent/15 text-accent-foreground border-accent/30 px-6 py-3 text-base font-medium animate-bounce backdrop-blur-sm">
+          {/* MODIFIED: Added bg-background/30 backdrop-blur-md p-6 md:p-8 rounded-xl shadow-lg */}
+          <div className="max-w-5xl mx-auto space-y-10 bg-background/30 backdrop-blur-md p-6 md:p-8 rounded-xl shadow-lg">
+            <div className="space-y-6">
+              <Badge className="bg-accent/15 text-accent-foreground border-accent/30 px-6 py-3 text-base font-medium animate-bounce backdrop-blur-sm">
                 ✨ A melhor curadoria de acessórios boho ✨
               </Badge>
               
@@ -190,7 +200,7 @@ export default function HomePage() {
                 className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-10 py-5 text-lg font-semibold rounded-full transition-all duration-500 hover:-translate-y-2 transform backdrop-blur-sm"
               >
                 <Link href="/style-advisor">
-                  Consultor de Estilo AI
+                  Consultor Miçang.AI
                   <Sparkles className="ml-3 h-5 w-5" />
                 </Link>
               </Button>
@@ -219,50 +229,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Categories Section - New */}
-      <section className="container mx-auto px-6">
-        <div className="text-center mb-16">
-          <Badge className="bg-secondary/10 text-secondary border-secondary/20 mb-6">
-            Explore por Categoria
-          </Badge>
-          <h2 className="text-5xl font-headline text-primary mb-6">
-            Encontre Seu Estilo
-          </h2>          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Navegue pelas nossas categorias cuidadosamente organizadas e descubra peças únicas que combinam com sua personalidade.
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-          {categories.map((category, index) => (
-            <Card key={category.name} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 bg-gradient-to-br from-card to-primary/5 border-0">
-              <CardContent className="p-8 text-center space-y-4">
-                <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
-                  {category.icon}
-                </div>
-                <h3 className="font-headline text-xl text-primary group-hover:text-primary/80 transition-colors">
-                  {category.name}
-                </h3>
-                <p className="text-muted-foreground text-sm">
-                  {category.count} produtos
-                </p>
-                <Button 
-                  asChild 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
-                >
-                  <Link href={`/products?category=${category.name.toLowerCase()}`}>
-                    Ver Todos
-                    <ArrowRight className="ml-2 w-4 h-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      {/* Featured Products Preview */}
+      {/* Featured Products Preview (MOVED HERE) */}
       <section className="container mx-auto px-6">
         <div className="text-center mb-12">
           <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">
@@ -294,6 +261,50 @@ export default function HomePage() {
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </Button>
+        </div>
+      </section>
+
+      {/* Categories Section - New (NOW AFTER FEATURED PRODUCTS) */}
+      <section className="container mx-auto px-6">
+        <div className="text-center mb-16">
+          <Badge className="bg-secondary/10 text-secondary border-secondary/20 mb-6">
+            Explore por Categoria
+          </Badge>
+          <h2 className="text-5xl font-headline text-primary mb-6">
+            Encontre Seu Estilo
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            Navegue pelas nossas categorias cuidadosamente organizadas e descubra peças únicas que combinam com sua personalidade.
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+          {categories.map((category, index) => (
+            <Card key={category.name} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 bg-gradient-to-br from-card to-primary/5 border-0">
+              <CardContent className="p-8 text-center space-y-4">
+                <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
+                  {category.icon}
+                </div>
+                <h3 className="font-headline text-xl text-primary group-hover:text-primary/80 transition-colors">
+                  {category.name}
+                </h3>
+                <p className="text-muted-foreground text-sm">
+                  {category.count} produtos
+                </p>
+                <Button 
+                  asChild 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
+                >
+                  <Link href={`/products?category=${category.name.toLowerCase()}`}>
+                    Ver Todos
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </section>
 
@@ -545,7 +556,7 @@ export default function HomePage() {
                 className="bg-secondary hover:bg-secondary/90 text-secondary-foreground px-8 py-4 text-lg font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
               >
                 <Link href="/style-advisor">
-                  Experimente o Consultor AI
+                  Experimente o Consultor Miçang.AI
                   <Sparkles className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
