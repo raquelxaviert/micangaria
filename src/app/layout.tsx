@@ -5,8 +5,8 @@ import { Footer } from '@/components/global/Footer';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'Miçangaria - Acessórios Boho & Indígenas',
-  description: 'Descubra acessórios boho e indígenas únicos na Miçangaria.',
+  title: 'miçangaria - Acessórios Boho & Indígenas',
+  description: 'Descubra acessórios boho e indígenas únicos na miçangaria.',
 };
 
 export default function RootLayout({

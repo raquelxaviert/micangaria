@@ -200,7 +200,7 @@ export default function HomePage() {
                 className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-10 py-5 text-lg font-semibold rounded-full transition-all duration-500 hover:-translate-y-2 transform backdrop-blur-sm"
               >
                 <Link href="/style-advisor">
-                  Consultor Miçangar.IA
+                  Consultor miçangar.IA
                   <Sparkles className="ml-3 h-5 w-5" />
                 </Link>
               </Button>
@@ -303,7 +303,7 @@ export default function HomePage() {
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <Badge className="bg-accent/10 text-accent border-accent/20 mb-6">
-              Por que escolher a Miçangaria?
+              Por que escolher a miçangaria?
             </Badge>
             <h2 className="text-4xl font-headline text-primary mb-6">
               Qualidade que Você Pode Confiar
@@ -546,7 +546,7 @@ export default function HomePage() {
                 className="bg-secondary hover:bg-secondary/90 text-secondary-foreground px-8 py-4 text-lg font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
               >
                 <Link href="/style-advisor">
-                  Experimente o Consultor Miçangar.IA
+                  Experimente o Consultor miçangar.IA
                   <Sparkles className="ml-2 h-5 w-5" />
                 </Link>
               </Button>

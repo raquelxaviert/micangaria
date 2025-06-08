@@ -6,7 +6,7 @@ export function Header() {
     <header className="bg-card text-foreground shadow-md border-b border-border">
       <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center">
         <Link href="/" className="text-3xl font-headline hover:text-primary transition-colors">
-          Miçangaria
+          miçangaria
         </Link>
         <nav className="mt-4 sm:mt-0">
           <ul className="flex space-x-4 sm:space-x-6 items-center">

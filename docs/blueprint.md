@@ -1,4 +1,4 @@
-# **App Name**: Miçangaria
+# **App Name**: miçangaria
 
 ## Core Features:
 

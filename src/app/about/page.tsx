@@ -24,7 +24,7 @@ export default function AboutPage() {
       <section className="grid lg:grid-cols-2 gap-12 items-center">
         <div className="relative aspect-square lg:aspect-auto lg:h-[600px] rounded-2xl overflow-hidden shadow-2xl order-2 lg:order-1">          <Image 
             src="/maria.png" 
-            alt="Maria Clara - Fundadora da Miçangaria" 
+            alt="Maria Clara - Fundadora da miçangaria" 
             fill
             className="object-cover"
             priority
@@ -51,7 +51,7 @@ export default function AboutPage() {
               Passava horas folheando revistas, criando looks e sonhando com peças únicas que contassem histórias. 
               Era como se houvesse uma parte de mim que sempre soube que um dia seguiria esse caminho.
             </p>            <p className="text-lg leading-relaxed text-muted-foreground">
-              A Miçangaria nasceu quando finalmente decidi <span className="text-accent font-semibold">perseguir essa paixão</span>. 
+              A miçangaria nasceu quando finalmente decidi <span className="text-accent font-semibold">perseguir essa paixão</span>. 
               Descobri que uma das coisas que mais amo fazer é <span className="text-primary font-semibold">procurar e curar peças especiais</span> 
               - acessórios únicos que capturam a essência do estilo boho e celebram nossa rica cultura brasileira.
             </p>
@@ -84,7 +84,7 @@ export default function AboutPage() {
       {/* Mission & Values */}
       <section className="space-y-12">
         <div className="text-center">          <h2 className="text-4xl font-headline text-primary mb-6">
-            Minha Missão com a Miçangaria
+            Minha Missão com a miçangaria
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Cada peça que escolho carrega uma história, uma emoção, um pedacinho de arte que merece ser celebrado.
@@ -136,7 +136,7 @@ export default function AboutPage() {
       {/* Why Choose Us */}
       <section className="bg-gradient-to-r from-muted/30 to-accent/5 py-16 rounded-3xl">
         <div className="text-center mb-12">          <h2 className="text-4xl font-headline text-primary mb-6">
-            Por que Escolher a Miçangaria?
+            Por que Escolher a miçangaria?
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Minha experiência como personal trainer me ensinou a importância do cuidado, da dedicação e do atendimento personalizado.
@@ -193,7 +193,7 @@ export default function AboutPage() {
             Uma Mensagem Pessoal
           </h2>          <blockquote className="text-xl italic text-muted-foreground leading-relaxed mb-8 border-l-4 border-accent pl-8">
             "Acredito que quando você encontra algo que realmente ama fazer, não é trabalho - é paixão. 
-            A Miçangaria é minha forma de compartilhar essa paixão com você, oferecendo não apenas acessórios, 
+            A miçangaria é minha forma de compartilhar essa paixão com você, oferecendo não apenas acessórios, 
             mas pequenos tesouros que fazem seus olhos brilharem da mesma forma que os meus brilham quando os encontro."
           </blockquote>
           <div className="flex items-center justify-center gap-4">
@@ -206,7 +206,7 @@ export default function AboutPage() {
               />
             </div>            <div className="text-left">
               <p className="font-semibold text-primary">Maria Clara</p>
-              <p className="text-sm text-muted-foreground">Fundadora da Miçangaria</p>
+              <p className="text-sm text-muted-foreground">Fundadora da miçangaria</p>
             </div>
           </div>
         </div>
