@@ -13,7 +13,7 @@ export default function AboutPage() {
         <Badge className="bg-accent/15 text-accent-foreground border-accent/30 mb-6">
           ✨ Nossa História ✨
         </Badge>        <h1 className="text-5xl md:text-6xl font-headline text-primary mb-6">
-          Conhece a Maria Clara
+          Conheça Maria Clara
         </h1>
         <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
           Uma jornada de descoberta pessoal que transformou paixão em propósito
@@ -231,7 +231,7 @@ export default function AboutPage() {
             >
               <Link href="/style-advisor">
                 <Sparkles className="mr-2 h-5 w-5" />
-                Consultor de Estilo AI
+                Consultor de miçangar.IA
               </Link>
             </Button>
             

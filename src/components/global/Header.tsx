@@ -38,7 +38,7 @@ export function Header() {
               <Button 
                 type="submit" 
                 size="sm" 
-                className="absolute right-1 top-1 bottom-1 px-3 bg-primary hover:bg-primary/90"
+                className="absolute right-1.5 top-1/2 transform -translate-y-1/2 px-3 bg-primary hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 <Search size={16} />
               </Button>
@@ -113,7 +113,7 @@ export function Header() {
               <Button 
                 type="submit" 
                 size="sm" 
-                className="absolute right-1 top-1 bottom-1 px-3 bg-primary hover:bg-primary/90"
+                className="absolute right-1.5 top-1/2 transform -translate-y-1/2 px-3 bg-primary hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 <Search size={16} />
               </Button>

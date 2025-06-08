@@ -120,7 +120,7 @@ export default function StyleAdvisorPage() {
       <Card className="shadow-xl bg-card w-full">
         <CardHeader className="text-center pb-2 sm:pb-4">
           <Wand2 className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-primary mb-1 sm:mb-2" />
-          <CardTitle className="text-2xl sm:text-4xl font-headline text-primary">Consultor de Estilo AI</CardTitle>
+          <CardTitle className="text-2xl sm:text-4xl font-headline text-primary">Consultor de miçangar.IA</CardTitle>
           <CardDescription className="text-base sm:text-lg text-muted-foreground">
             Deixe nossa IA ajudar você a escolher os acessórios perfeitos! Descreva sua ocasião, preferências ou envie uma foto do seu look.
           </CardDescription>
