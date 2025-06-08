@@ -204,24 +204,14 @@ export default function HomePage() {
                   <Sparkles className="ml-3 h-5 w-5" />
                 </Link>
               </Button>
-            </div>
-            
-            {/* Enhanced trust indicators */}
+            </div>              {/* Enhanced trust indicators */}
             <div className="flex flex-wrap justify-center items-center gap-8 pt-12">
               <div className="flex items-center gap-3 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 border border-primary/20">
                 <Shield className="w-5 h-5 text-primary" />
                 <span className="text-sm font-medium text-foreground">Qualidade Garantida</span>
               </div>
               <div className="flex items-center gap-3 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 border border-secondary/20">
-                <Leaf className="w-5 h-5 text-secondary" />
-                <span className="text-sm font-medium text-foreground">Materiais Sustentáveis</span>
-              </div>
-              <div className="flex items-center gap-3 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 border border-accent/20">
-                <Heart className="w-5 h-5 text-accent" />
-                <span className="text-sm font-medium text-foreground">Feito com Amor</span>
-              </div>
-              <div className="flex items-center gap-3 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 border border-primary/20">
-                <Truck className="w-5 h-5 text-primary" />
+                <Truck className="w-5 h-5 text-secondary" />
                 <span className="text-sm font-medium text-foreground">Frete Grátis</span>
               </div>
             </div>
