@@ -4,92 +4,94 @@
 
 @layer base {
   :root {
-    --background: 42 15% 97%; /* Warm cream white */
-    --foreground: 25 25% 15%; /* Rich dark brown */
+    --background: 40 33% 96%; /* Branco cru */
+    --foreground: 27 48% 20%; /* Marrom escuro */
 
-    --card: 0 0% 100%; /* Pure white for contrast */
-    --card-foreground: 25 25% 15%; /* Rich dark brown */
+    --card: 0 0% 100%; /* Branco puro para contraste */
+    --card-foreground: 27 48% 20%; /* Marrom escuro */
 
-    --popover: 0 0% 100%; /* Pure white */
-    --popover-foreground: 25 25% 15%; /* Rich dark brown */
+    --popover: 0 0% 100%;
+    --popover-foreground: 27 48% 20%;
 
-    --primary: 25 85% 55%; /* Vibrant terracotta/rust */
-    --primary-foreground: 42 15% 97%; /* Warm cream for text on primary */
+    --primary: 24 56% 51%; /* Terracota queimado */
+    --primary-foreground: 40 33% 96%; /* Branco cru para texto no terracota */
 
-    --secondary: 160 35% 45%; /* Deep sage green */
-    --secondary-foreground: 42 15% 97%; /* Warm cream for text on secondary */
+    --secondary: 146 36% 35%; /* Verde folha */
+    --secondary-foreground: 40 33% 96%; /* Branco cru para texto no verde */
 
-    --muted: 42 10% 90%; /* Soft warm gray */
-    --muted-foreground: 25 15% 40%; /* Medium warm brown for muted text */
+    --muted: 46 77% 85%; /* Amarelo palha */
+    --muted-foreground: 27 48% 40%; /* Marrom médio */
 
-    --accent: 45 75% 60%; /* Warm golden yellow */
-    --accent-foreground: 25 25% 15%; /* Rich dark brown for text on accent */
+    --accent: 146 36% 45%; /* Verde folha mais claro */
+    --accent-foreground: 27 48% 20%;
 
-    --destructive: 0 75% 60%; /* Vibrant red for destructive actions */
+    --destructive: 0 75% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 42 8% 82%; /* Warm light gray border */
-    --input: 0 0% 100%; /* White for input backgrounds */
-    --ring: 25 85% 65%; /* Primary color for focus rings, slightly lighter */
+    --border: 40 20% 85%; /* Bege claro para bordas */
+    --input: 0 0% 100%;
+    --ring: 24 56% 60%; /* Terracota mais claro para foco */
 
-    --radius: 0.5rem; /* More rounded for modern feel */    --chart-1: hsl(var(--primary));
-    --chart-2: hsl(var(--secondary));
-    --chart-3: hsl(var(--accent));
-    --chart-4: 25 70% 65%; /* Warm rust variant */
-    --chart-5: 160 30% 55%; /* Sage variant */
-
-    --sidebar-background: 42 12% 94%; 
-    --sidebar-foreground: 25 25% 15%;
-    --sidebar-primary: hsl(var(--primary));
-    --sidebar-primary-foreground: hsl(var(--primary-foreground));
-    --sidebar-accent: hsl(var(--accent));
-    --sidebar-accent-foreground: hsl(var(--accent-foreground));
-    --sidebar-border: 42 8% 75%;
-    --sidebar-ring: hsl(var(--ring));
-  }
-
-  .dark {
-    --background: 25 20% 8%; /* Rich dark brown */
-    --foreground: 42 15% 92%; /* Warm cream */
-
-    --card: 25 15% 12%; /* Dark brown card */
-    --card-foreground: 42 15% 92%; /* Warm cream */
-
-    --popover: 25 15% 12%; /* Dark brown */
-    --popover-foreground: 42 15% 92%; /* Warm cream */
-
-    --primary: 25 80% 60%; /* Bright terracotta for dark mode */
-    --primary-foreground: 25 20% 8%; /* Dark brown */
-
-    --secondary: 160 40% 50%; /* Vibrant sage for dark mode */
-    --secondary-foreground: 25 20% 8%; /* Dark brown */
-
-    --muted: 25 10% 20%; /* Dark warm gray */
-    --muted-foreground: 42 10% 70%; /* Light warm gray */
-
-    --accent: 45 70% 65%; /* Bright golden yellow for dark mode */
-    --accent-foreground: 25 20% 8%; /* Dark brown */
-
-    --destructive: 0 70% 65%; /* Bright red for dark mode */
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 25 10% 25%; /* Dark warm border */
-    --input: 25 15% 15%; /* Dark brown input */
-    --ring: 25 80% 70%; /* Bright primary for dark mode */
+    --radius: 0.5rem;
 
     --chart-1: hsl(var(--primary));
     --chart-2: hsl(var(--secondary));
     --chart-3: hsl(var(--accent));
-    --chart-4: 25 75% 70%; /* Bright rust variant */
-    --chart-5: 160 35% 60%; /* Bright sage variant */
+    --chart-4: 24 56% 60%; /* Terracota variante */
+    --chart-5: 146 36% 55%; /* Verde variante */
 
-    --sidebar-background: 25 18% 10%;
-    --sidebar-foreground: 42 15% 88%;
+    --sidebar-background: 40 33% 96%;
+    --sidebar-foreground: 27 48% 20%;
     --sidebar-primary: hsl(var(--primary));
     --sidebar-primary-foreground: hsl(var(--primary-foreground));
     --sidebar-accent: hsl(var(--accent));
     --sidebar-accent-foreground: hsl(var(--accent-foreground));
-    --sidebar-border: 25 10% 20%;
+    --sidebar-border: 40 20% 80%;
+    --sidebar-ring: hsl(var(--ring));
+  }
+
+  .dark {
+    --background: 27 48% 10%; /* Marrom escuro profundo */
+    --foreground: 40 33% 96%; /* Branco cru */
+
+    --card: 27 48% 15%;
+    --card-foreground: 40 33% 96%;
+
+    --popover: 27 48% 15%;
+    --popover-foreground: 40 33% 96%;
+
+    --primary: 24 56% 60%;
+    --primary-foreground: 27 48% 10%;
+
+    --secondary: 146 36% 45%;
+    --secondary-foreground: 27 48% 10%;
+
+    --muted: 46 77% 25%;
+    --muted-foreground: 40 33% 70%;
+
+    --accent: 146 36% 55%;
+    --accent-foreground: 27 48% 10%;
+
+    --destructive: 0 70% 65%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 27 48% 25%;
+    --input: 27 48% 15%;
+    --ring: 24 56% 70%;
+
+    --chart-1: hsl(var(--primary));
+    --chart-2: hsl(var(--secondary));
+    --chart-3: hsl(var(--accent));
+    --chart-4: 24 56% 70%;
+    --chart-5: 146 36% 65%;
+
+    --sidebar-background: 27 48% 12%;
+    --sidebar-foreground: 40 33% 88%;
+    --sidebar-primary: hsl(var(--primary));
+    --sidebar-primary-foreground: hsl(var(--primary-foreground));
+    --sidebar-accent: hsl(var(--accent));
+    --sidebar-accent-foreground: hsl(var(--accent-foreground));
+    --sidebar-border: 27 48% 20%;
     --sidebar-ring: hsl(var(--ring));
   }
 }
@@ -115,7 +117,8 @@
   .animate-fade-in {
     animation: fade-in 1s ease-out;
   }
-    .line-clamp-2 {
+  
+  .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
