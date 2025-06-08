@@ -7,7 +7,7 @@ import { ArrowRight, Tag, Zap, Sparkles } from 'lucide-react';
 
 function ProductCard({ product }: { product: Product }) {
   return (
-    <Card className="flex flex-col h-full shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg overflow-hidden">
+    <Card className="flex flex-col h-full shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg overflow-hidden bg-card">
       <CardHeader className="p-0">
         <div className="aspect-video relative w-full">
           <Image
@@ -20,18 +20,18 @@ function ProductCard({ product }: { product: Product }) {
         </div>
       </CardHeader>
       <CardContent className="flex-grow p-4">
-        <CardTitle className="text-xl mb-2 font-headline">{product.name}</CardTitle>
+        <CardTitle className="text-xl mb-2 font-headline text-primary">{product.name}</CardTitle>
         <CardDescription className="text-sm text-muted-foreground mb-2 capitalize">{product.style} {product.type}</CardDescription>
-        <p className="text-lg font-semibold text-primary">${product.price.toFixed(2)}</p>
+        <p className="text-lg font-semibold text-foreground">${product.price.toFixed(2)}</p>
         {product.isPromotion && product.promotionDetails && (
-          <p className="text-sm text-accent mt-1 flex items-center">
+          <p className="text-sm text-accent-foreground bg-accent px-2 py-1 rounded inline-flex items-center mt-1">
             <Tag size={16} className="mr-1" /> {product.promotionDetails}
           </p>
         )}
       </CardContent>
       <CardFooter className="p-4 pt-0">
         <Button asChild variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-          <Link href={`/products#${product.id}`}>View Details</Link>
+          <Link href={`/products#${product.id}`}>Ver Detalhes</Link>
         </Button>
       </CardFooter>
     </Card>
@@ -50,21 +50,21 @@ export default function HomePage() {
       <section className="relative text-center py-16 md:py-24 rounded-lg overflow-hidden bg-card shadow-xl">
         <Image 
           src="https://placehold.co/1200x500.png" 
-          alt="Boho accessories hero image" 
+          alt="Acessórios boho e indígenas em destaque" 
           layout="fill" 
           objectFit="cover" 
-          className="opacity-30"
+          className="opacity-20"
           data-ai-hint="boho accessories" 
         />
         <div className="relative z-10 container mx-auto px-4">
           <h1 className="text-4xl md:text-6xl font-headline text-primary mb-6">
-            Discover Your Unique Style
+            Descubra Seu Estilo Único
           </h1>
           <p className="text-lg md:text-xl text-foreground mb-8 max-w-2xl mx-auto">
-            Explore handcrafted boho and indigenous accessories that tell a story.
+            Explore acessórios artesanais boho e indígenas que contam uma história.
           </p>
-          <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-            <Link href="/products">Shop Collection <ArrowRight className="ml-2 h-5 w-5" /></Link>
+          <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Link href="/products">Ver Coleção <ArrowRight className="ml-2 h-5 w-5" /></Link>
           </Button>
         </div>
       </section>
@@ -74,10 +74,10 @@ export default function HomePage() {
         <section>
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-headline text-primary flex items-center">
-              <Zap size={28} className="mr-2 text-secondary" /> New Arrivals
+              <Zap size={28} className="mr-2 text-secondary" /> Novidades
             </h2>
-            <Button variant="link" asChild className="text-accent">
-              <Link href="/products?filter=new">View All <ArrowRight className="ml-1 h-4 w-4" /></Link>
+            <Button variant="link" asChild className="text-accent-foreground hover:text-primary">
+              <Link href="/products?filter=new">Ver Todos <ArrowRight className="ml-1 h-4 w-4" /></Link>
             </Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -93,10 +93,10 @@ export default function HomePage() {
         <section>
            <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-headline text-primary flex items-center">
-              <Tag size={28} className="mr-2 text-secondary" /> Special Promotions
+              <Tag size={28} className="mr-2 text-secondary" /> Promoções Especiais
             </h2>
-            <Button variant="link" asChild className="text-accent">
-              <Link href="/products?filter=promotions">View All <ArrowRight className="ml-1 h-4 w-4" /></Link>
+            <Button variant="link" asChild className="text-accent-foreground hover:text-primary">
+              <Link href="/products?filter=promotions">Ver Todas <ArrowRight className="ml-1 h-4 w-4" /></Link>
             </Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -109,12 +109,12 @@ export default function HomePage() {
       
       {/* Call to action for AI Style Advisor */}
       <section className="py-12 bg-card rounded-lg shadow-lg text-center">
-        <h2 className="text-3xl font-headline text-primary mb-4">Need Style Advice?</h2>
+        <h2 className="text-3xl font-headline text-primary mb-4">Precisa de Dicas de Estilo?</h2>
         <p className="text-lg text-foreground mb-6 max-w-xl mx-auto">
-          Let our AI Style Advisor help you find the perfect accessories for any outfit or occasion.
+          Deixe nosso Consultor de Estilo AI ajudar você a encontrar os acessórios perfeitos para qualquer look ou ocasião.
         </p>
         <Button asChild size="lg" className="bg-secondary hover:bg-secondary/90 text-secondary-foreground">
-          <Link href="/style-advisor">Try AI Advisor <Sparkles className="ml-2 h-5 w-5" /></Link>
+          <Link href="/style-advisor">Experimente o Consultor AI <Sparkles className="ml-2 h-5 w-5" /></Link>
         </Button>
       </section>
     </div>

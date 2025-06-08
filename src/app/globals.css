@@ -4,97 +4,95 @@
 
 @layer base {
   :root {
-    --background: 45 67% 86%; /* Sandy Beige */
-    --foreground: 17 19% 25%; /* Dark Brown */
+    --background: 0 0% 98%; /* Very Light Gray / Off-White */
+    --foreground: 0 0% 20%; /* Dark Gray */
 
-    --card: 45 67% 89%;
-    --card-foreground: 17 19% 25%;
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 0 0% 20%; /* Dark Gray */
 
-    --popover: 45 67% 89%;
-    --popover-foreground: 17 19% 25%;
+    --popover: 0 0% 100%; /* White */
+    --popover-foreground: 0 0% 20%; /* Dark Gray */
 
-    --primary: 358 47% 45%; /* Earthy Red */
-    --primary-foreground: 45 67% 95%; /* Light Beige/White */
+    --primary: 10 50% 65%; /* Dusty Rose / Light Terracotta */
+    --primary-foreground: 0 0% 100%; /* White for text on primary */
 
-    --secondary: 46 71% 58%; /* Golden Yellow */
-    --secondary-foreground: 17 19% 25%; /* Dark Brown */
+    --secondary: 80 25% 70%; /* Soft Sage Green */
+    --secondary-foreground: 0 0% 20%; /* Dark Gray for text on secondary */
 
-    --muted: 45 50% 80%;
-    --muted-foreground: 17 15% 45%;
+    --muted: 0 0% 92%; /* Light Gray for subtle backgrounds or dividers - slightly darker than background */
+    --muted-foreground: 0 0% 35%; /* Medium Gray for muted text */
 
-    --accent: 167 44% 49%; /* Vibrant Teal */
-    --accent-foreground: 45 67% 95%; /* Light Beige/White */
+    --accent: 30 40% 75%; /* Warm Light Beige/Tan */
+    --accent-foreground: 0 0% 20%; /* Dark Gray for text on accent */
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 70% 55%; /* A slightly softer red for destructive actions */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 358 30% 75%; /* Muted earthy red for borders */
-    --input: 358 30% 80%; /* Lighter muted earthy red for input borders */
-    --ring: 358 47% 45%; /* Primary color for focus rings */
+    --border: 0 0% 85%; /* Light gray border */
+    --input: 0 0% 100%;   /* White for input backgrounds like cards */
+    --ring: 10 50% 70%; /* Primary color for focus rings, slightly lighter */
 
-    --radius: 0.5rem;
+    --radius: 0.375rem; /* Slightly less rounded */
 
-    --chart-1: 358 47% 45%;
-    --chart-2: 46 71% 58%;
-    --chart-3: 167 44% 49%;
-    --chart-4: 358 60% 60%;
-    --chart-5: 46 80% 70%;
+    --chart-1: hsl(var(--primary));
+    --chart-2: hsl(var(--secondary));
+    --chart-3: hsl(var(--accent));
+    --chart-4: 10 50% 75%; 
+    --chart-5: 80 25% 80%; 
 
-    /* Sidebar specific colors, can be adjusted if sidebar is heavily themed */
-    --sidebar-background: 45 60% 83%; /* Slightly darker beige for sidebar */
-    --sidebar-foreground: 17 19% 25%;
-    --sidebar-primary: 358 47% 45%;
-    --sidebar-primary-foreground: 45 67% 95%;
-    --sidebar-accent: 167 44% 49%;
-    --sidebar-accent-foreground: 45 67% 95%;
-    --sidebar-border: 358 30% 70%;
-    --sidebar-ring: 358 47% 45%;
+    --sidebar-background: 0 0% 96%; 
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: hsl(var(--primary));
+    --sidebar-primary-foreground: hsl(var(--primary-foreground));
+    --sidebar-accent: hsl(var(--accent));
+    --sidebar-accent-foreground: hsl(var(--accent-foreground));
+    --sidebar-border: 0 0% 80%;
+    --sidebar-ring: hsl(var(--ring));
   }
 
   .dark {
-    /* Define dark theme if needed, for now keeping it consistent with light but inverted */
-    --background: 17 19% 15%; /* Darker Brown */
-    --foreground: 45 67% 86%; /* Sandy Beige */
+    --background: 0 0% 10%; 
+    --foreground: 0 0% 90%; 
 
-    --card: 17 19% 20%;
-    --card-foreground: 45 67% 86%;
+    --card: 0 0% 15%;
+    --card-foreground: 0 0% 90%;
 
-    --popover: 17 19% 20%;
-    --popover-foreground: 45 67% 86%;
+    --popover: 0 0% 15%;
+    --popover-foreground: 0 0% 90%;
 
-    --primary: 358 47% 55%; /* Slightly lighter Earthy Red for dark mode */
-    --primary-foreground: 17 10% 10%;
+    --primary: 10 50% 70%; 
+    --primary-foreground: 0 0% 10%;
 
-    --secondary: 46 71% 65%; /* Slightly lighter Golden Yellow */
-    --secondary-foreground: 17 10% 10%;
+    --secondary: 80 25% 75%; 
+    --secondary-foreground: 0 0% 10%;
 
-    --muted: 17 15% 25%;
-    --muted-foreground: 45 50% 70%;
+    --muted: 0 0% 25%;
+    --muted-foreground: 0 0% 70%;
 
-    --accent: 167 44% 55%; /* Slightly lighter Vibrant Teal */
-    --accent-foreground: 17 10% 10%;
+    --accent: 30 40% 80%;
+    --accent-foreground: 0 0% 10%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 70% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 358 30% 35%;
-    --input: 358 30% 40%;
-    --ring: 358 47% 55%;
+    --border: 0 0% 30%;
+    --input: 0 0% 20%; 
+    --ring: 10 50% 75%;
 
-    --chart-1: 358 47% 55%;
-    --chart-2: 46 71% 65%;
-    --chart-3: 167 44% 55%;
-    --chart-4: 358 60% 70%;
-    --chart-5: 46 80% 75%;
+    --chart-1: hsl(var(--primary));
+    --chart-2: hsl(var(--secondary));
+    --chart-3: hsl(var(--accent));
+    --chart-4: 10 50% 80%; 
+    --chart-5: 80 25% 85%; 
 
-    --sidebar-background: 17 19% 20%;
-    --sidebar-foreground: 45 60% 83%;
-    --sidebar-primary: 358 47% 55%;
-    --sidebar-primary-foreground: 17 10% 10%;
-    --sidebar-accent: 167 44% 55%;
-    --sidebar-accent-foreground: 17 10% 10%;
-    --sidebar-border: 358 30% 30%;
-    --sidebar-ring: 358 47% 55%;
+    --sidebar-background: 0 0% 12%;
+    --sidebar-foreground: 0 0% 88%;
+    --sidebar-primary: hsl(var(--primary));
+    --sidebar-primary-foreground: hsl(var(--primary-foreground));
+    --sidebar-accent: hsl(var(--accent));
+    --sidebar-accent-foreground: hsl(var(--accent-foreground));
+    --sidebar-border: 0 0% 25%;
+    --sidebar-ring: hsl(var(--ring));
   }
 }
 
