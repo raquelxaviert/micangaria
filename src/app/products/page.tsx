@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { products as allProducts, Product, uniqueTypes, uniqueStyles, uniqueColors } from '@/lib/placeholder-data';
@@ -41,10 +41,9 @@ function ProductCard({ product }: { product: Product }) {
           <div className="absolute top-2 left-2 bg-accent text-accent-foreground px-2 py-1 text-xs font-semibold rounded">NOVO</div>
         )}
       </CardHeader>
-      <CardContent className="flex-grow p-4">
-        <CardTitle className="text-xl mb-2 font-headline text-primary">{product.name}</CardTitle>
+      <CardContent className="flex-grow p-4">        <CardTitle className="text-xl mb-2 font-headline text-primary">{product.name}</CardTitle>
         <CardDescription className="text-sm text-muted-foreground mb-2 capitalize">{product.style} {product.type}</CardDescription>
-        <p className="text-lg font-semibold text-foreground">${product.price.toFixed(2)}</p>
+        <p className="text-lg font-semibold text-foreground">R$ {product.price.toFixed(2)}</p>
         {product.isPromotion && product.promotionDetails && (
           <p className="text-sm text-accent-foreground bg-accent px-2 py-1 rounded inline-flex items-center mt-1">
             <Tag size={16} className="mr-1" /> {product.promotionDetails}
@@ -162,18 +161,26 @@ function FilterControls({ filters, setFilters }: { filters: Filters, setFilters:
 }
 
 
-export default function ProductsPage() {
+function ProductsContent() {
   const searchParams = useSearchParams();
-  const initialFilterParam = searchParams.get('filter');
-
   const [filters, setFilters] = useState<Filters>({
     type: null,
     style: null,
     colors: [],
     searchTerm: '',
-    showNew: initialFilterParam === 'new',
-    showPromotions: initialFilterParam === 'promotions',
+    showNew: false,
+    showPromotions: false,
   });
+
+  // Set initial filters based on URL params
+  useEffect(() => {
+    const filter = searchParams.get('filter');
+    if (filter === 'new') {
+      setFilters(prev => ({ ...prev, showNew: true }));
+    } else if (filter === 'promotions') {
+      setFilters(prev => ({ ...prev, showPromotions: true }));
+    }
+  }, [searchParams]);
 
   const filteredProducts = useMemo(() => {
     return allProducts.filter(product => {
@@ -196,7 +203,6 @@ export default function ProductsPage() {
       }
     }
   }, []);
-
 
   return (
     <div className="flex flex-col md:flex-row gap-8">
@@ -236,5 +242,13 @@ export default function ProductsPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-8">Carregando produtos...</div>}>
+      <ProductsContent />
+    </Suspense>
   );
 }

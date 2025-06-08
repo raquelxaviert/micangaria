@@ -4,94 +4,92 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%; /* Very Light Gray / Off-White */
-    --foreground: 0 0% 20%; /* Dark Gray */
+    --background: 42 15% 97%; /* Warm cream white */
+    --foreground: 25 25% 15%; /* Rich dark brown */
 
-    --card: 0 0% 100%; /* White */
-    --card-foreground: 0 0% 20%; /* Dark Gray */
+    --card: 0 0% 100%; /* Pure white for contrast */
+    --card-foreground: 25 25% 15%; /* Rich dark brown */
 
-    --popover: 0 0% 100%; /* White */
-    --popover-foreground: 0 0% 20%; /* Dark Gray */
+    --popover: 0 0% 100%; /* Pure white */
+    --popover-foreground: 25 25% 15%; /* Rich dark brown */
 
-    --primary: 10 50% 65%; /* Dusty Rose / Light Terracotta */
-    --primary-foreground: 0 0% 100%; /* White for text on primary */
+    --primary: 25 85% 55%; /* Vibrant terracotta/rust */
+    --primary-foreground: 42 15% 97%; /* Warm cream for text on primary */
 
-    --secondary: 80 25% 70%; /* Soft Sage Green */
-    --secondary-foreground: 0 0% 20%; /* Dark Gray for text on secondary */
+    --secondary: 160 35% 45%; /* Deep sage green */
+    --secondary-foreground: 42 15% 97%; /* Warm cream for text on secondary */
 
-    --muted: 0 0% 92%; /* Light Gray for subtle backgrounds or dividers - slightly darker than background */
-    --muted-foreground: 0 0% 35%; /* Medium Gray for muted text */
+    --muted: 42 10% 90%; /* Soft warm gray */
+    --muted-foreground: 25 15% 40%; /* Medium warm brown for muted text */
 
-    --accent: 30 40% 75%; /* Warm Light Beige/Tan */
-    --accent-foreground: 0 0% 20%; /* Dark Gray for text on accent */
+    --accent: 45 75% 60%; /* Warm golden yellow */
+    --accent-foreground: 25 25% 15%; /* Rich dark brown for text on accent */
 
-    --destructive: 0 70% 55%; /* A slightly softer red for destructive actions */
+    --destructive: 0 75% 60%; /* Vibrant red for destructive actions */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 85%; /* Light gray border */
-    --input: 0 0% 100%;   /* White for input backgrounds like cards */
-    --ring: 10 50% 70%; /* Primary color for focus rings, slightly lighter */
+    --border: 42 8% 82%; /* Warm light gray border */
+    --input: 0 0% 100%; /* White for input backgrounds */
+    --ring: 25 85% 65%; /* Primary color for focus rings, slightly lighter */
 
-    --radius: 0.375rem; /* Slightly less rounded */
-
-    --chart-1: hsl(var(--primary));
+    --radius: 0.5rem; /* More rounded for modern feel */    --chart-1: hsl(var(--primary));
     --chart-2: hsl(var(--secondary));
     --chart-3: hsl(var(--accent));
-    --chart-4: 10 50% 75%; 
-    --chart-5: 80 25% 80%; 
+    --chart-4: 25 70% 65%; /* Warm rust variant */
+    --chart-5: 160 30% 55%; /* Sage variant */
 
-    --sidebar-background: 0 0% 96%; 
-    --sidebar-foreground: 0 0% 20%;
+    --sidebar-background: 42 12% 94%; 
+    --sidebar-foreground: 25 25% 15%;
     --sidebar-primary: hsl(var(--primary));
     --sidebar-primary-foreground: hsl(var(--primary-foreground));
     --sidebar-accent: hsl(var(--accent));
     --sidebar-accent-foreground: hsl(var(--accent-foreground));
-    --sidebar-border: 0 0% 80%;
+    --sidebar-border: 42 8% 75%;
     --sidebar-ring: hsl(var(--ring));
   }
 
   .dark {
-    --background: 0 0% 10%; 
-    --foreground: 0 0% 90%; 
+    --background: 25 20% 8%; /* Rich dark brown */
+    --foreground: 42 15% 92%; /* Warm cream */
 
-    --card: 0 0% 15%;
-    --card-foreground: 0 0% 90%;
+    --card: 25 15% 12%; /* Dark brown card */
+    --card-foreground: 42 15% 92%; /* Warm cream */
 
-    --popover: 0 0% 15%;
-    --popover-foreground: 0 0% 90%;
+    --popover: 25 15% 12%; /* Dark brown */
+    --popover-foreground: 42 15% 92%; /* Warm cream */
 
-    --primary: 10 50% 70%; 
-    --primary-foreground: 0 0% 10%;
+    --primary: 25 80% 60%; /* Bright terracotta for dark mode */
+    --primary-foreground: 25 20% 8%; /* Dark brown */
 
-    --secondary: 80 25% 75%; 
-    --secondary-foreground: 0 0% 10%;
+    --secondary: 160 40% 50%; /* Vibrant sage for dark mode */
+    --secondary-foreground: 25 20% 8%; /* Dark brown */
 
-    --muted: 0 0% 25%;
-    --muted-foreground: 0 0% 70%;
+    --muted: 25 10% 20%; /* Dark warm gray */
+    --muted-foreground: 42 10% 70%; /* Light warm gray */
 
-    --accent: 30 40% 80%;
-    --accent-foreground: 0 0% 10%;
+    --accent: 45 70% 65%; /* Bright golden yellow for dark mode */
+    --accent-foreground: 25 20% 8%; /* Dark brown */
 
-    --destructive: 0 70% 60%;
+    --destructive: 0 70% 65%; /* Bright red for dark mode */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 30%;
-    --input: 0 0% 20%; 
-    --ring: 10 50% 75%;
+    --border: 25 10% 25%; /* Dark warm border */
+    --input: 25 15% 15%; /* Dark brown input */
+    --ring: 25 80% 70%; /* Bright primary for dark mode */
 
     --chart-1: hsl(var(--primary));
     --chart-2: hsl(var(--secondary));
     --chart-3: hsl(var(--accent));
-    --chart-4: 10 50% 80%; 
-    --chart-5: 80 25% 85%; 
+    --chart-4: 25 75% 70%; /* Bright rust variant */
+    --chart-5: 160 35% 60%; /* Bright sage variant */
 
-    --sidebar-background: 0 0% 12%;
-    --sidebar-foreground: 0 0% 88%;
+    --sidebar-background: 25 18% 10%;
+    --sidebar-foreground: 42 15% 88%;
     --sidebar-primary: hsl(var(--primary));
     --sidebar-primary-foreground: hsl(var(--primary-foreground));
     --sidebar-accent: hsl(var(--accent));
     --sidebar-accent-foreground: hsl(var(--accent-foreground));
-    --sidebar-border: 0 0% 25%;
+    --sidebar-border: 25 10% 20%;
     --sidebar-ring: hsl(var(--ring));
   }
 }
@@ -106,4 +104,97 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline;
   }
+}
+
+@layer utilities {
+  .animate-gradient-x {
+    background-size: 200% 200%;
+    animation: gradient-x 3s ease infinite;
+  }
+  
+  .animate-fade-in {
+    animation: fade-in 1s ease-out;
+  }
+    .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+@keyframes gradient-x {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom animations for enhanced UX */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradient-x {
+  0%, 100% {
+    background-size: 200% 200%;
+    background-position: left center;
+  }
+  50% {
+    background-size: 200% 200%;
+    background-position: right center;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out;
+}
+
+.animate-gradient-x {
+  animation: gradient-x 4s ease infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced focus states */
+.focus-visible:focus {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
 }

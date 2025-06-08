@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { getStyleRecommendations, type StyleAdvisorInput, type StyleAdvisorOutput } from '@/ai/flows/style-advisor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,6 +12,37 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Sparkles, Wand2, AlertTriangle, CheckCircle2, Loader2, UploadCloud } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+
+// Temporary types for the style advisor (replacing AI functionality)
+type StyleAdvisorInput = {
+  occasion?: string;
+  preferences?: string;
+};
+
+type StyleAdvisorOutput = {
+  recommendations: string[];
+  reasoning: string;
+};
+
+// Mock function to replace AI functionality
+function getStyleRecommendations(input: StyleAdvisorInput): Promise<StyleAdvisorOutput> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const mockRecommendations = [
+        "Pulseira Brilho do Sol Poente - perfeita para ocasiões especiais",
+        "Brincos Apanhador de Sonhos Boho - complementam qualquer estilo",
+        "Pulseira de Sementes Amazônicas - para um toque natural"
+      ];
+      
+      const mockReasoning = `Baseado em suas preferências ${input.preferences ? `"${input.preferences}"` : ''} ${input.occasion ? `para a ocasião "${input.occasion}"` : ''}, recomendamos acessórios que combinam com o estilo boho e indígena da nossa coleção. Estes itens destacam sua personalidade única enquanto mantêm elegância e autenticidade.`;
+      
+      resolve({
+        recommendations: mockRecommendations,
+        reasoning: mockReasoning
+      });
+    }, 2000); // Simula delay de processamento
+  });
+}
 
 const StyleAdvisorFormSchema = z.object({
   occasion: z.string().min(3, 'A ocasião deve ter pelo menos 3 caracteres').optional().or(z.literal('')),
@@ -48,17 +78,11 @@ export default function StyleAdvisorPage() {
   const onSubmit: SubmitHandler<StyleAdvisorFormValues> = async (data) => {
     setIsLoading(true);
     setError(null);
-    setRecommendations(null);
-
-    try {
+    setRecommendations(null);    try {
       const input: StyleAdvisorInput = {
         occasion: data.occasion,
         preferences: data.preferences,
       };
-
-      if (data.outfitPhoto && data.outfitPhoto.length > 0) {
-        input.photoDataUri = await fileToDataUri(data.outfitPhoto[0]);
-      }
 
       const result = await getStyleRecommendations(input);
       setRecommendations(result);
