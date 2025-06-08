@@ -1,35 +1,125 @@
+'use client';
+
 import Link from 'next/link';
-import { Sparkles, Info, ShoppingBag } from 'lucide-react'; 
+import { Sparkles, Info, ShoppingBag, Search } from 'lucide-react'; 
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 
 export function Header() {
-  return (
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Redireciona para a página de produtos com query de pesquisa
+      window.location.href = `/products?search=${encodeURIComponent(searchQuery.trim())}`;
+    }
+  };  return (
     <header className="bg-card text-foreground shadow-md border-b border-border">
-      <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center">
-        <Link href="/" className="text-3xl font-headline hover:text-primary transition-colors">
-          miçangaria
-        </Link>
-        <nav className="mt-4 sm:mt-0">
-          <ul className="flex space-x-4 sm:space-x-6 items-center">
-            <li>
-              <Link href="/products" className="hover:text-primary transition-colors flex items-center space-x-1">
-                <ShoppingBag size={20} />
-                <span>Produtos</span>
-              </Link>
-            </li>
-            <li>
-              <Link href="/style-advisor" className="hover:text-primary transition-colors flex items-center space-x-1">
-                <Sparkles size={20} /> 
-                <span>Consultor de Estilo</span>
-              </Link>
-            </li>
-            <li>
-              <Link href="/about" className="hover:text-primary transition-colors flex items-center space-x-1">
-                <Info size={20} />
-                <span>Sobre Nós</span>
-              </Link>
-            </li>
-          </ul>
-        </nav>
+      <div className="container mx-auto px-4 py-4">
+        {/* Layout desktop: tudo em uma linha */}
+        <div className="hidden md:flex items-center justify-between gap-4">
+          {/* Logo à esquerda */}
+          <Link href="/" className="text-3xl font-headline hover:text-primary transition-colors whitespace-nowrap">
+            miçangaria
+          </Link>
+          
+          {/* Barra de pesquisa centralizada */}
+          <form onSubmit={handleSearch} className="flex-1 max-w-md mx-4">
+            <div className="relative flex">
+              <Input
+                type="text"
+                placeholder="Buscar produtos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pr-12 bg-background border-primary/20 focus:border-primary"
+              />
+              <Button 
+                type="submit" 
+                size="sm" 
+                className="absolute right-1 top-1 bottom-1 px-3 bg-primary hover:bg-primary/90"
+              >
+                <Search size={16} />
+              </Button>
+            </div>
+          </form>
+          
+          {/* Navegação à direita */}
+          <nav>
+            <ul className="flex items-center space-x-6">
+              <li>
+                <Link href="/products" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap">
+                  <ShoppingBag size={20} />
+                  <span>Produtos</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/style-advisor" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap">
+                  <Sparkles size={20} /> 
+                  <span>Consultor de Estilo</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/about" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap">
+                  <Info size={20} />
+                  <span>Sobre Nós</span>
+                </Link>
+              </li>
+            </ul>
+          </nav>
+        </div>
+
+        {/* Layout mobile: empilhado */}
+        <div className="md:hidden space-y-4">
+          {/* Primeira linha: Logo e navegação compacta */}
+          <div className="flex items-center justify-between">
+            <Link href="/" className="text-2xl font-headline hover:text-primary transition-colors">
+              miçangaria
+            </Link>
+            
+            {/* Menu compacto mobile */}
+            <nav>
+              <ul className="flex items-center space-x-3">
+                <li>
+                  <Link href="/products" className="hover:text-primary transition-colors p-2">
+                    <ShoppingBag size={20} />
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/style-advisor" className="hover:text-primary transition-colors p-2">
+                    <Sparkles size={20} />
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/about" className="hover:text-primary transition-colors p-2">
+                    <Info size={20} />
+                  </Link>
+                </li>
+              </ul>
+            </nav>
+          </div>
+
+          {/* Segunda linha: Barra de pesquisa full width */}
+          <form onSubmit={handleSearch} className="w-full">
+            <div className="relative flex">
+              <Input
+                type="text"
+                placeholder="Buscar produtos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pr-12 bg-background border-primary/20 focus:border-primary"
+              />
+              <Button 
+                type="submit" 
+                size="sm" 
+                className="absolute right-1 top-1 bottom-1 px-3 bg-primary hover:bg-primary/90"
+              >
+                <Search size={16} />
+              </Button>
+            </div>
+          </form>
+        </div>
       </div>
     </header>
   );

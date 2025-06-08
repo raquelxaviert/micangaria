@@ -76,10 +76,9 @@ function FilterControls({ filters, setFilters }: { filters: Filters, setFilters:
   return (
     <div className="space-y-6 p-4">
       <div>
-        <h3 className="font-semibold mb-2 text-lg font-headline text-primary">Busca</h3>
-        <Input
+        <h3 className="font-semibold mb-2 text-lg font-headline text-primary">Busca</h3>        <Input
           type="text"
-          placeholder="Buscar por nome..."
+          placeholder="Buscar por nome ou descrição..."
           value={filters.searchTerm}
           onChange={(e) => setFilters({ ...filters, searchTerm: e.target.value })}
           className="bg-background"
@@ -171,23 +170,32 @@ function ProductsContent() {
     showNew: false,
     showPromotions: false,
   });
-
   // Set initial filters based on URL params
   useEffect(() => {
     const filter = searchParams.get('filter');
+    const search = searchParams.get('search');
+    
     if (filter === 'new') {
       setFilters(prev => ({ ...prev, showNew: true }));
     } else if (filter === 'promotions') {
       setFilters(prev => ({ ...prev, showPromotions: true }));
     }
+    
+    if (search) {
+      setFilters(prev => ({ ...prev, searchTerm: search }));
+    }
   }, [searchParams]);
-
   const filteredProducts = useMemo(() => {
     return allProducts.filter(product => {
       const typeMatch = !filters.type || product.type === filters.type;
       const styleMatch = !filters.style || product.style === filters.style;
       const colorMatch = filters.colors.length === 0 || product.colors.some(color => filters.colors.includes(color));
-      const searchTermMatch = product.name.toLowerCase().includes(filters.searchTerm.toLowerCase());
+      
+      // Busca tanto no nome quanto na descrição
+      const searchTermMatch = filters.searchTerm === '' || 
+        product.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+        product.description.toLowerCase().includes(filters.searchTerm.toLowerCase());
+        
       const newArrivalMatch = !filters.showNew || product.isNewArrival;
       const promotionMatch = !filters.showPromotions || product.isPromotion;
       return typeMatch && styleMatch && colorMatch && searchTermMatch && newArrivalMatch && promotionMatch;
