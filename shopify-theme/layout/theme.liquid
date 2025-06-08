@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8">
+    <title>{{ shop.name }} - {{ page_title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ 'theme.css' | asset_url }}">
+    {{ content_for_header }}
+    <style>
+      body {
+        font-family: 'Montserrat', Arial, sans-serif;
+        background: {{ settings.background_color }};
+        color: {{ settings.text_color }};
+      }
+      h1, h2, h3, h4, h5, h6, .headline {
+        font-family: 'Playfair Display', serif;
+      }
+      .btn-primary {
+        background: {{ settings.primary_color }};
+        color: #fff;
+        border: none;
+        padding: 0.75em 1.5em;
+        border-radius: 4px;
+        font-weight: 600;
+      }
+      .btn-outline {
+        background: transparent;
+        color: {{ settings.primary_color }};
+        border: 2px solid {{ settings.primary_color }};
+        padding: 0.75em 1.5em;
+        border-radius: 4px;
+        font-weight: 600;
+      }
+      .card {
+        background: {{ settings.card_color }};
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(76,59,39,0.08);
+        padding: 1.5em;
+      }
+    </style>
+  </head>
+  <body>
+    {% section 'header' %}
+    <main class="container">
+      {{ content_for_layout }}
+    </main>
+    {% section 'footer' %}
+  </body>
+</html>

@@ -1,0 +1,36 @@
+<div class="cart-page" style="max-width: 900px; margin: 0 auto; padding: 3em 1em;">
+  <h1 class="headline" style="font-size: 2em; margin-bottom: 1em; color: {{ settings.primary_color }};">Seu carrinho</h1>
+  {% if cart.item_count == 0 %}
+    <p>Seu carrinho está vazio.</p>
+  {% else %}
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 2em;">
+      <thead>
+        <tr style="background: {{ settings.card_color }};">
+          <th style="text-align: left; padding: 0.75em;">Produto</th>
+          <th style="text-align: left; padding: 0.75em;">Quantidade</th>
+          <th style="text-align: left; padding: 0.75em;">Preço</th>
+          <th style="text-align: left; padding: 0.75em;">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in cart.items %}
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 0.75em;">
+            <img src="{{ item.image | img_url: '100x' }}" alt="{{ item.title }}" style="width: 60px; vertical-align: middle; border-radius: 6px; margin-right: 0.5em;" />
+            {{ item.title }}
+          </td>
+          <td style="padding: 0.75em;">{{ item.quantity }}</td>
+          <td style="padding: 0.75em;">{{ item.price | money }}</td>
+          <td style="padding: 0.75em;">{{ item.line_price | money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div style="text-align: right; margin-bottom: 2em;">
+      <strong>Total: {{ cart.total_price | money }}</strong>
+    </div>
+    <form action="/cart" method="post">
+      <button type="submit" name="checkout" class="btn-primary" style="font-size: 1.1em;">Finalizar compra</button>
+    </form>
+  {% endif %}
+</div>

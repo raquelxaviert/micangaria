@@ -1,0 +1,31 @@
+/* Miçangaria Theme - Shopify */
+body {
+  font-family: 'Montserrat', Arial, sans-serif;
+  background: {{ settings.background_color }};
+  color: {{ settings.text_color }};
+}
+h1, h2, h3, h4, h5, h6, .headline {
+  font-family: 'Playfair Display', serif;
+}
+.btn-primary {
+  background: {{ settings.primary_color }};
+  color: #fff;
+  border: none;
+  padding: 0.75em 1.5em;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.btn-outline {
+  background: transparent;
+  color: {{ settings.primary_color }};
+  border: 2px solid {{ settings.primary_color }};
+  padding: 0.75em 1.5em;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.card {
+  background: {{ settings.card_color }};
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(76,59,39,0.08);
+  padding: 1.5em;
+}
