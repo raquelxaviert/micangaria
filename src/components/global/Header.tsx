@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Sparkles, Info, ShoppingBag, Search } from 'lucide-react'; 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -19,10 +20,15 @@ export function Header() {
     <header className="bg-card text-foreground shadow-md border-b border-border">
       <div className="container mx-auto px-4 py-4">
         {/* Layout desktop: tudo em uma linha */}
-        <div className="hidden md:flex items-center justify-between gap-4">
-          {/* Logo à esquerda */}
-          <Link href="/" className="text-3xl font-headline hover:text-primary transition-colors whitespace-nowrap">
-            miçangaria
+        <div className="hidden md:flex items-center justify-between gap-4">          {/* Logo à esquerda */}
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <Image
+              src="/logo.svg"
+              alt="RÜGE"
+              width={120}
+              height={40}
+              className="h-10 w-auto"
+            />
           </Link>
           
           {/* Barra de pesquisa centralizada */}
@@ -71,11 +77,16 @@ export function Header() {
         </div>
 
         {/* Layout mobile: empilhado */}
-        <div className="md:hidden space-y-4">
-          {/* Primeira linha: Logo e navegação compacta */}
+        <div className="md:hidden space-y-4">          {/* Primeira linha: Logo e navegação compacta */}
           <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-headline hover:text-primary transition-colors">
-              miçangaria
+            <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+              <Image
+                src="/logo.svg"
+                alt="RÜGE"
+                width={100}
+                height={32}
+                className="h-8 w-auto"
+              />
             </Link>
             
             {/* Menu compacto mobile */}

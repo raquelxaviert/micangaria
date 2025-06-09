@@ -4,33 +4,33 @@
 
 @layer base {
   :root {
-    --background: 40 33% 96%; /* Branco cru */
-    --foreground: 27 48% 20%; /* Marrom escuro */
+    --background: 37 18% 95%; /* Off-white F5F0EB */
+    --foreground: 0 0% 0%; /* Preto puro */
 
-    --card: 0 0% 100%; /* Branco puro para contraste */
-    --card-foreground: 27 48% 20%; /* Marrom escuro */
+    --card: 37 18% 95%; /* Off-white para cards */
+    --card-foreground: 0 0% 0%; /* Preto puro */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 27 48% 20%;
+    --popover: 37 18% 95%;
+    --popover-foreground: 0 0% 0%;
 
-    --primary: 24 56% 51%; /* Terracota queimado */
-    --primary-foreground: 40 33% 96%; /* Branco cru para texto no terracota */
+    --primary: 345 89% 23%; /* Vinho 780116 */
+    --primary-foreground: 37 18% 95%; /* Off-white para texto no vinho */
 
-    --secondary: 146 36% 35%; /* Verde folha */
-    --secondary-foreground: 40 33% 96%; /* Branco cru para texto no verde */
+    --secondary: 0 0% 15%; /* Preto mais suave para secondary */
+    --secondary-foreground: 37 18% 95%; /* Off-white para texto no preto */
 
-    --muted: 46 77% 85%; /* Amarelo palha */
-    --muted-foreground: 27 48% 40%; /* Marrom médio */
+    --muted: 37 18% 90%; /* Off-white mais escuro para muted */
+    --muted-foreground: 0 0% 40%; /* Cinza médio */
 
-    --accent: 146 36% 45%; /* Verde folha mais claro */
-    --accent-foreground: 27 48% 20%;
+    --accent: 345 89% 35%; /* Vinho mais claro para accent */
+    --accent-foreground: 37 18% 95%;
 
     --destructive: 0 75% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 40 20% 85%; /* Bege claro para bordas */
-    --input: 0 0% 100%;
-    --ring: 24 56% 60%; /* Terracota mais claro para foco */
+    --border: 37 18% 85%; /* Off-white mais escuro para bordas */
+    --input: 37 18% 95%;
+    --ring: 345 89% 35%; /* Vinho mais claro para foco */
 
     --radius: 0.5rem;
 

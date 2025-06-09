@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { products, Product } from '@/lib/placeholder-data';
+import { products, Product } from '@/lib/ruge-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -105,39 +105,37 @@ function ProductCard({ product }: { product: Product }) {
 export default function HomePage() {
   const featuredProducts = products.filter(p => p.isNewArrival || p.isPromotion).slice(0, 6);
   const newArrivals = products.filter(p => p.isNewArrival).slice(0, 6);
-  const promotions = products.filter(p => p.isPromotion).slice(0, 6);
-  // Categories for showcase
+  const promotions = products.filter(p => p.isPromotion).slice(0, 6);  // Categories for showcase
   const categories = [
-    { name: 'Brincos', count: products.filter(p => p.type === 'brinco').length, icon: '✨' },
-    { name: 'Colares', count: products.filter(p => p.type === 'colar').length, icon: '💎' },
-    { name: 'Pulseiras', count: products.filter(p => p.type === 'pulseira').length, icon: '🌿' },
-    { name: 'Anéis', count: products.filter(p => p.type === 'anel').length, icon: '💫' },
+    { name: 'Vestidos', count: products.filter(p => p.type === 'vestido').length, icon: '👗' },
+    { name: 'Blusas', count: products.filter(p => p.type === 'blusa').length, icon: '👚' },
+    { name: 'Acessórios', count: products.filter(p => p.type === 'acessorio').length, icon: '💎' },
     { name: 'Bolsas', count: products.filter(p => p.type === 'bolsa').length, icon: '👜' },
-    { name: 'Acessórios', count: products.filter(p => ['cinto', 'sandalia', 'conjunto'].includes(p.type)).length, icon: '🎭' },
+    { name: 'Conjuntos', count: products.filter(p => p.type === 'conjunto').length, icon: '✨' },
+    { name: 'Vintage', count: products.filter(p => p.style === 'vintage').length, icon: '🕰️' },
   ];
-
   // Testimonials
   const testimonials = [
     {
-      name: "Maria Silva",
+      name: "Ana Beatriz",
       location: "São Paulo, SP",
       rating: 5,
-      text: "Simplesmente apaixonada pelos brincos! A qualidade é excepcional e o atendimento foi perfeito.",
-      product: "Brincos Uirapuru Dourado"
+      text: "Maria Clara tem um olhar único para peças especiais! Encontrei o vestido perfeito para meu evento.",
+      product: "Vestido Vintage Anos 80"
     },
     {
-      name: "Ana Costa",
+      name: "Carolina Mendes",
       location: "Rio de Janeiro, RJ",
       rating: 5,
-      text: "Recebi meu colar e não consegui parar de usar. Todos perguntam onde comprei!",
-      product: "Colar Yara da Mata"
+      text: "A curadoria é impecável. Cada peça tem história e personalidade. Simplesmente apaixonada!",
+      product: "Blusa Vintage Saint Laurent"
     },
     {
-      name: "Carla Santos",
+      name: "Juliana Santos",
       location: "Belo Horizonte, MG",
       rating: 5,
-      text: "A bolsa chegou super bem embalada e é ainda mais linda pessoalmente. Recomendo!",
-      product: "Bolsa Amazônia Tecida"
+      text: "Além das peças incríveis, a consultoria de styling transformou meu guarda-roupa. Recomendo demais!",
+      product: "Consultoria de Styling"
     }
   ];
   return (
@@ -161,33 +159,32 @@ export default function HomePage() {
         <div className="relative z-10 container mx-auto px-4 sm:px-6 py-12 sm:py-20 md:py-32 text-center">
           {/* MODIFIED: Added bg-background/30 backdrop-blur-md p-6 md:p-8 rounded-xl shadow-lg */}
           <div className="max-w-5xl mx-auto space-y-6 sm:space-y-10 bg-background/30 backdrop-blur-md p-4 sm:p-6 md:p-8 rounded-xl shadow-lg">
-            <div className="space-y-4 sm:space-y-6">
-              <Badge className="bg-accent/15 text-accent-foreground border-accent/30 px-3 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium animate-bounce backdrop-blur-sm">
-                ✨ A melhor curadoria de acessórios boho ✨
+            <div className="space-y-4 sm:space-y-6">              <Badge className="bg-accent/15 text-accent-foreground border-accent/30 px-3 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium animate-bounce backdrop-blur-sm">
+                RÜGE - Força, Presença & Autenticidade 🐆
               </Badge>
               
               <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-headline text-primary leading-tight animate-fade-in">
-                Descubra Seu{' '}
+                Vintage{' '}
                 <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent animate-gradient-x">
-                  Estilo Único
+                  Ousado & Atemporal
                 </span>
               </h1>
                 <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed px-2">
-                Explore nossa coleção exclusiva de acessórios cuidadosamente selecionados, inspirados na{' '}
-                <span className="text-primary font-semibold">estética boho</span> e nas{' '}
-                <span className="text-secondary font-semibold">tradições brasileiras</span>{' '}
-                que celebram nossa rica diversidade cultural.
+                Curadoria especial de peças únicas por{' '}
+                <span className="text-primary font-semibold">Maria Clara</span>, consultora de imagem e styling. 
+                Descubra tesouros vintage que celebram{' '}
+                <span className="text-secondary font-semibold">autenticidade</span> e{' '}
+                <span className="text-accent font-semibold">originalidade</span>.
               </p>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">
-              <Button 
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">              <Button 
                 asChild 
                 size="lg" 
                 className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/80 hover:to-primary text-primary-foreground px-6 sm:px-10 py-4 sm:py-5 text-base sm:text-lg font-semibold rounded-full shadow-2xl hover:shadow-primary/40 transition-all duration-500 hover:-translate-y-1 transform w-full sm:w-auto group"
               >
                 <Link href="/products">
-                  Explorar Coleção
+                  Explorar Brechó
                   <ArrowRight className="ml-2 sm:ml-3 h-4 sm:h-5 w-4 sm:w-5 transition-transform duration-300 group-hover:translate-x-1.5" />
                 </Link>
               </Button>
@@ -199,7 +196,7 @@ export default function HomePage() {
                 className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 sm:px-10 py-4 sm:py-5 text-base sm:text-lg font-semibold rounded-full transition-all duration-500 hover:-translate-y-1 transform backdrop-blur-sm w-full sm:w-auto group"
               >
                 <Link href="/style-advisor">
-                  Consultor miçangar.IA
+                  Consultoria de Styling
                   <Sparkles className="ml-2 sm:ml-3 h-4 sm:h-5 w-4 sm:w-5 transition-transform duration-300 group-hover:rotate-12" />
                 </Link>
               </Button>
@@ -217,16 +214,15 @@ export default function HomePage() {
           </div>
         </div>
       </section>      {/* Featured Products Preview (MOVED HERE) */}
-      <section className="container mx-auto px-4 sm:px-6">
-        <div className="text-center mb-8 sm:mb-12">
+      <section className="container mx-auto px-4 sm:px-6">        <div className="text-center mb-8 sm:mb-12">
           <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">
-            Destaques da Coleção
+            Curadoria Especial
           </Badge>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-headline text-primary mb-4">
-            Peças em Destaque
+            Peças Selecionadas
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-            Descubra os produtos mais amados da nossa coleção, cuidadosamente selecionados para você.
+            Tesouros únicos cuidadosamente garimpados para criar looks autênticos e atemporais.
           </p>
         </div>
         

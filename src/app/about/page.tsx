@@ -8,23 +8,21 @@ import Link from 'next/link';
 export default function AboutPage() {
   return (
     <div className="space-y-20">
-      {/* Hero Section */}
-      <header className="text-center py-16 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-3xl">
+      {/* Hero Section */}      <header className="text-center py-16 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-3xl">
         <Badge className="bg-accent/15 text-accent-foreground border-accent/30 mb-6">
-          ✨ Nossa História ✨
+          🦁 Nossa História 🦁
         </Badge>        <h1 className="text-5xl md:text-6xl font-headline text-primary mb-6">
-          Conheça Maria Clara
+          RÜGE - Maria Clara
         </h1>
         <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-          Uma jornada de descoberta pessoal que transformou paixão em propósito
+          Força, presença, originalidade, sofisticação e autenticidade em cada peça vintage
         </p>
       </header>
 
       {/* Maria Clara's Story */}
-      <section className="grid lg:grid-cols-2 gap-12 items-center">
-        <div className="relative aspect-square lg:aspect-auto lg:h-[600px] rounded-2xl overflow-hidden shadow-2xl order-2 lg:order-1">          <Image 
+      <section className="grid lg:grid-cols-2 gap-12 items-center">        <div className="relative aspect-square lg:aspect-auto lg:h-[600px] rounded-2xl overflow-hidden shadow-2xl order-2 lg:order-1">          <Image 
             src="/maria.png" 
-            alt="Maria Clara - Fundadora da miçangaria" 
+            alt="Maria Clara - Fundadora do RÜGE" 
             fill
             className="object-cover"
             priority
@@ -32,38 +30,41 @@ export default function AboutPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
           <div className="absolute bottom-6 left-6 text-white">
             <p className="text-lg font-semibold">Maria Clara</p>
-            <p className="text-sm opacity-90">Fundadora & Curadora</p>
+            <p className="text-sm opacity-90">Consultora de Imagem & Styling</p>
           </div>
         </div>
-        
-        <div className="space-y-8 order-1 lg:order-2">
+          <div className="space-y-8 order-1 lg:order-2">
           <div className="space-y-6">
             <h2 className="text-4xl font-headline text-primary">
-              Da Academia aos Acessórios
+              RÜGE - O Rugir da Autenticidade
             </h2>
             <p className="text-lg leading-relaxed text-muted-foreground">
-              Olá! Eu sou a Maria Clara, e esta é a história de como descobri minha verdadeira paixão. 
-              Por anos, dediquei minha vida ao fitness como <span className="text-primary font-semibold">personal trainer</span>, 
-              ajudando pessoas a transformarem seus corpos e suas vidas.
+              Olá! Eu sou a Maria Clara, tenho 27 anos e sou apaixonada por moda desde pequena. 
+              <span className="text-primary font-semibold"> RÜGE</span> vem do rugir da onça, 
+              e do "rouge" francês, que significa vermelho. Uma mistura de força, presença, 
+              originalidade, sofisticação e autenticidade.
             </p>
             <p className="text-lg leading-relaxed text-muted-foreground">
-              Mas desde pequena, sempre fui <span className="text-secondary font-semibold">apaixonada por moda</span>. 
-              Passava horas folheando revistas, criando looks e sonhando com peças únicas que contassem histórias. 
-              Era como se houvesse uma parte de mim que sempre soube que um dia seguiria esse caminho.
+              Estou me formando agora em <span className="text-secondary font-semibold">consultoria de imagem e styling</span>. 
+              Sempre amei a parte de pesquisa e curadoria, tanto pra mim quanto para as minhas amigas. 
+              Descobri um universo de possibilidades e preciosidades em brechós, e hoje, 
+              grande parte do meu acervo pessoal são peças usadas.
             </p>            <p className="text-lg leading-relaxed text-muted-foreground">
-              A miçangaria nasceu quando finalmente decidi <span className="text-accent font-semibold">perseguir essa paixão</span>. 
-              Descobri que uma das coisas que mais amo fazer é <span className="text-primary font-semibold">procurar e curar peças especiais</span> 
-              - acessórios únicos que capturam a essência do estilo boho e celebram nossa rica cultura brasileira.
+              Para mim, <span className="text-accent font-semibold">se vestir deve ser sinônimo de autenticidade</span>. 
+              Então, meu propósito com o brechó RÜGE é trazer uma seleção para além do meu armário. 
+              Serão peças super especiais, únicas, ousadas, atemporais, inesperadas, e muito vintage.
+            </p>
+            <p className="text-lg leading-relaxed text-muted-foreground text-primary font-semibold italic">
+              Roar 🦁
             </p>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
-            <Card className="p-6 bg-primary/5 border-primary/20">
+          <div className="grid grid-cols-2 gap-4">            <Card className="p-6 bg-primary/5 border-primary/20">
               <div className="flex items-center gap-3">
                 <Heart className="w-8 h-8 text-primary" />
                 <div>
-                  <p className="font-semibold text-primary">Paixão</p>
-                  <p className="text-sm text-muted-foreground">Desde criança</p>
+                  <p className="font-semibold text-primary">Vintage</p>
+                  <p className="text-sm text-muted-foreground">Peças únicas</p>
                 </div>
               </div>
             </Card>
@@ -72,8 +73,8 @@ export default function AboutPage() {
               <div className="flex items-center gap-3">
                 <Star className="w-8 h-8 text-secondary" />
                 <div>
-                  <p className="font-semibold text-secondary">Propósito</p>
-                  <p className="text-sm text-muted-foreground">Encontrar o único</p>
+                  <p className="font-semibold text-secondary">Styling</p>
+                  <p className="text-sm text-muted-foreground">Consultoria especializada</p>
                 </div>
               </div>
             </Card>
@@ -82,12 +83,11 @@ export default function AboutPage() {
       </section>
 
       {/* Mission & Values */}
-      <section className="space-y-12">
-        <div className="text-center">          <h2 className="text-4xl font-headline text-primary mb-6">
-            Minha Missão com a miçangaria
+      <section className="space-y-12">        <div className="text-center">          <h2 className="text-4xl font-headline text-primary mb-6">
+            Minha Missão com o RÜGE
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Cada peça que escolho carrega uma história, uma emoção, um pedacinho de arte que merece ser celebrado.
+            Cada peça que escolho carrega uma história, uma personalidade e a força da autenticidade vintage.
           </p>
         </div>
         

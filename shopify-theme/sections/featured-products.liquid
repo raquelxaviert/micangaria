@@ -1,8 +1,0 @@
-<section class="featured-products" style="padding: 3em 0; background: {{ settings.card_color }};">
-  <h2 class="headline" style="font-size: 2em; text-align: center; margin-bottom: 2em; color: {{ settings.primary_color }};">Destaques</h2>
-  <div class="product-grid" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2em;">
-    {% for product in collections.all.products | limit: 4 %}
-      {% render 'product-card', product: product %}
-    {% endfor %}
-  </div>
-</section>
