@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Sparkles, Info, ShoppingBag, Search, Menu, X, Cat, Gem, Briefcase } from 'lucide-react'; 
+import { Sparkles, Info, ShoppingBag, Search, Menu, X, Gem, Briefcase } from 'lucide-react'; 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet';
@@ -39,8 +39,7 @@ export function Header() {
       <div className="container mx-auto px-4 py-4">
         {/* Layout desktop */}
         <div className="hidden md:flex items-center justify-between gap-4">
-          
-          {/* Menu Hamburger + Logo à esquerda */}
+            {/* Menu Hamburger + Logo à esquerda */}
           <div className="flex items-center gap-4">
             <Sheet>
               <SheetTrigger asChild>
@@ -50,9 +49,14 @@ export function Header() {
               </SheetTrigger>
               <SheetContent side="left" className="w-80">
                 <SheetHeader>
-                  <SheetTitle className="flex items-center gap-2">
-                    <Cat className="w-5 h-5" />
-                    Menu RÜGE
+                  <SheetTitle className="flex items-center justify-center">
+                    <Image
+                      src="/logo_completa.svg"
+                      alt="RÜGE"
+                      width={120}
+                      height={40}
+                      className="h-8 w-auto"
+                    />
                   </SheetTitle>
                 </SheetHeader>
                 
@@ -176,8 +180,7 @@ export function Header() {
 
         {/* Layout mobile */}
         <div className="md:hidden space-y-4">
-          
-          {/* Primeira linha: Menu hamburger, Logo e busca */}
+            {/* Primeira linha: Menu hamburger, Logo e busca */}
           <div className="flex items-center justify-between gap-3">
             <Sheet>
               <SheetTrigger asChild>
@@ -187,9 +190,14 @@ export function Header() {
               </SheetTrigger>
               <SheetContent side="left" className="w-80">
                 <SheetHeader>
-                  <SheetTitle className="flex items-center gap-2">
-                    <Cat className="w-5 h-5" />
-                    Menu RÜGE
+                  <SheetTitle className="flex items-center justify-center">
+                    <Image
+                      src="/logo_completa.svg"
+                      alt="RÜGE"
+                      width={120}
+                      height={40}
+                      className="h-8 w-auto"
+                    />
                   </SheetTitle>
                 </SheetHeader>
                 
