@@ -1,4 +1,4 @@
-# **App Name**: miçangaria
+# **App Name**: RÜGE
 
 ## Core Features:
 

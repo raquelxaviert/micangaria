@@ -61,7 +61,7 @@ export default function AdminPage() {
               🔐 Área Administrativa
             </CardTitle>
             <p className="text-muted-foreground">
-              Acesso restrito ao proprietário da miçangaria
+              Acesso restrito ao proprietário da RÜGE
             </p>
           </CardHeader>
           <CardContent className="space-y-4">

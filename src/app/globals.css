@@ -291,3 +291,57 @@ html {
 .animate-color-float {
   animation: color-float 3s ease-in-out infinite;
 }
+
+/* Animação de onda de blur irregular - flui como uma onda orgânica */
+@keyframes blur-wave {
+  0% {
+    backdrop-filter: blur(16px);
+  }
+  8% {
+    backdrop-filter: blur(14px);
+  }
+  17% {
+    backdrop-filter: blur(8px);
+  }
+  23% {
+    backdrop-filter: blur(6px);
+  }
+  31% {
+    backdrop-filter: blur(12px);
+  }
+  39% {
+    backdrop-filter: blur(20px);
+  }
+  44% {
+    backdrop-filter: blur(24px);
+  }
+  52% {
+    backdrop-filter: blur(18px);
+  }
+  61% {
+    backdrop-filter: blur(4px);
+  }
+  68% {
+    backdrop-filter: blur(3px);
+  }
+  75% {
+    backdrop-filter: blur(10px);
+  }
+  83% {
+    backdrop-filter: blur(22px);
+  }
+  91% {
+    backdrop-filter: blur(28px);
+  }
+  96% {
+    backdrop-filter: blur(20px);
+  }
+  100% {
+    backdrop-filter: blur(16px);
+  }
+}
+
+.animate-blur-wave {
+  animation: blur-wave 12s ease-in-out infinite;
+  animation-delay: 0.8s;
+}

@@ -116,7 +116,7 @@ CVC: 123
 
 ### Cores e Estilo:
 - Arquivo: `src/app/globals.css`
-- Tema: Roxo/Rosa (miçangaria)
+- Tema: Roxo/Rosa (RÜGE)
 - Totalmente customizável
 
 ### Produtos:

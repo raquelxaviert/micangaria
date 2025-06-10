@@ -136,7 +136,7 @@ export default function AboutPage() {
       {/* Why Choose Us */}
       <section className="bg-gradient-to-r from-muted/30 to-accent/5 py-16 rounded-3xl">
         <div className="text-center mb-12">          <h2 className="text-4xl font-headline text-primary mb-6">
-            Por que Escolher a miçangaria?
+            Por que Escolher a RÜGE?
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Minha experiência como personal trainer me ensinou a importância do cuidado, da dedicação e do atendimento personalizado.
@@ -193,7 +193,7 @@ export default function AboutPage() {
             Uma Mensagem Pessoal
           </h2>          <blockquote className="text-xl italic text-muted-foreground leading-relaxed mb-8 border-l-4 border-accent pl-8">
             "Acredito que quando você encontra algo que realmente ama fazer, não é trabalho - é paixão. 
-            A miçangaria é minha forma de compartilhar essa paixão com você, oferecendo não apenas acessórios, 
+            A RÜGE é minha forma de compartilhar essa paixão com você, oferecendo não apenas acessórios, 
             mas pequenos tesouros que fazem seus olhos brilharem da mesma forma que os meus brilham quando os encontro."
           </blockquote>
           <div className="flex items-center justify-center gap-4">
@@ -206,7 +206,7 @@ export default function AboutPage() {
               />
             </div>            <div className="text-left">
               <p className="font-semibold text-primary">Maria Clara</p>
-              <p className="text-sm text-muted-foreground">Fundadora da miçangaria</p>
+              <p className="text-sm text-muted-foreground">Fundadora da RÜGE</p>
             </div>
           </div>
         </div>

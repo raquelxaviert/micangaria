@@ -2,7 +2,7 @@
 
 ## TL;DR - Resumo Executivo
 
-**Para o seu negócio atual (miçangaria com curadoria especial), recomendo começar com SHOPIFY por estes motivos:**
+**Para o seu negócio atual (RÜGE com curadoria especial), recomendo começar com SHOPIFY por estes motivos:**
 - ✅ Custos previsíveis e baixos no início
 - ✅ Zero preocupação com infraestrutura
 - ✅ Pagamentos, impostos e logística já resolvidos

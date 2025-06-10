@@ -1,4 +1,4 @@
-# miçangaria - Acessórios Boho & Indígenas
+# RÜGE - Acessórios Boho & Indígenas
 
 Este é um projeto Next.js para uma loja online de acessórios boho cuidadosamente selecionados.
 
