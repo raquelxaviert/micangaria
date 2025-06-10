@@ -150,7 +150,7 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" /> {/* Existing gradient for subtle color effect */}
         </div>          <div className="relative z-10 container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8 text-center">
           {/* Container interno com blur em onda para facilitar leitura */}
-          <div className="max-w-5xl mx-auto space-y-3 sm:space-y-4 bg-background/60 animate-blur-wave p-2 sm:p-3 md:p-4 rounded-xl shadow-lg"><div className="space-y-4 sm:space-y-6">              <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-headline leading-tight animate-fade-in px-2"><div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3">
+          <div className="max-w-5xl mx-auto space-y-3 sm:space-y-4 bg-background/60 animate-blur-wave p-2 sm:p-3 md:p-4 rounded-xl shadow-lg"><div className="space-y-4 sm:space-y-6">              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-headline leading-tight animate-fade-in px-2"><div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3">
                   <span className="animate-color-wave whitespace-nowrap">We don't whisper.</span>                  <div className="flex items-center whitespace-nowrap gap-2 sm:gap-3">
                     <span className="animate-color-wave-alt">We</span>
                     <Image
@@ -170,11 +170,13 @@ export default function HomePage() {
             </div>              <div className="flex flex-col gap-2 sm:gap-3 justify-center items-center px-2">              <Button 
                 asChild 
                 size="default" 
-                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/80 hover:to-primary text-primary-foreground px-3 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 text-xs sm:text-sm lg:text-base font-semibold rounded-full shadow-2xl hover:shadow-primary/40 transition-all duration-500 hover:-translate-y-1 transform w-full max-w-xs sm:max-w-sm group"
+                className="bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary/80 hover:to-primary text-primary-foreground px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 text-xs sm:text-sm lg:text-base font-semibold rounded-full shadow-xl hover:shadow-2xl hover:shadow-primary/30 transition-all duration-500 hover:-translate-y-2 hover:scale-105 transform w-full max-w-xs sm:max-w-sm group border-2 border-primary/20 hover:border-primary/40"
               >
                 <Link href="/products">
-                  Explorar
-                  <ArrowRight className="ml-2 h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-300 group-hover:translate-x-1.5" />
+                  <span className="flex items-center justify-center">
+                    Explorar Coleção
+                    <ArrowRight className="ml-2 h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-300 group-hover:translate-x-2" />
+                  </span>
                 </Link>
               </Button>
               
@@ -182,21 +184,22 @@ export default function HomePage() {
                 asChild 
                 variant="outline"
                 size="default"
-                className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-3 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 text-xs sm:text-sm lg:text-base font-semibold rounded-full transition-all duration-500 hover:-translate-y-1 transform w-full max-w-xs sm:max-w-sm group"
+                className="border-2 border-primary/80 text-primary hover:bg-gradient-to-r hover:from-primary hover:to-primary/90 hover:text-primary-foreground px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 text-xs sm:text-sm lg:text-base font-semibold rounded-full transition-all duration-500 hover:-translate-y-2 hover:scale-105 transform w-full max-w-xs sm:max-w-sm group shadow-lg hover:shadow-xl hover:shadow-primary/20 bg-background/90 hover:border-primary"
               >
                 <Link href="/style-advisor">
-                  Consultoria
-                  <Sparkles className="ml-2 h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-300 group-hover:rotate-12" />
+                  <span className="flex items-center justify-center">
+                    Consultoria
+                    <Sparkles className="ml-2 h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-300 group-hover:rotate-45 group-hover:scale-110" />
+                  </span>
                 </Link>
               </Button>
-            </div>{/* Enhanced trust indicators */}            <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-6 pt-3 sm:pt-4">
-              <div className="flex items-center gap-2 sm:gap-3 bg-white/20 rounded-full px-4 sm:px-6 py-2 sm:py-3 border border-primary/20">
-                <Shield className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
-                <span className="text-xs sm:text-sm font-medium text-foreground">Qualidade Garantida</span>
+            </div>{/* Enhanced trust indicators */}            <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-4 pt-3 sm:pt-4">              <div className="flex items-center gap-1 sm:gap-2 bg-white/20 rounded-full px-2 sm:px-3 py-1 sm:py-2 border border-primary/20">
+                <Shield className="w-3 sm:w-4 h-3 sm:h-4 text-black" />
+                <span className="text-xs font-medium text-foreground">Qualidade Garantida</span>
               </div>
-              <div className="flex items-center gap-2 sm:gap-3 bg-white/20 rounded-full px-4 sm:px-6 py-2 sm:py-3 border border-secondary/20">
-                <Truck className="w-4 sm:w-5 h-4 sm:h-5 text-secondary" />
-                <span className="text-xs sm:text-sm font-medium text-foreground">Frete Grátis</span>
+              <div className="flex items-center gap-1 sm:gap-2 bg-white/20 rounded-full px-2 sm:px-3 py-1 sm:py-2 border border-secondary/20">
+                <Truck className="w-3 sm:w-4 h-3 sm:h-4 text-secondary" />
+                <span className="text-xs font-medium text-foreground">Frete Grátis</span>
               </div>
             </div>
           </div>
