@@ -19,7 +19,7 @@ export default function ImageUploadSimple({
   accept = 'image/*',
   maxSize = 5 
 }: ImageUploadSimpleProps) {
-  const [preview, setPreview] = useState<string | null>(currentImage || null);
+  const [preview, setPreview] = useState<string | null>(currentImage && currentImage.trim() ? currentImage : null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -69,19 +69,27 @@ export default function ImageUploadSimple({
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false
+        });      if (error) {
+        // Extrair mensagem de erro de forma mais robusta
+        const errorMessage = error?.message || (error as any)?.error_description || (error as any)?.details || JSON.stringify(error) || 'Erro desconhecido';
+        console.error('❌ Erro no upload Supabase:', { 
+          error, 
+          message: errorMessage,
+          details: error
         });
-        
-      if (error) {
-        console.error('❌ Erro no upload Supabase:', error);
-        setUploadStatus(`Erro: ${error.message}`);
+        setUploadStatus(`Erro: ${errorMessage}`);
         
         // Fallback: usar imagem local
         const localUrl = `/products/${file.name}`;
         onImageChange(localUrl);
-        
-        setTimeout(() => {
-          alert(`⚠️ Upload para Supabase falhou: ${error.message}\n\nUsando imagem local como fallback.`);
+          setTimeout(() => {
+          alert(`⚠️ Upload para Supabase falhou: ${errorMessage}\n\nUsando imagem local como fallback.`);
           setUploadStatus('');
+          // Limpar preview após fallback
+          setPreview(null);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
         }, 1000);
         
       } else {
@@ -92,29 +100,40 @@ export default function ImageUploadSimple({
         const { data: { publicUrl } } = supabase.storage
           .from('product-images')
           .getPublicUrl(fileName);
-          
-        console.log('✅ URL pública:', publicUrl);
+            console.log('✅ URL pública:', publicUrl);
         onImageChange(publicUrl);
         
         setUploadStatus('Upload concluído!');
         setTimeout(() => {
           alert('✅ Imagem enviada para Supabase Storage com sucesso!');
           setUploadStatus('');
+          // Limpar preview após upload bem-sucedido
+          setPreview(null);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
         }, 1000);
-      }
-
-    } catch (error: any) {
-      console.error('❌ Erro geral:', error);
-      const errorMsg = error?.message || error?.toString() || 'Erro desconhecido';
+      }    } catch (error: any) {
+      console.error('❌ Erro geral:', { 
+        error, 
+        message: error?.message,
+        toString: error?.toString?.(),
+        stack: error?.stack 
+      });
+      const errorMsg = error?.message || error?.toString?.() || 'Erro desconhecido no upload';
       setUploadStatus(`Erro: ${errorMsg}`);
       
       // Fallback: usar imagem local
       const localUrl = `/products/${file.name}`;
       onImageChange(localUrl);
-      
-      setTimeout(() => {
+        setTimeout(() => {
         alert(`❌ Erro no upload: ${errorMsg}\n\nUsando imagem local como fallback.`);
         setUploadStatus('');
+        // Limpar preview após erro
+        setPreview(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       }, 1000);
       
     } finally {

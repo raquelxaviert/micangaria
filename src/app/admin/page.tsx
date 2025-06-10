@@ -344,7 +344,7 @@ function ProductForm({
     type: 'colar',
     style: 'boho',
     colors: [],
-    imageUrl: '/products/colar.jpg',
+    imageUrl: '', // Deixar vazio para novos produtos
     isNewArrival: false,
     isPromotion: false,
     promotionDetails: '',
