@@ -15,7 +15,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Plus, Edit, Trash2, Save, Upload, Eye, ShoppingBag, Settings, BarChart3, Package, Users } from 'lucide-react';
 import { Product, products } from '@/lib/placeholder-data';
 import OrdersManagement from '@/components/OrdersManagement';
-import ImageUploadSimple from '@/components/ImageUploadSimple';
+import ImageUploadTemp from '@/components/ImageUploadTemp';
+import { uploadImageToSupabase } from '@/lib/uploadUtils';
 import Image from 'next/image';
 
 // Simulação de autenticação simples
@@ -344,7 +345,7 @@ function ProductForm({
     type: 'colar',
     style: 'boho',
     colors: [],
-    imageUrl: '', // Deixar vazio para novos produtos
+    imageUrl: '/products/colar.jpg',
     isNewArrival: false,
     isPromotion: false,
     promotionDetails: '',
@@ -478,9 +479,13 @@ function ProductForm({
           </Select>
         </div>
       </div>      <div>
-        <Label htmlFor="imageUrl">Imagem do Produto</Label>        <ImageUploadSimple
-          currentImage={formData.imageUrl}
-          onImageChange={(url) => setFormData({ ...formData, imageUrl: url })}
+        <Label htmlFor="imageUrl">Imagem do Produto</Label>
+        <ImageUploadTemp
+          currentImage={imageData.url}
+          onImageChange={(data) => {
+            setImageData(data);
+            setFormData({ ...formData, imageUrl: data.url });
+          }}
         />
       </div>
 
