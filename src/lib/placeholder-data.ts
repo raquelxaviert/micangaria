@@ -5,8 +5,8 @@ export interface Product {
   price: number;
   imageUrl: string;
   imageHint: string;
-  type: 'acessorio' | 'bolsa';
-  style: 'vintage' | 'retro' | 'boho-vintage' | 'anos-80' | 'anos-90';
+  type: 'acessorio' | 'bolsa' | 'colar' | 'brinco' | 'pulseira' | 'anel' | 'cinto' | 'sandalia' | 'conjunto';
+  style: 'vintage' | 'retro' | 'boho-vintage' | 'anos-80' | 'anos-90' | 'boho' | 'indígena' | 'minimalista' | 'étnico';
   colors: string[];
   isNewArrival?: boolean;
   isPromotion?: boolean;

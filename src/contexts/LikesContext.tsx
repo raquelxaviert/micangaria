@@ -10,6 +10,7 @@ interface LikesContextType {
   getLikedProducts: () => string[];
   likedCount: number;
   isLoaded: boolean;
+  syncFavorites: () => Promise<void>;
 }
 
 const LikesContext = createContext<LikesContextType | undefined>(undefined);
@@ -74,16 +75,23 @@ export function LikesProvider({ children }: LikesProviderProps) {
   const getLikedProducts = useCallback(() => {
     return Array.from(likedProducts);
   }, [likedProducts]);
-
   // Get count of liked products
   const likedCount = likedProducts.size;
+
+  // Sync favorites with server when user logs in
+  const syncFavorites = useCallback(async () => {
+    // This function can be implemented to sync with Supabase
+    // For now, it's a placeholder that resolves immediately
+    return Promise.resolve();
+  }, []);
 
   const value: LikesContextType = {
     toggleLike,
     isLiked,
     getLikedProducts,
     likedCount,
-    isLoaded
+    isLoaded,
+    syncFavorites
   };
 
   return (

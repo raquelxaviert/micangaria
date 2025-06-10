@@ -4,6 +4,7 @@ import { Header } from '@/components/global/Header';
 import { Footer } from '@/components/global/Footer';
 import { Toaster } from "@/components/ui/toaster";
 import { LikesProvider } from '@/contexts/LikesContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 export const metadata: Metadata = {
   title: 'RÜGE - Brechó Vintage & Styling',
@@ -22,15 +23,16 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-      </head>
-      <body className="font-body antialiased flex flex-col min-h-screen">
-        <LikesProvider>
-          <Header />
-          <main className="flex-grow container mx-auto px-4 py-8">
-            {children}
-          </main>
-          <Footer />
-        </LikesProvider>
+      </head>      <body className="font-body antialiased flex flex-col min-h-screen">
+        <AuthProvider>
+          <LikesProvider>
+            <Header />
+            <main className="flex-grow container mx-auto px-4 py-8">
+              {children}
+            </main>
+            <Footer />
+          </LikesProvider>
+        </AuthProvider>
         <Toaster />
       </body>
     </html>

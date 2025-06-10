@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Dados simulados de pedidos
-const mockOrders = [
+const mockOrders: Order[] = [
   {
     id: '1',
     sessionId: 'cs_test_a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0u1V2w3X4y5Z6',
@@ -94,14 +94,39 @@ const mockOrders = [
   }
 ];
 
-const statusLabels = {
+// Types
+type OrderStatus = 'preparing' | 'shipped' | 'delivered' | 'cancelled';
+
+interface Order {
+  id: string;
+  sessionId: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  amount: number;
+  status: string;
+  orderStatus: OrderStatus;
+  items: { name: string; quantity: number; price: number; }[];
+  shippingAddress: {
+    line1: string;
+    line2?: string;
+    city: string;
+    state: string;
+    postal_code: string;
+    country: string;
+  };
+  createdAt: Date;
+  trackingCode: string | null;
+}
+
+const statusLabels: Record<OrderStatus, { label: string; color: string }> = {
   preparing: { label: 'Preparando', color: 'bg-yellow-100 text-yellow-800' },
   shipped: { label: 'Enviado', color: 'bg-blue-100 text-blue-800' },
   delivered: { label: 'Entregue', color: 'bg-green-100 text-green-800' },
   cancelled: { label: 'Cancelado', color: 'bg-red-100 text-red-800' }
 };
 
-const statusIcons = {
+const statusIcons: Record<OrderStatus, any> = {
   preparing: Clock,
   shipped: Truck,
   delivered: CheckCircle,
@@ -109,11 +134,11 @@ const statusIcons = {
 };
 
 export default function OrdersManagement() {
-  const [orders, setOrders] = useState(mockOrders);
-  const [filteredOrders, setFilteredOrders] = useState(mockOrders);
+  const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>(mockOrders);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   // Filtrar pedidos
   useEffect(() => {
@@ -133,8 +158,7 @@ export default function OrdersManagement() {
 
     setFilteredOrders(filtered);
   }, [orders, searchTerm, statusFilter]);
-
-  const updateOrderStatus = (orderId: string, newStatus: string) => {
+  const updateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
     setOrders(prev => prev.map(order =>
       order.id === orderId
         ? { ...order, orderStatus: newStatus }

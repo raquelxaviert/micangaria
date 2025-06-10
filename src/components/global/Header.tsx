@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Sparkles, Info, ShoppingBag, Search, Menu, X, Gem, Briefcase, Heart } from 'lucide-react'; 
+import { Sparkles, Info, ShoppingBag, Search, Menu, X, Gem, Briefcase, Heart, User, LogOut } from 'lucide-react'; 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet';
@@ -10,17 +10,28 @@ import { useState } from 'react';
 import { useLikes } from '@/contexts/LikesContext';
 import { ClientOnly } from '@/components/ui/ClientOnly';
 import { cn } from '@/lib/utils';
+import { AuthModal } from '@/components/AuthModal';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { likedCount, isLoaded } = useLikes();
-
+  const { user, signOut } = useAuth();
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       // Redireciona para a página de produtos com query de pesquisa
       window.location.href = `/products?search=${encodeURIComponent(searchQuery.trim())}`;
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
     }
   };
 
@@ -184,12 +195,38 @@ export function Header() {
                     </ClientOnly>
                   </div>
                 </Link>
-              </li>
-              <li>
+              </li>              <li>
                 <Link href="/style-advisor" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap">
                   <Sparkles size={20} /> 
                   <span>Consultoria</span>
                 </Link>
+              </li>
+              <li>
+                {user ? (
+                  <div className="flex items-center space-x-3">
+                    <span className="text-sm text-muted-foreground">
+                      Olá, {user.user_metadata?.full_name || user.email}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleSignOut}
+                      className="hover:text-primary transition-colors flex items-center space-x-1"
+                    >
+                      <LogOut size={16} />
+                      <span>Sair</span>
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    onClick={() => setIsAuthModalOpen(true)}
+                    className="hover:text-primary transition-colors flex items-center space-x-1"
+                  >
+                    <User size={20} />
+                    <span>Entrar</span>
+                  </Button>
+                )}
               </li>
             </ul>
           </nav>
@@ -294,9 +331,32 @@ export function Header() {
                 className="h-8 w-auto"
               />
             </Link>
-            
-            {/* Ações do mobile: Favoritos e Busca */}
-            <div className="flex items-center gap-2">              {/* Botão de Favoritos no Mobile */}
+              {/* Ações do mobile: Usuário, Favoritos e Busca */}
+            <div className="flex items-center gap-2">
+              {/* Botão de Usuário no Mobile */}
+              {user ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleSignOut}
+                  className="hover:bg-primary/10"
+                  title="Sair"
+                >
+                  <LogOut size={20} />
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="hover:bg-primary/10"
+                  title="Entrar"
+                >
+                  <User size={20} />
+                </Button>
+              )}
+
+              {/* Botão de Favoritos no Mobile */}
               <Link href="/liked-products" className="relative">
                 <Button variant="ghost" size="icon" className="hover:bg-primary/10">
                   <Heart size={20} className={cn(likedCount > 0 ? "text-red-500 fill-current" : "")} />
@@ -346,11 +406,16 @@ export function Header() {
                     </Button>
                   )}
                 </div>
-              </form>
-            </div>
+              </form>            </div>
           </div>
         </div>
       </div>
+
+      {/* Modal de Autenticação */}
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+      />
     </header>
   );
 }
