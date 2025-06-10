@@ -3,27 +3,28 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Upload, X, Camera, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, ImageIcon } from 'lucide-react';
 import Image from 'next/image';
-import { createClient } from '@/lib/supabase/client';
 
-interface ImageUploadProps {
+interface ImageUploadSimpleProps {
   currentImage?: string;
   onImageChange: (imageUrl: string) => void;
   accept?: string;
-  maxSize?: number; // em MB
+  maxSize?: number;
 }
 
-export default function ImageUpload({ 
+export default function ImageUploadSimple({ 
   currentImage, 
   onImageChange, 
   accept = 'image/*',
   maxSize = 5 
-}: ImageUploadProps) {
+}: ImageUploadSimpleProps) {
   const [preview, setPreview] = useState<string | null>(currentImage || null);
-  const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);  const handleFileSelect = async (file: File) => {
+  const [uploadStatus, setUploadStatus] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = async (file: File) => {
     if (!file) return;
 
     // Validar tipo de arquivo
@@ -39,14 +40,9 @@ export default function ImageUpload({
     }
 
     setIsUploading(true);
+    setUploadStatus('Preparando upload...');
 
     try {
-      // Gerar nome único para arquivo
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      
-      console.log('Iniciando upload:', fileName);
-
       // Criar preview local primeiro
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -55,81 +51,75 @@ export default function ImageUpload({
       };
       reader.readAsDataURL(file);
 
-      // Tentar upload para Supabase Storage
-      try {
-        const supabase = createClient();
+      // Gerar nome único para arquivo
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      
+      setUploadStatus('Conectando com Supabase...');
+
+      // Import dinâmico do Supabase
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      
+      setUploadStatus('Fazendo upload...');
+      
+      // Upload para Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('product-images')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
         
-        console.log('Tentando upload para bucket product-images...');
-        
-        // Upload para Supabase Storage
-        const { data, error } = await supabase.storage
-          .from('product-images')
-          .upload(fileName, file, {
-            cacheControl: '3600',
-            upsert: false
-          });
-            if (error) {
-          console.error('Erro detalhado do Supabase:', {
-            message: error.message,
-            name: error.name,
-            error: error
-          });
-          
-          // Fallback: usar imagem local
-          console.log('Fallback: usando imagem local');
-          const localUrl = `/products/${file.name}`;
-          onImageChange(localUrl);
-          alert(`Upload para Supabase falhou: ${error.message}. Usando imagem local como fallback.`);
-        } else {
-          console.log('Upload bem-sucedido:', data);
-          
-          // URL pública da imagem
-          const { data: { publicUrl } } = supabase.storage
-            .from('product-images')
-            .getPublicUrl(fileName);
-            
-          console.log('URL pública gerada:', publicUrl);
-          onImageChange(publicUrl);
-          alert('✅ Imagem enviada para Supabase Storage com sucesso!');
-        }
-      } catch (uploadError: any) {
-        console.error('Erro na tentativa de upload:', uploadError);
+      if (error) {
+        console.error('❌ Erro no upload Supabase:', error);
+        setUploadStatus(`Erro: ${error.message}`);
         
         // Fallback: usar imagem local
         const localUrl = `/products/${file.name}`;
         onImageChange(localUrl);
         
-        const errorMessage = uploadError?.message || uploadError?.toString() || 'Erro desconhecido';
-        alert(`Erro no upload: ${errorMessage}. Usando imagem local como fallback.`);
+        setTimeout(() => {
+          alert(`⚠️ Upload para Supabase falhou: ${error.message}\n\nUsando imagem local como fallback.`);
+          setUploadStatus('');
+        }, 1000);
+        
+      } else {
+        console.log('✅ Upload bem-sucedido:', data);
+        setUploadStatus('Gerando URL...');
+        
+        // URL pública da imagem
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(fileName);
+          
+        console.log('✅ URL pública:', publicUrl);
+        onImageChange(publicUrl);
+        
+        setUploadStatus('Upload concluído!');
+        setTimeout(() => {
+          alert('✅ Imagem enviada para Supabase Storage com sucesso!');
+          setUploadStatus('');
+        }, 1000);
       }
 
     } catch (error: any) {
-      console.error('Erro geral no handleFileSelect:', error);
-      const errorMessage = error?.message || error?.toString() || 'Erro desconhecido';
-      alert(`Erro ao processar arquivo: ${errorMessage}`);
+      console.error('❌ Erro geral:', error);
+      const errorMsg = error?.message || error?.toString() || 'Erro desconhecido';
+      setUploadStatus(`Erro: ${errorMsg}`);
+      
+      // Fallback: usar imagem local
+      const localUrl = `/products/${file.name}`;
+      onImageChange(localUrl);
+      
+      setTimeout(() => {
+        alert(`❌ Erro no upload: ${errorMsg}\n\nUsando imagem local como fallback.`);
+        setUploadStatus('');
+      }, 1000);
+      
     } finally {
       setIsUploading(false);
     }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      handleFileSelect(files[0]);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
   };
 
   const handleClick = () => {
@@ -139,6 +129,7 @@ export default function ImageUpload({
   const handleRemove = () => {
     setPreview(null);
     onImageChange('');
+    setUploadStatus('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -146,19 +137,21 @@ export default function ImageUpload({
 
   return (
     <div className="space-y-4">
+      {/* Status do upload */}
+      {uploadStatus && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p className="text-sm text-blue-800">📡 {uploadStatus}</p>
+        </div>
+      )}
+
       {/* Área de Upload */}
       <Card 
         className={`border-2 border-dashed transition-colors cursor-pointer ${
-          isDragging 
-            ? 'border-purple-400 bg-purple-50' 
-            : preview 
-              ? 'border-green-300 bg-green-50' 
-              : 'border-gray-300 hover:border-purple-400 hover:bg-purple-50'
+          preview 
+            ? 'border-green-300 bg-green-50' 
+            : 'border-gray-300 hover:border-purple-400 hover:bg-purple-50'
         }`}
         onClick={handleClick}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
       >
         <CardContent className="p-6">
           <input
@@ -173,6 +166,7 @@ export default function ImageUpload({
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-2"></div>
               <p className="text-sm text-gray-600">Fazendo upload...</p>
+              {uploadStatus && <p className="text-xs text-gray-500 mt-1">{uploadStatus}</p>}
             </div>
           ) : preview ? (
             <div className="text-center">
@@ -202,39 +196,31 @@ export default function ImageUpload({
           ) : (
             <div className="text-center">
               <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-                {isDragging ? (
-                  <Upload className="w-6 h-6 text-purple-600" />
-                ) : (
-                  <ImageIcon className="w-6 h-6 text-gray-400" />
-                )}
+                <ImageIcon className="w-6 h-6 text-gray-400" />
               </div>
               <p className="text-sm font-medium text-gray-700 mb-1">
-                {isDragging ? 'Solte a imagem aqui' : 'Clique para fazer upload'}
+                📤 Clique para fazer upload
               </p>
               <p className="text-xs text-gray-500">
-                ou arraste e solte uma imagem
+                Envio direto para Supabase Storage
               </p>
               <p className="text-xs text-gray-400 mt-2">
-                Formatos aceitos: JPG, PNG, GIF (máx. {maxSize}MB)
+                JPG, PNG, GIF (máx. {maxSize}MB)
               </p>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Opções de Imagem Rápida */}
+      {/* Opções de Imagem Local */}
       <div className="space-y-2">
-        <p className="text-sm font-medium text-gray-700">Ou escolha uma imagem existente:</p>
+        <p className="text-sm font-medium text-gray-700">Ou use uma imagem local:</p>
         <div className="grid grid-cols-4 gap-2">
           {[
             '/products/colar.jpg',
             '/products/brinco.jpg',
             '/products/pulseira.jpg',
-            '/products/anel.jpg',
-            '/products/conjunto_colares.jpg',
-            '/products/conjunto_pulseiras.jpg',
-            '/products/sandalia.jpg',
-            '/products/cinto.jpg'
+            '/products/anel.jpg'
           ].map((imagePath, index) => (
             <div
               key={index}
@@ -244,34 +230,24 @@ export default function ImageUpload({
               onClick={() => {
                 setPreview(imagePath);
                 onImageChange(imagePath);
+                setUploadStatus('');
               }}
             >
               <Image
                 src={imagePath}
-                alt={`Opção ${index + 1}`}
+                alt={`Local ${index + 1}`}
                 width={80}
                 height={80}
                 className="object-cover aspect-square"
               />
               {preview === imagePath && (
                 <div className="absolute inset-0 bg-purple-400 bg-opacity-20 flex items-center justify-center">
-                  <div className="w-4 h-4 bg-purple-600 rounded-full flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                  </div>
+                  <div className="w-4 h-4 bg-purple-600 rounded-full"></div>
                 </div>
               )}
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Dica de Upload Real */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <p className="text-sm text-blue-800">
-          <strong>💡 Dica para Produção:</strong> Para usar upload real, integre com serviços como 
-          Cloudinary, AWS S3, Vercel Blob ou Supabase Storage. 
-          Por enquanto, coloque suas imagens na pasta <code className="bg-blue-100 px-1 rounded">/public/products/</code>
-        </p>
       </div>
     </div>
   );

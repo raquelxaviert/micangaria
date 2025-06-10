@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Plus, Edit, Trash2, Save, Upload, Eye, ShoppingBag, Settings, BarChart3, Package, Users } from 'lucide-react';
 import { Product, products } from '@/lib/placeholder-data';
 import OrdersManagement from '@/components/OrdersManagement';
+import ImageUploadSimple from '@/components/ImageUploadSimple';
 import Image from 'next/image';
 
 // Simulação de autenticação simples
@@ -27,30 +28,57 @@ export default function AdminPage() {
   const [productList, setProductList] = useState<Product[]>(products);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Verificar se já está autenticado
   useEffect(() => {
-    const authStatus = localStorage.getItem('micangariaAdminAuth');
-    if (authStatus === 'true') {
-      setIsAuthenticated(true);
-    }
-  }, []);
+    const checkAuth = () => {
+      const authStatus = localStorage.getItem('micangariaAdminAuth');
+      const authTime = localStorage.getItem('micangariaAdminTime');
+      const currentTime = Date.now();
+      
+      // Sessão expira em 24 horas
+      if (authStatus === 'true' && authTime && (currentTime - parseInt(authTime) < 24 * 60 * 60 * 1000)) {
+        setIsAuthenticated(true);
+      } else {
+        // Limpar autenticação expirada
+        localStorage.removeItem('micangariaAdminAuth');
+        localStorage.removeItem('micangariaAdminTime');
+        setIsAuthenticated(false);
+      }
+      setIsLoading(false);
+    };
 
+    checkAuth();
+  }, []);
   const handleLogin = () => {
     if (password === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
       localStorage.setItem('micangariaAdminAuth', 'true');
+      localStorage.setItem('micangariaAdminTime', Date.now().toString());
       setLoginError('');
+      setPassword(''); // Limpar senha
     } else {
       setLoginError('Senha incorreta. Tente novamente.');
+      setPassword(''); // Limpar campo para nova tentativa
     }
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
     localStorage.removeItem('micangariaAdminAuth');
+    localStorage.removeItem('micangariaAdminTime');
     setPassword('');
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
@@ -449,19 +477,11 @@ function ProductForm({
             </SelectContent>
           </Select>
         </div>
-      </div>
-
-      <div>
-        <Label htmlFor="imageUrl">URL da Imagem</Label>
-        <Input
-          id="imageUrl"
-          value={formData.imageUrl || ''}
-          onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-          placeholder="/products/produto.jpg"
+      </div>      <div>
+        <Label htmlFor="imageUrl">Imagem do Produto</Label>        <ImageUploadSimple
+          currentImage={formData.imageUrl}
+          onImageChange={(url) => setFormData({ ...formData, imageUrl: url })}
         />
-        <p className="text-xs text-muted-foreground mt-1">
-          💡 Coloque a imagem na pasta public/products/ e use o caminho como /products/nome.jpg
-        </p>
       </div>
 
       <div className="flex flex-wrap gap-4">
