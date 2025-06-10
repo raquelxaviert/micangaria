@@ -4,7 +4,7 @@ import { products, Product } from '@/lib/ruge-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Tag, Zap, Sparkles, Star, Heart, Shield, Leaf, Truck, RotateCcw, CreditCard, Award, Users, MapPin, Phone, Mail } from 'lucide-react';
+import { ArrowRight, Tag, Zap, Sparkles, Star, Heart, Shield, Leaf, Truck, RotateCcw, CreditCard, Award, Users, MapPin, Phone, Mail, Cat } from 'lucide-react';
 
 function ProductCard({ product }: { product: Product }) {
   return (
