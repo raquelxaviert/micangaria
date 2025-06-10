@@ -140,7 +140,7 @@ export default function HomePage() {
   ];
   return (
     <div className="space-y-8 sm:space-y-12 overflow-x-hidden">      {/* Hero Section - Enhanced */}
-      <section className="relative overflow-hidden rounded-none sm:rounded-3xl min-h-[40vh] flex items-center"><div className="absolute inset-0">          <Image
+      <section className="relative overflow-hidden rounded-none sm:rounded-3xl min-h-[30vh] flex items-center"><div className="absolute inset-0">          <Image
             src="/banner/banner.png"
             alt="Banner de acessórios boho"
             fill
@@ -149,9 +149,9 @@ export default function HomePage() {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-white/70 to-white/30" />          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" /> {/* Existing gradient for subtle color effect */}
         </div>
-          <div className="relative z-10 container mx-auto px-4 sm:px-6 py-6 sm:py-8 md:py-10 text-center">
+          <div className="relative z-10 container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8 text-center">
           {/* MODIFIED: Added bg-background/30 p-6 md:p-8 rounded-xl shadow-lg */}
-          <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 bg-background/30 p-3 sm:p-4 md:p-6 rounded-xl shadow-lg">
+          <div className="max-w-5xl mx-auto space-y-3 sm:space-y-4 bg-background/30 p-2 sm:p-3 md:p-4 rounded-xl shadow-lg">
             <div className="space-y-4 sm:space-y-6">              <Badge className="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium border-0" style={{ backgroundColor: '#780116', color: '#F5F0EB' }}>
                 Força, Presença & Autenticidade 🐆
               </Badge>              <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-headline leading-tight animate-fade-in px-2">                <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3">
@@ -168,35 +168,34 @@ export default function HomePage() {
                     />
                   </div>
                 </div>
-              </h1>                <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed px-2">
-                Curadoria especial de peças únicas por{' '}
+              </h1>                <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed px-2">
+                Curadoria por{' '}
                 <span className="text-primary font-semibold">Maria Clara</span>. 
-                Descubra tesouros vintage únicos.
+                Tesouros vintage únicos.
               </p>
-            </div>
-              <div className="flex flex-col gap-3 sm:gap-4 justify-center items-center px-2">              <Button 
+            </div>              <div className="flex flex-col gap-2 sm:gap-3 justify-center items-center px-2">              <Button 
                 asChild 
-                size="lg" 
-                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/80 hover:to-primary text-primary-foreground px-4 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 text-sm sm:text-base lg:text-lg font-semibold rounded-full shadow-2xl hover:shadow-primary/40 transition-all duration-500 hover:-translate-y-1 transform w-full max-w-xs sm:max-w-sm group"
+                size="default" 
+                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/80 hover:to-primary text-primary-foreground px-3 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 text-xs sm:text-sm lg:text-base font-semibold rounded-full shadow-2xl hover:shadow-primary/40 transition-all duration-500 hover:-translate-y-1 transform w-full max-w-xs sm:max-w-sm group"
               >
                 <Link href="/products">
-                  Explorar Brechó
-                  <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-300 group-hover:translate-x-1.5" />
+                  Explorar
+                  <ArrowRight className="ml-2 h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-300 group-hover:translate-x-1.5" />
                 </Link>
               </Button>
               
               <Button 
                 asChild 
                 variant="outline"
-                size="lg"
-                className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-4 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 text-sm sm:text-base lg:text-lg font-semibold rounded-full transition-all duration-500 hover:-translate-y-1 transform w-full max-w-xs sm:max-w-sm group"
+                size="default"
+                className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-3 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 text-xs sm:text-sm lg:text-base font-semibold rounded-full transition-all duration-500 hover:-translate-y-1 transform w-full max-w-xs sm:max-w-sm group"
               >
                 <Link href="/style-advisor">
-                  Consultoria de Styling
-                  <Sparkles className="ml-2 h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-300 group-hover:rotate-12" />
+                  Consultoria
+                  <Sparkles className="ml-2 h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-300 group-hover:rotate-12" />
                 </Link>
               </Button>
-            </div>{/* Enhanced trust indicators */}            <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 pt-4 sm:pt-6">
+            </div>{/* Enhanced trust indicators */}            <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-6 pt-3 sm:pt-4">
               <div className="flex items-center gap-2 sm:gap-3 bg-white/20 rounded-full px-4 sm:px-6 py-2 sm:py-3 border border-primary/20">
                 <Shield className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
                 <span className="text-xs sm:text-sm font-medium text-foreground">Qualidade Garantida</span>
