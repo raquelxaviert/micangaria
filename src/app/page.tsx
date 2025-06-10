@@ -169,7 +169,7 @@ export default function HomePage() {
                 </h1>
                 
                 <p className="text-sm sm:text-base text-muted-foreground/80 mt-8 mb-6">
-                  Clique para conhecer a coleção
+                  Clique para conhecer a coleção 🐆
                 </p>
               </div>
             </div>
