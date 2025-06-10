@@ -23,7 +23,6 @@ export default function ImageUpload({
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const handleFileSelect = async (file: File) => {
     if (!file) return;
 
@@ -44,24 +43,51 @@ export default function ImageUpload({
     try {
       // Criar preview local
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const result = e.target?.result as string;
         setPreview(result);
         
-        // Em um ambiente real, você faria upload para um serviço como:
-        // 1. Cloudinary
-        // 2. AWS S3
-        // 3. Vercel Blob
-        // 4. Supabase Storage
-        
-        // Por enquanto, vamos simular um upload e usar um URL local
-        const simulatedUrl = `/products/${file.name}`;
-        onImageChange(simulatedUrl);
+        // Upload para Supabase Storage (quando em produção)
+        if (process.env.NODE_ENV === 'production') {
+          try {
+            const { createClient } = await import('@/lib/supabase/client');
+            const supabase = createClient();
+            
+            // Gerar nome único para arquivo
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+            
+            // Upload para Supabase Storage
+            const { data, error } = await supabase.storage
+              .from('product-images')
+              .upload(fileName, file);
+              
+            if (error) {
+              throw error;
+            }
+            
+            // URL pública da imagem
+            const { data: { publicUrl } } = supabase.storage
+              .from('product-images')
+              .getPublicUrl(fileName);
+              
+            onImageChange(publicUrl);
+          } catch (uploadError) {
+            console.error('Erro no upload para Supabase:', uploadError);
+            // Fallback para desenvolvimento
+            const simulatedUrl = `/products/${file.name}`;
+            onImageChange(simulatedUrl);
+          }
+        } else {
+          // Modo desenvolvimento - usar pasta local
+          const simulatedUrl = `/products/${file.name}`;
+          onImageChange(simulatedUrl);
+        }
       };
       reader.readAsDataURL(file);
 
-      // Simular delay de upload
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Delay para mostrar o loading
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
     } catch (error) {
       console.error('Erro no upload:', error);

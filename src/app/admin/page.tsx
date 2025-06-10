@@ -309,8 +309,7 @@ function ProductForm({
   product?: Product; 
   onSave: (product: Product) => void; 
   onCancel?: () => void;
-}) {
-  const [formData, setFormData] = useState<Partial<Product>>(product || {
+}) {  const [formData, setFormData] = useState<Partial<Product>>(product || {
     name: '',
     description: '',
     price: 0,
@@ -320,14 +319,58 @@ function ProductForm({
     imageUrl: '/products/colar.jpg',
     isNewArrival: false,
     isPromotion: false,
-    promotionDetails: ''
+    promotionDetails: '',
+    id: '' // SKU será gerado automaticamente pelo Supabase (#20xx)
   });
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.name && formData.description && formData.price) {
-      onSave(formData as Product);
-      onCancel?.();
+      try {
+        // Em produção, conectar com Supabase
+        if (process.env.NODE_ENV === 'production') {
+          const { createClient } = await import('@/lib/supabase/client');
+          const supabase = createClient();
+          
+          const productData = {
+            name: formData.name,
+            description: formData.description,
+            price: formData.price,
+            type: formData.type,
+            style: formData.style,
+            colors: formData.colors || [],
+            image_url: formData.imageUrl,
+            is_new_arrival: formData.isNewArrival || false,
+            is_on_sale: formData.isPromotion || false,
+            promotion_text: formData.promotionDetails || null,
+            is_active: true
+            // SKU será gerado automaticamente (#20xx)
+          };
+          
+          if (product?.id) {
+            // Atualizar produto existente
+            const { error } = await supabase
+              .from('products')
+              .update(productData)
+              .eq('id', product.id);
+              
+            if (error) throw error;
+          } else {
+            // Criar novo produto
+            const { error } = await supabase
+              .from('products')
+              .insert([productData]);
+              
+            if (error) throw error;
+          }
+        }
+        
+        // Para desenvolvimento, usar dados mock
+        onSave(formData as Product);
+        onCancel?.();
+      } catch (error) {
+        console.error('Erro ao salvar produto:', error);
+        alert('Erro ao salvar produto. Tente novamente.');
+      }
     }
   };
 
