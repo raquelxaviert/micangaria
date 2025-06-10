@@ -152,14 +152,14 @@ export default function HomePage() {
           {/* Container interno com blur em onda para facilitar leitura */}
           <div className="max-w-5xl mx-auto space-y-3 sm:space-y-4 bg-background/60 backdrop-blur-sm p-2 sm:p-3 md:p-4 rounded-xl shadow-lg"><div className="space-y-4 sm:space-y-6">              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-headline leading-tight animate-fade-in px-2"><div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3">
                   <span className="animate-color-wave whitespace-nowrap">We don't whisper.</span>                  <div className="flex items-center whitespace-nowrap gap-2 sm:gap-3">
-                    <span className="animate-color-wave-alt">We</span>
-                    <Image
+                    <span className="animate-color-wave-alt">We</span>                    <Image
                       src="/logo.svg"
                       alt="RÜGE Logo"
                       width={200}
                       height={80}
-                      className="w-auto h-[0.8em] sm:h-[1em] inline-block"
+                      className="w-auto h-[1em] sm:h-[1em] inline-block translate-y-0.5 sm:translate-y-1"
                     />
+                    <span className="animate-color-wave-alt">.</span>
                   </div>
                 </div>
               </h1>                <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed px-2">
