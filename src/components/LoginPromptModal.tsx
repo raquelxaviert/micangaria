@@ -131,9 +131,8 @@ export function LoginPromptModal({ isOpen, onClose, onLogin }: LoginPromptModalP
                 justifyContent: 'center',
                 gap: '8px',
                 transition: 'background-color 0.2s'
-              }}
-              onMouseOver={(e) => e.target.style.backgroundColor = '#5a0e13'}
-              onMouseOut={(e) => e.target.style.backgroundColor = '#780116'}
+              }}              onMouseOver={(e) => (e.target as HTMLElement).style.backgroundColor = '#5a0e13'}
+              onMouseOut={(e) => (e.target as HTMLElement).style.backgroundColor = '#780116'}
             >
               <Heart style={{ width: '16px', height: '16px' }} />
               Fazer Login / Registrar
@@ -152,9 +151,8 @@ export function LoginPromptModal({ isOpen, onClose, onLogin }: LoginPromptModalP
                 fontWeight: '500',
                 cursor: 'pointer',
                 transition: 'background-color 0.2s'
-              }}
-              onMouseOver={(e) => e.target.style.backgroundColor = '#f9fafb'}
-              onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+              }}              onMouseOver={(e) => (e.target as HTMLElement).style.backgroundColor = '#f9fafb'}
+              onMouseOut={(e) => (e.target as HTMLElement).style.backgroundColor = 'transparent'}
             >
               Continuar sem login
             </button>
