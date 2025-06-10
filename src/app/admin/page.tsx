@@ -338,23 +338,52 @@ function ProductForm({
   product?: Product; 
   onSave: (product: Product) => void; 
   onCancel?: () => void;
-}) {  const [formData, setFormData] = useState<Partial<Product>>(product || {
+}) {
+  const [formData, setFormData] = useState<Partial<Product>>(product || {
     name: '',
     description: '',
     price: 0,
     type: 'colar',
     style: 'boho',
     colors: [],
-    imageUrl: '/products/colar.jpg',
+    imageUrl: '',
     isNewArrival: false,
     isPromotion: false,
     promotionDetails: '',
     id: '' // SKU será gerado automaticamente pelo Supabase (#20xx)
   });
-  const handleSubmit = async (e: React.FormEvent) => {
+  
+  // Estado para gerenciar upload de imagem
+  const [imageData, setImageData] = useState<{ url: string; file?: File; isTemp?: boolean }>({ 
+    url: product?.imageUrl || '' 
+  });
+  const [isUploading, setIsUploading] = useState(false);  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.name && formData.description && formData.price) {
+      setIsUploading(true);
+      
       try {
+        let finalImageUrl = formData.imageUrl || '';
+        
+        // Se há arquivo temporário, fazer upload primeiro
+        if (imageData.file && imageData.isTemp) {
+          console.log('📤 Fazendo upload da imagem...');
+          const uploadResult = await uploadImageToSupabase(imageData.file);
+          
+          if (uploadResult.success && uploadResult.url) {
+            finalImageUrl = uploadResult.url;
+            console.log('✅ Imagem enviada com sucesso:', finalImageUrl);
+          } else {
+            // Se upload falhou, usar imagem local como fallback
+            finalImageUrl = `/products/${imageData.file.name}`;
+            console.log('⚠️ Usando fallback local:', finalImageUrl);
+            alert(`Aviso: Upload da imagem falhou (${uploadResult.error}). Usando imagem local como alternativa.`);
+          }
+        } else if (imageData.url && !imageData.isTemp) {
+          // Usar imagem local selecionada
+          finalImageUrl = imageData.url;
+        }
+        
         // Em produção, conectar com Supabase
         if (process.env.NODE_ENV === 'production') {
           const { createClient } = await import('@/lib/supabase/client');
@@ -367,7 +396,7 @@ function ProductForm({
             type: formData.type,
             style: formData.style,
             colors: formData.colors || [],
-            image_url: formData.imageUrl,
+            image_url: finalImageUrl,
             is_new_arrival: formData.isNewArrival || false,
             is_on_sale: formData.isPromotion || false,
             promotion_text: formData.promotionDetails || null,
@@ -392,13 +421,14 @@ function ProductForm({
             if (error) throw error;
           }
         }
-        
-        // Para desenvolvimento, usar dados mock
-        onSave(formData as Product);
+          // Para desenvolvimento, usar dados mock com imagem final
+        onSave({ ...formData, imageUrl: finalImageUrl } as Product);
         onCancel?.();
       } catch (error) {
         console.error('Erro ao salvar produto:', error);
         alert('Erro ao salvar produto. Tente novamente.');
+      } finally {
+        setIsUploading(false);
       }
     }
   };
@@ -519,15 +549,13 @@ function ProductForm({
             placeholder="Ex: 20% OFF por tempo limitado"
           />
         </div>
-      )}
-
-      <div className="flex gap-2 pt-4">
-        <Button type="submit" className="flex-1">
+      )}      <div className="flex gap-2 pt-4">
+        <Button type="submit" className="flex-1" disabled={isUploading}>
           <Save className="w-4 h-4 mr-2" />
-          Salvar Produto
+          {isUploading ? 'Salvando...' : 'Salvar Produto'}
         </Button>
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isUploading}>
             Cancelar
           </Button>
         )}
