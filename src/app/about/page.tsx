@@ -231,7 +231,7 @@ export default function AboutPage() {
             >
               <Link href="/style-advisor">
                 <Sparkles className="mr-2 h-5 w-5" />
-                Consultor de miçangar.IA
+                Consultoria de Styling
               </Link>
             </Button>
             

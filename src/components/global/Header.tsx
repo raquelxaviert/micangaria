@@ -63,7 +63,7 @@ export function Header() {
               <li>
                 <Link href="/style-advisor" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap">
                   <Sparkles size={20} /> 
-                  <span>Consultor de Estilo</span>
+                  <span>Consultoria de Styling</span>
                 </Link>
               </li>
               <li>

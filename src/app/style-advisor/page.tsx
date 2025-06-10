@@ -1,213 +1,106 @@
 'use client';
 
-import { useState } from 'react';
-import { useForm, type SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Sparkles, Wand2, AlertTriangle, CheckCircle2, Loader2, UploadCloud } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
-
-// Temporary types for the style advisor (replacing AI functionality)
-type StyleAdvisorInput = {
-  occasion?: string;
-  preferences?: string;
-};
-
-type StyleAdvisorOutput = {
-  recommendations: string[];
-  reasoning: string;
-};
-
-// Mock function to replace AI functionality
-function getStyleRecommendations(input: StyleAdvisorInput): Promise<StyleAdvisorOutput> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const mockRecommendations = [
-        "Pulseira Brilho do Sol Poente - perfeita para ocasiões especiais",
-        "Brincos Apanhador de Sonhos Boho - complementam qualquer estilo",
-        "Pulseira de Sementes Amazônicas - para um toque natural"
-      ];
-      
-      const mockReasoning = `Baseado em suas preferências ${input.preferences ? `"${input.preferences}"` : ''} ${input.occasion ? `para a ocasião "${input.occasion}"` : ''}, recomendamos acessórios que combinam com o estilo boho e indígena da nossa coleção. Estes itens destacam sua personalidade única enquanto mantêm elegância e autenticidade.`;
-      
-      resolve({
-        recommendations: mockRecommendations,
-        reasoning: mockReasoning
-      });
-    }, 2000); // Simula delay de processamento
-  });
-}
-
-const StyleAdvisorFormSchema = z.object({
-  occasion: z.string().min(3, 'A ocasião deve ter pelo menos 3 caracteres').optional().or(z.literal('')),
-  preferences: z.string().min(5, 'As preferências devem ter pelo menos 5 caracteres').optional().or(z.literal('')),
-  outfitPhoto: z.custom<FileList>().optional()
-    .refine(files => !files || files.length === 0 || (files?.[0]?.size ?? 0) <= 5 * 1024 * 1024, `O tamanho máximo do arquivo é 5MB.`)
-    .refine(files => !files || files.length === 0 || ['image/jpeg', 'image/png', 'image/webp'].includes(files?.[0]?.type ?? ''), 'Apenas formatos .jpg, .png, .webp são suportados.')
-});
-
-type StyleAdvisorFormValues = z.infer<typeof StyleAdvisorFormSchema>;
-
-function fileToDataUri(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Heart, User, Phone, Star, Award } from 'lucide-react';
+import Image from 'next/image';
 
 export default function StyleAdvisorPage() {
-  const [recommendations, setRecommendations] = useState<StyleAdvisorOutput | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fileName, setFileName] = useState<string | null>(null);
-  const { toast } = useToast();
-
-  const { register, handleSubmit, formState: { errors }, reset, watch } = useForm<StyleAdvisorFormValues>({
-    resolver: zodResolver(StyleAdvisorFormSchema),
-  });
-  const outfitPhotoFile = watch("outfitPhoto");
-
-  const onSubmit: SubmitHandler<StyleAdvisorFormValues> = async (data) => {
-    setIsLoading(true);
-    setError(null);
-    setRecommendations(null);    try {
-      const input: StyleAdvisorInput = {
-        occasion: data.occasion,
-        preferences: data.preferences,
-      };
-
-      const result = await getStyleRecommendations(input);
-      setRecommendations(result);
-      toast({
-        title: "Dicas de Estilo Prontas!",
-        description: "Geramos novas recomendações para você.",
-        variant: "default",
-        action: <CheckCircle2 className="text-green-500" />,
-      });
-    } catch (e) {
-      console.error(e);
-      const errorMessage = e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
-      setError(`Falha ao obter recomendações: ${errorMessage}`);
-      toast({
-        title: "Erro",
-        description: `Falha ao obter recomendações: ${errorMessage}`,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setFileName(file.name);
-    } else {
-      setFileName(null);
-    }
-  };
-
   return (
-    <div className="max-w-4xl mx-auto px-2 sm:px-4 py-4">
-      <Card className="shadow-xl bg-card w-full">
-        <CardHeader className="text-center pb-2 sm:pb-4">
-          <Wand2 className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-primary mb-1 sm:mb-2" />
-          <CardTitle className="text-2xl sm:text-4xl font-headline text-primary">Consultor de miçangar.IA</CardTitle>
-          <CardDescription className="text-base sm:text-lg text-muted-foreground">
-            Deixe nossa IA ajudar você a escolher os acessórios perfeitos! Descreva sua ocasião, preferências ou envie uma foto do seu look.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
-            <div>
-              <Label htmlFor="occasion" className="text-base sm:text-lg font-medium">Ocasião (Opcional)</Label>
-              <Input id="occasion" {...register('occasion')} placeholder="Ex: Festa na praia, Jantar formal" className="mt-1 bg-input text-base sm:text-lg py-2" />
-              {errors.occasion && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.occasion.message}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="preferences" className="text-base sm:text-lg font-medium">Suas Preferências (Opcional)</Label>
-              <Textarea id="preferences" {...register('preferences')} placeholder="Ex: Amo prata, prefiro designs minimalistas, alergia a níquel" rows={3} className="mt-1 bg-input text-base sm:text-lg py-2" />
-              {errors.preferences && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.preferences.message}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="outfitPhoto" className="text-base sm:text-lg font-medium">Foto do Look (Opcional)</Label>
-              <div className="mt-1 flex items-center justify-center w-full">
-                  <label htmlFor="outfitPhoto" className="flex flex-col items-center justify-center w-full h-28 sm:h-32 border-2 border-border border-dashed rounded-lg cursor-pointer bg-background hover:bg-muted transition-colors">
-                      <div className="flex flex-col items-center justify-center pt-3 pb-4 sm:pt-5 sm:pb-6">
-                          <UploadCloud className="w-7 h-7 sm:w-8 sm:h-8 mb-1 sm:mb-2 text-muted-foreground" />
-                          <p className="mb-1 text-xs sm:text-sm text-muted-foreground">
-                            <span className="font-semibold">Clique para enviar</span> ou arraste e solte
-                          </p>
-                          <p className="text-xs text-muted-foreground">PNG, JPG ou WEBP (MÁX. 5MB)</p>
-                           {fileName && <p className="text-xs text-accent mt-1">{fileName}</p>}
-                      </div>
-                      <Input id="outfitPhoto" type="file" {...register('outfitPhoto', { onChange: handleFileChange })} className="hidden" accept=".png,.jpg,.jpeg,.webp" />
-                  </label>
+    <div className="max-w-4xl mx-auto px-2 sm:px-4 py-8 space-y-8">
+      {/* Hero Section - Maria Clara */}
+      <Card className="shadow-xl bg-gradient-to-br from-primary/5 to-secondary/5 border-0">
+        <CardContent className="p-6 sm:p-8 lg:p-12">
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <Badge className="bg-primary/10 text-primary border-primary/20">
+                  Consultoria Personalizada
+                </Badge>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-headline text-primary">
+                  Consultoria de Imagem com Maria Clara
+                </h1>
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  Descubra e desenvolva seu estilo pessoal único com uma consultoria 
+                  completamente personalizada para seu perfil e necessidades.
+                </p>
               </div>
-              {errors.outfitPhoto && <p className="text-xs sm:text-sm text-destructive mt-1">{errors.outfitPhoto.message}</p>}
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <Star className="w-4 h-4 text-amber-400" />
+                  <span className="text-muted-foreground">+20 consultorias</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Award className="w-4 h-4 text-primary" />
+                  <span className="text-muted-foreground">Formação Denise Aguiar</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Heart className="w-4 h-4 text-destructive" />
+                  <span className="text-muted-foreground">100% satisfação</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <User className="w-4 h-4 text-secondary" />
+                  <span className="text-muted-foreground">Atendimento VIP</span>
+                </div>
+              </div>
             </div>
+            
+            <div className="relative">
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+                <Image
+                  src="/maria.png"
+                  alt="Maria Clara - Consultora de Imagem"
+                  width={400}
+                  height={500}
+                  className="object-cover w-full h-[400px]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                <div className="absolute bottom-4 left-4 text-white">
+                  <h3 className="text-xl font-headline">Maria Clara</h3>
+                  <p className="text-sm opacity-90">Consultora de Imagem & Personal Stylist</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-            <Button type="submit" disabled={isLoading} className="w-full text-base sm:text-lg py-3 bg-primary hover:bg-primary/90 text-primary-foreground">
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Obtendo Aconselhamento...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-5 w-5" /> Obter Dicas de Estilo
-                </>
-              )}
+      {/* WhatsApp Contact */}
+      <Card className="shadow-xl bg-card border-0">
+        <CardContent className="p-8 sm:p-12 text-center space-y-8">
+          <div className="space-y-4">
+            <h2 className="text-2xl sm:text-3xl font-headline text-primary">
+              Pronta para Descobrir Seu Estilo?
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Converse diretamente com Maria Clara e inicie sua jornada de transformação 
+              pessoal com uma consultoria completamente personalizada.
+            </p>
+          </div>
+          
+          <div className="space-y-4">
+            <Button 
+              asChild
+              size="lg" 
+              className="bg-green-600 hover:bg-green-700 text-white px-12 py-6 text-xl font-bold rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-105"
+            >
+              <a 
+                href="https://wa.me/5511999999999?text=Olá%20Maria%20Clara!%20Tenho%20interesse%20em%20uma%20consultoria%20de%20imagem%20personalizada.%20Gostaria%20de%20saber%20mais%20sobre%20o%20serviço."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center"
+              >
+                <Phone className="mr-3 h-6 w-6" />
+                Conversar com Maria Clara
+              </a>
             </Button>
-          </form>
-
-          {error && (
-             <Alert variant="destructive" className="mt-4 sm:mt-6">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Erro</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {recommendations && !isLoading && (
-            <Card className="mt-6 sm:mt-8 bg-input border-primary">
-              <CardHeader>
-                <CardTitle className="text-lg sm:text-2xl font-headline text-primary flex items-center">
-                  <CheckCircle2 className="mr-2 h-6 w-6 sm:h-7 sm:w-7 text-green-500" /> Suas Recomendações de Estilo
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 sm:space-y-4">
-                <div>
-                  <h4 className="font-semibold text-base sm:text-lg text-foreground mb-1 sm:mb-2">Acessórios Recomendados:</h4>
-                  {recommendations.recommendations.length > 0 ? (
-                    <ul className="list-disc list-inside space-y-1 pl-2 text-foreground">
-                      {recommendations.recommendations.map((rec, index) => (
-                        <li key={index}>{rec}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-muted-foreground">Nenhuma recomendação específica de acessório, tente ajustar sua entrada!</p>
-                  )}
-                </div>
-                <div>
-                  <h4 className="font-semibold text-base sm:text-lg text-foreground mb-1 sm:mb-2">Justificativa:</h4>
-                  <p className="text-foreground whitespace-pre-wrap">{recommendations.reasoning}</p>
-                </div>
-                 <Button variant="outline" onClick={() => { setRecommendations(null); reset(); setFileName(null); }} className="mt-3 sm:mt-4 text-primary border-primary hover:bg-primary hover:text-primary-foreground">
-                    Começar de Novo
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+            
+            <p className="text-sm text-muted-foreground">
+              Você será redirecionado para o WhatsApp
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

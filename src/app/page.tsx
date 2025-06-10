@@ -150,7 +150,7 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" /> {/* Existing gradient for subtle color effect */}
         </div>          <div className="relative z-10 container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8 text-center">
           {/* Container interno com blur em onda para facilitar leitura */}
-          <div className="max-w-5xl mx-auto space-y-3 sm:space-y-4 bg-background/60 animate-blur-wave p-2 sm:p-3 md:p-4 rounded-xl shadow-lg"><div className="space-y-4 sm:space-y-6">              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-headline leading-tight animate-fade-in px-2"><div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3">
+          <div className="max-w-5xl mx-auto space-y-3 sm:space-y-4 bg-background/60 backdrop-blur-sm p-2 sm:p-3 md:p-4 rounded-xl shadow-lg"><div className="space-y-4 sm:space-y-6">              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-headline leading-tight animate-fade-in px-2"><div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3">
                   <span className="animate-color-wave whitespace-nowrap">We don't whisper.</span>                  <div className="flex items-center whitespace-nowrap gap-2 sm:gap-3">
                     <span className="animate-color-wave-alt">We</span>
                     <Image
@@ -179,8 +179,7 @@ export default function HomePage() {
                   </span>
                 </Link>
               </Button>
-              
-              <Button 
+                <Button 
                 asChild 
                 variant="outline"
                 size="default"
@@ -188,7 +187,7 @@ export default function HomePage() {
               >
                 <Link href="/style-advisor">
                   <span className="flex items-center justify-center">
-                    Consultoria
+                    Consultoria de Styling
                     <Sparkles className="ml-2 h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-300 group-hover:rotate-45 group-hover:scale-110" />
                   </span>
                 </Link>
@@ -497,24 +496,23 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      
-      {/* CTA Section for AI Style Advisor */}
+        {/* CTA Section for Image Consultation */}
       <section className="bg-gradient-to-br from-accent/10 via-primary/5 to-secondary/10 py-20">
         <div className="container mx-auto px-6 text-center">
           <div className="max-w-3xl mx-auto space-y-8">
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 bg-secondary/10 text-secondary-foreground px-4 py-2 rounded-full text-sm font-medium">
                 <Sparkles className="w-4 h-4" />
-                Tecnologia + Estilo
+                Consultoria Personalizada
               </div>
               
               <h2 className="text-4xl md:text-5xl font-headline text-primary">
-                Precisa de Dicas de Estilo?
+                Transforme Seu Estilo com Maria Clara
               </h2>
               
               <p className="text-xl text-muted-foreground leading-relaxed">
-                Deixe nosso Consultor de Estilo com IA ajudar você a encontrar os acessórios perfeitos 
-                para qualquer look ou ocasião especial.
+                Consultoria de imagem personalizada para descobrir seu estilo único com 
+                acessórios vintage cuidadosamente selecionados.
               </p>
             </div>
             
@@ -525,7 +523,7 @@ export default function HomePage() {
                 className="bg-secondary hover:bg-secondary/90 text-secondary-foreground px-8 py-4 text-lg font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
               >
                 <Link href="/style-advisor">
-                  Experimente o Consultor miçangar.IA
+                  Agendar Consultoria de Styling
                   <Sparkles className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
@@ -537,7 +535,7 @@ export default function HomePage() {
                 className="border-2 border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground px-8 py-4 text-lg font-semibold rounded-full"
               >
                 <Link href="/about">
-                  Sobre Nós
+                  Sobre Maria Clara
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
