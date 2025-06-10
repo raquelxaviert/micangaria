@@ -79,21 +79,20 @@ export default function StyleAdvisorPage() {
               pessoal com uma consultoria completamente personalizada.
             </p>
           </div>
-          
-          <div className="space-y-4">
+            <div className="space-y-4">
             <Button 
               asChild
               size="lg" 
-              className="bg-green-600 hover:bg-green-700 text-white px-12 py-6 text-xl font-bold rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-105"
+              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-6 sm:px-12 py-4 sm:py-6 text-lg sm:text-xl font-bold rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-105"
             >
               <a 
                 href="https://wa.me/5511999999999?text=Olá%20Maria%20Clara!%20Tenho%20interesse%20em%20uma%20consultoria%20de%20imagem%20personalizada.%20Gostaria%20de%20saber%20mais%20sobre%20o%20serviço."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center"
+                className="flex items-center justify-center gap-2 sm:gap-3"
               >
-                <Phone className="mr-3 h-6 w-6" />
-                Conversar com Maria Clara
+                <Phone className="h-5 w-5 sm:h-6 sm:w-6" />
+                <span className="text-base sm:text-xl">Conversar com Maria Clara</span>
               </a>
             </Button>
             
