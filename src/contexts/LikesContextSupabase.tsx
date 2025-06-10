@@ -6,6 +6,13 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const LIKES_STORAGE_KEY = 'ruge-liked-products';
 
+// Mapping from old localStorage IDs to new Supabase UUIDs
+const ID_MIGRATION_MAP: Record<string, string> = {
+  '1': 'c31139ee-bd31-47af-98f2-7cf31820f8fd', // Product 1
+  '2': '9bb69ac6-4e5b-4c08-b6b1-cddb876f3239', // Product 2
+  '3': 'ff962239-f175-425b-84b1-46a6c55ba2b5', // Product 3
+};
+
 interface LikesContextType {
   toggleLike: (productId: string) => void;
   isLiked: (productId: string) => boolean;
@@ -23,20 +30,41 @@ interface LikesProviderProps {
 
 export function LikesProvider({ children }: LikesProviderProps) {
   const [likedProducts, setLikedProducts] = useState<Set<string>>(new Set());
-  const [isLoaded, setIsLoaded] = useState(false);
-  const { user, session } = useAuth();
+  const [isLoaded, setIsLoaded] = useState(false);  const { user, session } = useAuth();
   const supabase = createClient();
 
+  // Migrate old localStorage IDs to new UUIDs
+  const migrateLocalStorageIds = useCallback(() => {
+    try {
+      const stored = localStorage.getItem(LIKES_STORAGE_KEY);
+      if (!stored) return new Set<string>();
+
+      const likedIds = JSON.parse(stored) as string[];
+      const migratedIds = likedIds
+        .map(id => ID_MIGRATION_MAP[id] || id) // Use mapped UUID or keep original ID
+        .filter(Boolean); // Remove any undefined values
+
+      // Save migrated IDs back to localStorage
+      localStorage.setItem(LIKES_STORAGE_KEY, JSON.stringify(migratedIds));
+      
+      console.log('localStorage migration:', {
+        original: likedIds,
+        migrated: migratedIds
+      });
+
+      return new Set(migratedIds);
+    } catch (error) {
+      console.error('Error migrating localStorage IDs:', error);
+      return new Set<string>();
+    }
+  }, []);
+
   // Load likes from localStorage and Supabase
-  useEffect(() => {
-    const loadFavorites = async () => {
+  useEffect(() => {    const loadFavorites = async () => {
       try {
-        // Always start with localStorage for immediate UI
-        const stored = localStorage.getItem(LIKES_STORAGE_KEY);
-        if (stored) {
-          const likedIds = JSON.parse(stored) as string[];
-          setLikedProducts(new Set(likedIds));
-        }
+        // First, migrate any old localStorage IDs to new UUIDs
+        const migratedLikes = migrateLocalStorageIds();
+        setLikedProducts(migratedLikes);
 
         // If user is logged in, sync with Supabase
         if (user && session) {
@@ -47,12 +75,10 @@ export function LikesProvider({ children }: LikesProviderProps) {
       } finally {
         setIsLoaded(true);
       }
-    };
-
-    // Add delay to ensure client-side hydration is complete
+    };    // Add delay to ensure client-side hydration is complete
     const timer = setTimeout(loadFavorites, 100);
     return () => clearTimeout(timer);
-  }, [user, session]);
+  }, [user, session, migrateLocalStorageIds]);
 
   // Sync with Supabase
   const syncWithSupabase = useCallback(async () => {
@@ -76,10 +102,14 @@ export function LikesProvider({ children }: LikesProviderProps) {
 
       if (favorites) {
         const supabaseLikes = new Set(favorites.map(fav => fav.product_id));
-        
-        // Get localStorage favorites
+          // Get localStorage favorites (already migrated)
         const stored = localStorage.getItem(LIKES_STORAGE_KEY);
         const localLikes = stored ? new Set(JSON.parse(stored) as string[]) : new Set<string>();
+
+        console.log('Syncing favorites:', {
+          supabase: Array.from(supabaseLikes),
+          localStorage: Array.from(localLikes)
+        });
 
         // Merge: localStorage + Supabase favorites
         const mergedLikes = new Set([...localLikes, ...supabaseLikes]);
@@ -135,10 +165,16 @@ export function LikesProvider({ children }: LikesProviderProps) {
           .insert({
             user_id: user.id,
             product_id: productId
-          });
-
-        if (error && error.code !== '23505') { // Ignore duplicate key error
+          });        if (error && error.code !== '23505') { // Ignore duplicate key error
           console.error('Error adding favorite to Supabase:', error);
+          console.error('Add error details:', {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            user_id: user.id,
+            product_id: productId
+          });
         }
       } else {
         // Remove from favorites
@@ -146,14 +182,20 @@ export function LikesProvider({ children }: LikesProviderProps) {
           .from('user_favorites')
           .delete()
           .eq('user_id', user.id)
-          .eq('product_id', productId);
-
-        if (error) {
+          .eq('product_id', productId);        if (error) {
           console.error('Error removing favorite from Supabase:', error);
+          console.error('Remove error details:', {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            user_id: user.id,
+            product_id: productId
+          });
         }
-      }
-    } catch (error) {
+      }    } catch (error) {
       console.error('Error updating favorite in Supabase:', error);
+      console.error('Catch error details:', JSON.stringify(error, null, 2));
     }
   }, [user, session, supabase]);
 
