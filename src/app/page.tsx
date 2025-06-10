@@ -140,18 +140,18 @@ export default function HomePage() {
   ];
   return (
     <div className="space-y-8 sm:space-y-12 overflow-x-hidden">      {/* Hero Section - Enhanced */}
-      <section className="relative overflow-hidden rounded-none sm:rounded-3xl min-h-[30vh] flex items-center"><div className="absolute inset-0">          <Image
+      <section className="relative overflow-hidden rounded-none sm:rounded-3xl min-h-[30vh] flex items-center">        <div className="absolute inset-0">          <Image
             src="/banner/banner.png"
             alt="Banner de acessórios boho"
             fill
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-white/70 to-white/30" />          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" /> {/* Existing gradient for subtle color effect */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" /> {/* Existing gradient for subtle color effect */}
         </div>
           <div className="relative z-10 container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8 text-center">
-          {/* MODIFIED: Added bg-background/30 p-6 md:p-8 rounded-xl shadow-lg */}
-          <div className="max-w-5xl mx-auto space-y-3 sm:space-y-4 bg-background/30 p-2 sm:p-3 md:p-4 rounded-xl shadow-lg">            <div className="space-y-4 sm:space-y-6">              <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-headline leading-tight animate-fade-in px-2"><div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3">
+          {/* Container interno com blur intenso para facilitar leitura */}
+          <div className="max-w-5xl mx-auto space-y-3 sm:space-y-4 bg-background/60 backdrop-blur-md p-2 sm:p-3 md:p-4 rounded-xl shadow-lg"><div className="space-y-4 sm:space-y-6">              <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-headline leading-tight animate-fade-in px-2"><div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3">
                   <span className="animate-color-wave whitespace-nowrap">We don't whisper.</span>                  <div className="flex items-center whitespace-nowrap gap-2 sm:gap-3">
                     <span className="animate-color-wave-alt">We</span>
                     <Image
