@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Tag, Zap, Star, Heart, ShoppingBag } from 'lucide-react';
-import { useLikes } from '@/hooks/useLikes';
+import { useLikes } from '@/contexts/LikesContext';
 import { LikeButton } from '@/components/ui/LikeButton';
 
 function LikedProductCard({ product }: { product: Product }) {
