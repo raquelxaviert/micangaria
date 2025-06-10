@@ -228,3 +228,8 @@ export const products: Product[] = [
     promotionDetails: 'Últimas peças do verão!',
   },
 ];
+
+// Derived constants for filtering
+export const uniqueTypes = Array.from(new Set(products.map(p => p.type))).sort();
+export const uniqueStyles = Array.from(new Set(products.map(p => p.style))).sort();
+export const uniqueColors = Array.from(new Set(products.flatMap(p => p.colors))).sort();
