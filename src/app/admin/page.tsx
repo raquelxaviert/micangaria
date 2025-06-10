@@ -31,9 +31,50 @@ export default function AdminPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Carregar produtos reais do Supabase
+  const loadProductsFromSupabase = async () => {
+    try {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      
+      const { data: supabaseProducts, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.log('⚠️ Não foi possível carregar produtos do Supabase:', error);
+        return;
+      }
+      
+      if (supabaseProducts && supabaseProducts.length > 0) {
+        // Converter produtos do Supabase para o formato local
+        const convertedProducts = supabaseProducts.map(p => ({
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          price: p.price,
+          imageUrl: p.image_url,
+          imageHint: p.name.toLowerCase(),
+          type: p.type,
+          style: p.style,
+          colors: p.colors || [],
+          isNewArrival: p.is_new_arrival,
+          isPromotion: p.is_on_sale,
+          promotionDetails: p.promotion_text
+        }));
+        
+        console.log('✅ Produtos carregados do Supabase:', convertedProducts.length);
+        setProductList(convertedProducts);
+      }
+    } catch (error) {
+      console.log('⚠️ Erro ao carregar produtos do Supabase:', error);
+    }
+  };
+
   // Verificar se já está autenticado
   useEffect(() => {
-    const checkAuth = () => {
+    const checkAuth = async () => {
       const authStatus = localStorage.getItem('micangariaAdminAuth');
       const authTime = localStorage.getItem('micangariaAdminTime');
       const currentTime = Date.now();
@@ -41,6 +82,8 @@ export default function AdminPage() {
       // Sessão expira em 24 horas
       if (authStatus === 'true' && authTime && (currentTime - parseInt(authTime) < 24 * 60 * 60 * 1000)) {
         setIsAuthenticated(true);
+        // Carregar produtos do Supabase quando autenticado
+        await loadProductsFromSupabase();
       } else {
         // Limpar autenticação expirada
         localStorage.removeItem('micangariaAdminAuth');
@@ -51,14 +94,16 @@ export default function AdminPage() {
     };
 
     checkAuth();
-  }, []);
-  const handleLogin = () => {
+  }, []);  const handleLogin = async () => {
     if (password === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
       localStorage.setItem('micangariaAdminAuth', 'true');
       localStorage.setItem('micangariaAdminTime', Date.now().toString());
       setLoginError('');
       setPassword(''); // Limpar senha
+      
+      // Carregar produtos do Supabase após login
+      await loadProductsFromSupabase();
     } else {
       setLoginError('Senha incorreta. Tente novamente.');
       setPassword(''); // Limpar campo para nova tentativa
@@ -239,10 +284,11 @@ function ProductManagement({
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Adicionar Novo Produto</DialogTitle>
-            </DialogHeader>
-            <ProductForm 
+            </DialogHeader>            <ProductForm 
               onSave={(product) => {
-                setProducts([...products, { ...product, id: Date.now().toString() }]);
+                // Gerar ID temporal mais consistente (mas ainda será substituído pelo UUID do Supabase)
+                const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                setProducts([...products, { ...product, id: tempId }]);
                 setIsCreateDialogOpen(false);
               }}
               onCancel={() => setIsCreateDialogOpen(false)}
@@ -412,20 +458,37 @@ function ProductForm({
           };
           
           console.log('📦 Dados do produto:', productData);
-          
-          if (product?.id) {
-            // Atualizar produto existente
-            const { data, error } = await supabase
-              .from('products')
-              .update(productData)
-              .eq('id', product.id)
-              .select();
-              
-            if (error) {
-              console.error('❌ Erro detalhado (UPDATE):', error);
-              throw error;
+            if (product?.id) {
+            // Verificar se o ID é um UUID válido
+            const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(product.id);
+            
+            if (isValidUUID) {
+              // Atualizar produto existente no Supabase
+              const { data, error } = await supabase
+                .from('products')
+                .update(productData)
+                .eq('id', product.id)
+                .select();
+                
+              if (error) {
+                console.error('❌ Erro detalhado (UPDATE):', error);
+                throw error;
+              }
+              console.log('✅ Produto atualizado no Supabase:', data);
+            } else {
+              // ID não é UUID válido, criar novo produto
+              console.log('⚠️ ID não é UUID válido, criando novo produto no Supabase');
+              const { data, error } = await supabase
+                .from('products')
+                .insert([productData])
+                .select();
+                
+              if (error) {
+                console.error('❌ Erro detalhado (INSERT):', error);
+                throw error;
+              }
+              console.log('✅ Novo produto criado no Supabase:', data);
             }
-            console.log('✅ Produto atualizado no Supabase:', data);
           } else {
             // Criar novo produto
             const { data, error } = await supabase
@@ -438,7 +501,7 @@ function ProductForm({
               throw error;
             }
             console.log('✅ Produto criado no Supabase:', data);
-          }        } catch (supabaseError: any) {
+          }} catch (supabaseError: any) {
           console.error('❌ Erro ao salvar no Supabase:', supabaseError);
           console.error('❌ Stack trace:', supabaseError?.stack);
           console.error('❌ Error details:', {
