@@ -151,14 +151,9 @@ export default function HomePage() {
         </div>
           <div className="relative z-10 container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8 text-center">
           {/* MODIFIED: Added bg-background/30 p-6 md:p-8 rounded-xl shadow-lg */}
-          <div className="max-w-5xl mx-auto space-y-3 sm:space-y-4 bg-background/30 p-2 sm:p-3 md:p-4 rounded-xl shadow-lg">
-            <div className="space-y-4 sm:space-y-6">              <Badge className="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium border-0" style={{ backgroundColor: '#780116', color: '#F5F0EB' }}>
-                Força, Presença & Autenticidade 🐆
-              </Badge>              <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-headline leading-tight animate-fade-in px-2">                <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3">
-                  <span className="animate-color-wave whitespace-nowrap">We don't whisper.</span>
-                  <div className="flex items-center whitespace-nowrap">
+          <div className="max-w-5xl mx-auto space-y-3 sm:space-y-4 bg-background/30 p-2 sm:p-3 md:p-4 rounded-xl shadow-lg">            <div className="space-y-4 sm:space-y-6">              <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-headline leading-tight animate-fade-in px-2"><div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3">
+                  <span className="animate-color-wave whitespace-nowrap">We don't whisper.</span>                  <div className="flex items-center whitespace-nowrap gap-2 sm:gap-3">
                     <span className="animate-color-wave-alt">We</span>
-                    <span className="w-4"></span>
                     <Image
                       src="/logo.svg"
                       alt="RÜGE Logo"
