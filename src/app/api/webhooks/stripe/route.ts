@@ -1,13 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
-});
+// Only initialize Stripe if the secret key is available
+const stripe = process.env.STRIPE_SECRET_KEY 
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-05-28.basil',
+    })
+  : null;
 
 export async function POST(request: NextRequest) {
+  // Check if Stripe is configured
+  if (!stripe) {
+    return NextResponse.json(
+      { error: 'Stripe não está configurado no servidor' },
+      { status: 503 }
+    );
+  }
   const body = await request.text();
-  const signature = request.headers.get('stripe-signature')!;
+  const signature = request.headers.get('stripe-signature');
+
+  // Check if signature is provided
+  if (!signature) {
+    return NextResponse.json(
+      { error: 'Stripe signature não fornecida' },
+      { status: 400 }
+    );
+  }
+
+  // Check if webhook secret is configured
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    return NextResponse.json(
+      { error: 'Stripe webhook secret não configurado' },
+      { status: 503 }
+    );
+  }
 
   let event: Stripe.Event;
 
@@ -15,7 +41,7 @@ export async function POST(request: NextRequest) {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
     console.error('Webhook signature verification failed.', err);
@@ -60,6 +86,12 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleSuccessfulPayment(session: Stripe.Checkout.Session) {
+  // Check if Stripe is available
+  if (!stripe) {
+    console.error('Stripe não está configurado - não é possível processar pagamento');
+    return;
+  }
+
   try {
     // Recuperar detalhes completos da sessão
     const fullSession = await stripe.checkout.sessions.retrieve(session.id, {

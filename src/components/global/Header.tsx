@@ -59,11 +59,10 @@ export function Header() {
                   <ShoppingBag size={20} />
                   <span>Produtos</span>
                 </Link>
-              </li>
-              <li>
+              </li>              <li>
                 <Link href="/style-advisor" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap">
                   <Sparkles size={20} /> 
-                  <span>Consultoria de Styling</span>
+                  <span>Consultoria de Imagem</span>
                 </Link>
               </li>
               <li>
