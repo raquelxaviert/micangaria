@@ -63,10 +63,14 @@ export function LikesProvider({ children }: LikesProviderProps) {
       const { data: favorites, error } = await supabase
         .from('user_favorites')
         .select('product_id')
-        .eq('user_id', user.id);
-
-      if (error) {
+        .eq('user_id', user.id);      if (error) {
         console.error('Error fetching favorites from Supabase:', error);
+        console.error('Fetch error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
         return;
       }
 
@@ -90,10 +94,14 @@ export function LikesProvider({ children }: LikesProviderProps) {
                 user_id: user.id,
                 product_id: productId
               }))
-            );
-
-          if (insertError) {
+            );          if (insertError) {
             console.error('Error syncing local favorites to Supabase:', insertError);
+            console.error('Insert error details:', {
+              code: insertError.code,
+              message: insertError.message,
+              details: insertError.details,
+              hint: insertError.hint
+            });
           }
         }
 

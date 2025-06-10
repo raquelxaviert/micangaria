@@ -30,7 +30,10 @@ export default async function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body antialiased flex flex-col min-h-screen">
+      <body 
+        className="font-body antialiased flex flex-col min-h-screen"
+        suppressHydrationWarning={true}
+      >
         {isCheckoutPage ? (
           // Layout simplificado para checkout sem contextos
           <>
