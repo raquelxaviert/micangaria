@@ -7,14 +7,19 @@ const nextConfig: NextConfig = {
   },
   eslint: {
     ignoreDuringBuilds: true,
-  },
-  images: {
+  },  images: {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'placehold.co',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'koduoglrfzronbcgqrjc.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
       },
     ],
   },

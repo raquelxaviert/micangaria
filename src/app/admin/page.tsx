@@ -344,13 +344,12 @@ function ProductForm({
   product?: Product; 
   onSave: (product: Product) => void; 
   onCancel?: () => void;
-}) {
-  const [formData, setFormData] = useState<Partial<Product>>(product || {
+}) {  const [formData, setFormData] = useState<Partial<Product>>(product || {
     name: '',
     description: '',
     price: 0,
     type: 'colar',
-    style: 'boho',
+    style: 'vintage',  // Mudado de 'boho' para 'vintage'
     colors: [],
     imageUrl: '',
     isNewArrival: false,
@@ -388,12 +387,14 @@ function ProductForm({
         } else if (imageData.url && !imageData.isTemp) {
           // Usar imagem local selecionada
           finalImageUrl = imageData.url;
-        }
-        
-        // Em produção, conectar com Supabase
-        if (process.env.NODE_ENV === 'production') {
+        }        // Conectar com Supabase
+        try {
           const { createClient } = await import('@/lib/supabase/client');
           const supabase = createClient();
+          
+          console.log('🔧 Verificando configuração Supabase...');
+          console.log('URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+          console.log('Key exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
           
           const productData = {
             name: formData.name,
@@ -410,22 +411,46 @@ function ProductForm({
             // SKU será gerado automaticamente (#20xx)
           };
           
+          console.log('📦 Dados do produto:', productData);
+          
           if (product?.id) {
             // Atualizar produto existente
-            const { error } = await supabase
+            const { data, error } = await supabase
               .from('products')
               .update(productData)
-              .eq('id', product.id);
+              .eq('id', product.id)
+              .select();
               
-            if (error) throw error;
+            if (error) {
+              console.error('❌ Erro detalhado (UPDATE):', error);
+              throw error;
+            }
+            console.log('✅ Produto atualizado no Supabase:', data);
           } else {
             // Criar novo produto
-            const { error } = await supabase
+            const { data, error } = await supabase
               .from('products')
-              .insert([productData]);
+              .insert([productData])
+              .select();
               
-            if (error) throw error;
-          }
+            if (error) {
+              console.error('❌ Erro detalhado (INSERT):', error);
+              throw error;
+            }
+            console.log('✅ Produto criado no Supabase:', data);
+          }        } catch (supabaseError: any) {
+          console.error('❌ Erro ao salvar no Supabase:', supabaseError);
+          console.error('❌ Stack trace:', supabaseError?.stack);
+          console.error('❌ Error details:', {
+            message: supabaseError?.message,
+            code: supabaseError?.code,
+            details: supabaseError?.details,
+            hint: supabaseError?.hint
+          });
+          
+          // Mostrar erro mais detalhado para o usuário
+          alert(`Erro ao salvar no Supabase: ${supabaseError?.message || 'Erro desconhecido'}`);
+          // Continua com o fluxo local mesmo se Supabase falhar
         }
           // Para desenvolvimento, usar dados mock com imagem final
         onSave({ ...formData, imageUrl: finalImageUrl } as Product);
@@ -504,13 +529,13 @@ function ProductForm({
           <Select value={formData.style} onValueChange={(value) => setFormData({ ...formData, style: value as any })}>
             <SelectTrigger>
               <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="boho">Boho</SelectItem>
-              <SelectItem value="indígena">Indígena</SelectItem>
-              <SelectItem value="minimalista">Minimalista</SelectItem>
-              <SelectItem value="étnico">Étnico</SelectItem>
+            </SelectTrigger>            <SelectContent>
               <SelectItem value="vintage">Vintage</SelectItem>
+              <SelectItem value="retro">Retro</SelectItem>
+              <SelectItem value="boho-vintage">Boho Vintage</SelectItem>
+              <SelectItem value="anos-80">Anos 80</SelectItem>
+              <SelectItem value="anos-90">Anos 90</SelectItem>
+              <SelectItem value="moderno">Moderno</SelectItem>
             </SelectContent>
           </Select>
         </div>
