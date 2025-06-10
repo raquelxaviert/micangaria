@@ -265,12 +265,18 @@ function ProductManagement({
         {filteredProducts.map(product => (
           <Card key={product.id} className="overflow-hidden">
             <div className="aspect-square relative">
-              <Image
-                src={product.imageUrl}
-                alt={product.name}
-                fill
-                className="object-cover"
-              />
+              {product.imageUrl ? (
+                <Image
+                  src={product.imageUrl}
+                  alt={product.name}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-muted flex items-center justify-center">
+                  <Package className="w-12 h-12 text-muted-foreground" />
+                </div>
+              )}
               <div className="absolute top-2 right-2 flex gap-2">
                 {product.isNewArrival && (
                   <Badge className="bg-accent text-accent-foreground">NOVO</Badge>
