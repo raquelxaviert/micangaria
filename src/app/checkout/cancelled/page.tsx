@@ -1,5 +1,8 @@
 'use client';
 
+// Disable SSR for this page
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
 import { XCircle, ShoppingCart, ArrowLeft, CreditCard, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export default function CheckoutCancelled() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50">
+    <div className="min-h-[calc(100vh-80px)] bg-gradient-to-b from-purple-50 to-pink-50">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           {/* Header de Cancelamento */}

@@ -2,7 +2,7 @@
 
 import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useLikes } from '@/contexts/LikesContext';
+import { useLikes } from '@/contexts/LikesContextSupabase';
 import { cn } from '@/lib/utils';
 import { ClientOnly } from '@/components/ui/ClientOnly';
 

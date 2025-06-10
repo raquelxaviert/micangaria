@@ -1,3 +1,8 @@
+'use client';
+
+// Disable SSR for this page
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { products, Product } from '@/lib/ruge-data';

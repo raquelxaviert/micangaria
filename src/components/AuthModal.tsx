@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Mail, Lock, User, Heart } from 'lucide-react';
-import { useLikes } from '@/contexts/LikesContext';
+import { useLikes } from '@/contexts/LikesContextSupabase';
 
 interface AuthModalProps {
   isOpen: boolean;

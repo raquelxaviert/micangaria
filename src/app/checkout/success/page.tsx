@@ -1,5 +1,8 @@
 'use client';
 
+// Disable SSR for this page
+export const dynamic = 'force-dynamic';
+
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -44,10 +47,9 @@ function CheckoutSuccessContent() {
     } else {
       setLoading(false);
     }
-  }, [sessionId]);
-  if (loading) {
+  }, [sessionId]);  if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 flex items-center justify-center">
+      <div className="min-h-[calc(100vh-80px)] bg-gradient-to-b from-amber-50 to-orange-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600">Verificando seu pagamento...</p>
@@ -55,10 +57,9 @@ function CheckoutSuccessContent() {
       </div>
     );
   }
-
   if (!sessionId || !sessionData) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 flex items-center justify-center">
+      <div className="min-h-[calc(100vh-80px)] bg-gradient-to-b from-amber-50 to-orange-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Sessão não encontrada</h1>
           <p className="text-gray-600 mb-6">Não foi possível encontrar os dados do seu pagamento.</p>
@@ -68,9 +69,8 @@ function CheckoutSuccessContent() {
         </div>
       </div>
     );
-  }
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50">
+  }  return (
+    <div className="min-h-[calc(100vh-80px)] bg-gradient-to-b from-amber-50 to-orange-50">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           {/* Header de Sucesso */}
@@ -207,7 +207,7 @@ function CheckoutSuccessContent() {
 
 function LoadingFallback() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 flex items-center justify-center">
+    <div className="min-h-[calc(100vh-80px)] bg-gradient-to-b from-amber-50 to-orange-50 flex items-center justify-center">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
         <p className="text-gray-600">Carregando...</p>

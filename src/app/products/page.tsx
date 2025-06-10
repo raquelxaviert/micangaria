@@ -1,5 +1,8 @@
 'use client';
 
+// Disable SSR for this page
+export const dynamic = 'force-dynamic';
+
 import { useState, useMemo, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';

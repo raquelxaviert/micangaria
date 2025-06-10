@@ -8,27 +8,31 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Tag, Zap, Star, Heart, ShoppingBag } from 'lucide-react';
-import { useLikes } from '@/contexts/LikesContext';
+import { useLikes } from '@/contexts/LikesContextSupabase';
 import { LikeButton } from '@/components/ui/LikeButton';
+import { ClientOnly } from '@/components/ui/ClientOnly';
 
 function LikedProductCard({ product }: { product: Product }) {
   return (
     <Card className="group flex flex-col h-full shadow-md hover:shadow-2xl transition-all duration-500 rounded-xl overflow-hidden bg-card border-0 hover:-translate-y-2">
-      <CardHeader className="p-0 relative overflow-hidden">
-        <div className="aspect-square relative w-full overflow-hidden rounded-t-xl">
+      <CardHeader className="relative p-0">
+        <div className="relative h-64 w-full overflow-hidden">
           <Image
             src={product.imageUrl}
             alt={product.name}
             fill
-            className="object-cover group-hover:scale-110 transition-transform duration-700"
-            data-ai-hint={product.imageHint}
+            className="object-cover transition-transform duration-500 group-hover:scale-110"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority
           />
+          
+          {/* Overlay gradient */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-2">
             {product.isNewArrival && (
-              <Badge className="bg-accent text-accent-foreground font-bold shadow-lg">
+              <Badge className="bg-green-600 text-white font-bold shadow-lg">
                 <Zap className="w-3 h-3 mr-1" />
                 NOVO
               </Badge>
@@ -59,43 +63,31 @@ function LikedProductCard({ product }: { product: Product }) {
           </Badge>
         </div>
         
-        <CardTitle className="text-lg sm:text-xl font-headline text-primary group-hover:text-primary/80 transition-colors line-clamp-2">
+        <CardTitle className="text-lg sm:text-xl font-bold text-primary group-hover:text-primary/80 transition-colors">
           {product.name}
         </CardTitle>
         
-        <CardDescription className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+        <CardDescription className="text-sm text-muted-foreground leading-relaxed">
           {product.description}
         </CardDescription>
         
-        <div className="flex items-center justify-between pt-2">
-          <p className="text-xl sm:text-2xl font-bold text-primary">
-            R$ {product.price.toFixed(2).replace('.', ',')}
-          </p>
-          <div className="flex text-amber-400">
+        <div className="flex items-center justify-between">
+          <span className="text-2xl font-bold text-primary">
+            R$ {product.price.toFixed(2)}
+          </span>
+          <div className="flex items-center gap-1 text-yellow-500">
             {[...Array(5)].map((_, i) => (
               <Star key={i} className="w-4 h-4 fill-current" />
             ))}
           </div>
         </div>
-
-        {product.isPromotion && product.promotionDetails && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
-            <p className="text-sm text-red-800 font-medium flex items-center">
-              <Tag className="w-4 h-4 mr-2" />
-              {product.promotionDetails}
-            </p>
-          </div>
-        )}
       </CardContent>
       
       <CardFooter className="p-4 sm:p-6 pt-0">
-        <Button 
-          asChild 
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-3 rounded-lg transition-all duration-300 group-hover:bg-primary/80"
-        >
-          <Link href={`/products#${product.id}`}>
+        <Button asChild className="w-full group/btn">
+          <Link href={`/products/${product.id}`}>
             Ver Detalhes
-            <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+            <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
           </Link>
         </Button>
       </CardFooter>
@@ -103,7 +95,7 @@ function LikedProductCard({ product }: { product: Product }) {
   );
 }
 
-export default function LikedProductsPage() {
+function LikedProductsContent() {
   const { getLikedProducts, isLoaded, likedCount } = useLikes();
   
   const likedProducts = useMemo(() => {
@@ -183,5 +175,23 @@ export default function LikedProductsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// Disable SSR for this page
+export const dynamic = 'force-dynamic';
+
+export default function LikedProductsPage() {
+  return (
+    <ClientOnly fallback={
+      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    }>
+      <LikedProductsContent />
+    </ClientOnly>
   );
 }

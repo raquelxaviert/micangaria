@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet';
 import { useState } from 'react';
-import { useLikes } from '@/contexts/LikesContext';
+import { useLikes } from '@/contexts/LikesContextSupabase';
 import { ClientOnly } from '@/components/ui/ClientOnly';
 import { cn } from '@/lib/utils';
 import { AuthModal } from '@/components/AuthModal_centered';
@@ -206,22 +206,20 @@ export function Header() {
                   <div className="flex items-center space-x-3">
                     <span className="text-sm text-muted-foreground">
                       Olá, {user.user_metadata?.full_name || user.email}
-                    </span>
-                    <Button
+                    </span>                    <Button
                       variant="ghost"
                       size="sm"
                       onClick={handleSignOut}
-                      className="hover:text-primary transition-colors flex items-center space-x-1"
+                      className="hover:bg-accent hover:text-accent-foreground transition-colors flex items-center space-x-1"
                     >
                       <LogOut size={16} />
                       <span>Sair</span>
                     </Button>
                   </div>
-                ) : (
-                  <Button
+                ) : (                  <Button
                     variant="ghost"
                     onClick={() => setIsAuthModalOpen(true)}
-                    className="hover:text-primary transition-colors flex items-center space-x-1"
+                    className="hover:bg-accent hover:text-accent-foreground transition-colors flex items-center space-x-1"
                   >
                     <User size={20} />
                     <span>Entrar</span>

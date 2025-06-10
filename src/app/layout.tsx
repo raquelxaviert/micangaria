@@ -3,19 +3,25 @@ import './globals.css';
 import { Header } from '@/components/global/Header';
 import { Footer } from '@/components/global/Footer';
 import { Toaster } from "@/components/ui/toaster";
-import { LikesProvider } from '@/contexts/LikesContext';
+import { LikesProvider } from '@/contexts/LikesContextSupabase';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { headers } from 'next/headers';
 
 export const metadata: Metadata = {
   title: 'RÜGE - Brechó Vintage & Styling',
   description: 'Peças únicas, ousadas e atemporais. Consultoria de imagem e styling por Maria Clara.',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) {  return (
+}>) {
+  const headersList = await headers();
+  const pathname = headersList.get('x-pathname') || '';
+  const isCheckoutPage = pathname.startsWith('/checkout');
+
+  return (
     <html lang="pt-BR">
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -25,15 +31,25 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased flex flex-col min-h-screen">
-        <AuthProvider>
-          <LikesProvider>
-            <Header />
-            <main className="flex-grow container mx-auto px-4 py-8">
-              {children}
-            </main>
+        {isCheckoutPage ? (
+          // Layout simplificado para checkout sem contextos
+          <>
+            {children}
             <Footer />
-          </LikesProvider>
-        </AuthProvider>
+            <Toaster />
+          </>
+        ) : (
+          // Layout completo para outras páginas
+          <AuthProvider>
+            <LikesProvider>
+              <Header />
+              <main className="flex-grow container mx-auto px-4 py-8">
+                {children}
+              </main>
+              <Footer />
+            </LikesProvider>
+          </AuthProvider>
+        )}
         <Toaster />
       </body>
     </html>

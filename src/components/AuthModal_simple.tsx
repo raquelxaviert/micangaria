@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { X, Eye, EyeOff, Heart } from 'lucide-react';
-import { useLikes } from '@/contexts/LikesContext';
+import { useLikes } from '@/contexts/LikesContextSupabase';
 
 interface AuthModalProps {
   isOpen: boolean;
