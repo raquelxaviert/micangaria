@@ -24,17 +24,22 @@ export function LikesProvider({ children }: LikesProviderProps) {
 
   // Load likes from localStorage on mount
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(LIKES_STORAGE_KEY);
-      if (stored) {
-        const likedIds = JSON.parse(stored) as string[];
-        setLikedProducts(new Set(likedIds));
+    // Add a small delay to ensure client-side hydration is complete
+    const timer = setTimeout(() => {
+      try {
+        const stored = localStorage.getItem(LIKES_STORAGE_KEY);
+        if (stored) {
+          const likedIds = JSON.parse(stored) as string[];
+          setLikedProducts(new Set(likedIds));
+        }
+      } catch (error) {
+        console.error('Error loading likes from localStorage:', error);
+      } finally {
+        setIsLoaded(true);
       }
-    } catch (error) {
-      console.error('Error loading likes from localStorage:', error);
-    } finally {
-      setIsLoaded(true);
-    }
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, []);
 
   // Save likes to localStorage whenever they change

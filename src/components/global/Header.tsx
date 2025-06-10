@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet';
 import { useState } from 'react';
 import { useLikes } from '@/contexts/LikesContext';
+import { ClientOnly } from '@/components/ui/ClientOnly';
+import { cn } from '@/lib/utils';
 
 export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -170,14 +172,16 @@ export function Header() {
                 </Link>
               </li>              <li>
                 <Link href="/liked-products" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap">
-                  <Heart size={20} className={likedCount > 0 ? "text-red-500 fill-current" : ""} />
+                  <Heart size={20} className={cn(likedCount > 0 ? "text-red-500 fill-current" : "")} />
                   <div className="flex items-center gap-1">
                     <span>Favoritos</span>
-                    {isLoaded && likedCount > 0 && (
-                      <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                        {likedCount > 99 ? '99+' : likedCount}
-                      </span>
-                    )}
+                    <ClientOnly fallback={null}>
+                      {isLoaded && likedCount > 0 && (
+                        <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                          {likedCount > 99 ? '99+' : likedCount}
+                        </span>
+                      )}
+                    </ClientOnly>
                   </div>
                 </Link>
               </li>
@@ -295,12 +299,14 @@ export function Header() {
             <div className="flex items-center gap-2">              {/* Botão de Favoritos no Mobile */}
               <Link href="/liked-products" className="relative">
                 <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-                  <Heart size={20} className={likedCount > 0 ? "text-red-500 fill-current" : ""} />
-                  {isLoaded && likedCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium">
-                      {likedCount > 9 ? '9+' : likedCount}
-                    </span>
-                  )}
+                  <Heart size={20} className={cn(likedCount > 0 ? "text-red-500 fill-current" : "")} />
+                  <ClientOnly fallback={null}>
+                    {isLoaded && likedCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium">
+                        {likedCount > 9 ? '9+' : likedCount}
+                      </span>
+                    )}
+                  </ClientOnly>
                 </Button>
               </Link>
               
