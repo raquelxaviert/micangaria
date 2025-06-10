@@ -105,22 +105,25 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* Overlay */}
+    <>      {/* Overlay */}
       <div
         style={{
           position: 'fixed',
           top: 0,
           left: 0,
-          right: 0,
-          bottom: 0,
+          width: '100vw',
+          height: '100vh',
+          minWidth: '100vw',
+          minHeight: '100vh',
           backgroundColor: 'rgba(0, 0, 0, 0.6)',
           backdropFilter: 'blur(4px)',
           zIndex: 9999,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '20px'
+          padding: '20px',
+          margin: 0,
+          overflow: 'hidden'
         }}
         onClick={(e) => {
           if (e.target === e.currentTarget) {
