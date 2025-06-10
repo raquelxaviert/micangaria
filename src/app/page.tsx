@@ -139,27 +139,20 @@ export default function HomePage() {
     }
   ];
   return (
-    <div className="space-y-12 sm:space-y-20 overflow-x-hidden">      {/* Hero Section - Enhanced */}
-      <section className="relative overflow-hidden rounded-none sm:rounded-3xl min-h-[60vh] flex items-center">
-        <div className="absolute inset-0">
-          <Image
-            src="/banner/banner.jpg"
+    <div className="space-y-8 sm:space-y-12 overflow-x-hidden">      {/* Hero Section - Enhanced */}
+      <section className="relative overflow-hidden rounded-none sm:rounded-3xl min-h-[40vh] flex items-center"><div className="absolute inset-0">          <Image
+            src="/banner/banner.png"
             alt="Banner de acessórios boho"
             fill
-            className="object-cover blur-[2px]"
+            className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-white/70 to-white/30" />
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" /> {/* Existing gradient for subtle color effect */}
-          <div className="absolute top-4 right-4 sm:top-10 sm:right-10 w-32 h-32 sm:w-72 sm:h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-4 left-4 sm:bottom-10 sm:left-10 w-40 h-40 sm:w-96 sm:h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}} />
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 sm:w-64 sm:h-64 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}} />
+          <div className="absolute inset-0 bg-gradient-to-r from-white/70 to-white/30" />          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" /> {/* Existing gradient for subtle color effect */}
         </div>
-        
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 py-12 sm:py-20 md:py-32 text-center">
-          {/* MODIFIED: Added bg-background/30 backdrop-blur-md p-6 md:p-8 rounded-xl shadow-lg */}
-          <div className="max-w-5xl mx-auto space-y-6 sm:space-y-10 bg-background/30 backdrop-blur-md p-4 sm:p-6 md:p-8 rounded-xl shadow-lg">
-            <div className="space-y-4 sm:space-y-6">              <Badge className="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium backdrop-blur-sm border-0" style={{ backgroundColor: '#780116', color: '#F5F0EB' }}>
+          <div className="relative z-10 container mx-auto px-4 sm:px-6 py-6 sm:py-8 md:py-10 text-center">
+          {/* MODIFIED: Added bg-background/30 p-6 md:p-8 rounded-xl shadow-lg */}
+          <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 bg-background/30 p-3 sm:p-4 md:p-6 rounded-xl shadow-lg">
+            <div className="space-y-4 sm:space-y-6">              <Badge className="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium border-0" style={{ backgroundColor: '#780116', color: '#F5F0EB' }}>
                 Força, Presença & Autenticidade 🐆
               </Badge>              <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-headline leading-tight animate-fade-in px-2">                <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3">
                   <span className="animate-color-wave whitespace-nowrap">We don't whisper.</span>
@@ -175,13 +168,10 @@ export default function HomePage() {
                     />
                   </div>
                 </div>
-              </h1>
-                <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed px-2">
+              </h1>                <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed px-2">
                 Curadoria especial de peças únicas por{' '}
-                <span className="text-primary font-semibold">Maria Clara</span>, consultora de imagem e styling. 
-                Descubra tesouros vintage que celebram{' '}
-                <span className="text-secondary font-semibold">autenticidade</span> e{' '}
-                <span className="text-accent font-semibold">originalidade</span>.
+                <span className="text-primary font-semibold">Maria Clara</span>. 
+                Descubra tesouros vintage únicos.
               </p>
             </div>
               <div className="flex flex-col gap-3 sm:gap-4 justify-center items-center px-2">              <Button 
@@ -199,20 +189,19 @@ export default function HomePage() {
                 asChild 
                 variant="outline"
                 size="lg"
-                className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-4 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 text-sm sm:text-base lg:text-lg font-semibold rounded-full transition-all duration-500 hover:-translate-y-1 transform backdrop-blur-sm w-full max-w-xs sm:max-w-sm group"
+                className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-4 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 text-sm sm:text-base lg:text-lg font-semibold rounded-full transition-all duration-500 hover:-translate-y-1 transform w-full max-w-xs sm:max-w-sm group"
               >
                 <Link href="/style-advisor">
                   Consultoria de Styling
                   <Sparkles className="ml-2 h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-300 group-hover:rotate-12" />
                 </Link>
               </Button>
-            </div>{/* Enhanced trust indicators */}
-            <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 pt-8 sm:pt-12">
-              <div className="flex items-center gap-2 sm:gap-3 bg-white/20 backdrop-blur-sm rounded-full px-4 sm:px-6 py-2 sm:py-3 border border-primary/20">
+            </div>{/* Enhanced trust indicators */}            <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 pt-4 sm:pt-6">
+              <div className="flex items-center gap-2 sm:gap-3 bg-white/20 rounded-full px-4 sm:px-6 py-2 sm:py-3 border border-primary/20">
                 <Shield className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
                 <span className="text-xs sm:text-sm font-medium text-foreground">Qualidade Garantida</span>
               </div>
-              <div className="flex items-center gap-2 sm:gap-3 bg-white/20 backdrop-blur-sm rounded-full px-4 sm:px-6 py-2 sm:py-3 border border-secondary/20">
+              <div className="flex items-center gap-2 sm:gap-3 bg-white/20 rounded-full px-4 sm:px-6 py-2 sm:py-3 border border-secondary/20">
                 <Truck className="w-4 sm:w-5 h-4 sm:h-5 text-secondary" />
                 <span className="text-xs sm:text-sm font-medium text-foreground">Frete Grátis</span>
               </div>
@@ -310,9 +299,8 @@ export default function HomePage() {
               Cada peça é cuidadosamente selecionada com dedicação, materiais de qualidade e técnicas modernas.
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-            <Card className="text-center p-4 sm:p-6 lg:p-8 border-0 bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+            <Card className="text-center p-4 sm:p-6 lg:p-8 border-0 bg-card/50 hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
               <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 sm:mb-6">
                 <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
@@ -322,7 +310,7 @@ export default function HomePage() {
               </p>
             </Card>
             
-            <Card className="text-center p-4 sm:p-6 lg:p-8 border-0 bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
+            <Card className="text-center p-4 sm:p-6 lg:p-8 border-0 bg-card/50 hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
               <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-secondary/10 rounded-full flex items-center justify-center mb-4 sm:mb-6">
                 <Truck className="w-6 h-6 sm:w-8 sm:h-8 text-secondary" />
               </div>
@@ -332,7 +320,7 @@ export default function HomePage() {
               </p>
             </Card>
             
-            <Card className="text-center p-4 sm:p-6 lg:p-8 border-0 bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
+            <Card className="text-center p-4 sm:p-6 lg:p-8 border-0 bg-card/50 hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
               <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-accent/10 rounded-full flex items-center justify-center mb-4 sm:mb-6">
                 <RotateCcw className="w-6 h-6 sm:w-8 sm:h-8 text-accent" />
               </div>
@@ -342,7 +330,7 @@ export default function HomePage() {
               </p>
             </Card>
             
-            <Card className="text-center p-8 border-0 bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
+            <Card className="text-center p-8 border-0 bg-card/50 hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
               <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
                 <CreditCard className="w-8 h-8 text-primary" />
               </div>
@@ -405,10 +393,9 @@ export default function HomePage() {
               A satisfação dos nossos clientes é nossa maior recompensa.
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="p-4 sm:p-6 lg:p-8 border-0 bg-card/80 backdrop-blur-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
+              <Card key={index} className="p-4 sm:p-6 lg:p-8 border-0 bg-card/80 hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
                 <CardContent className="space-y-4 sm:space-y-6">
                   <div className="flex text-amber-400 justify-center">
                     {[...Array(testimonial.rating)].map((_, i) => (
