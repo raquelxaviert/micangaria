@@ -13,6 +13,8 @@ interface LikesContextType {
   likedCount: number;
   isLoaded: boolean;
   syncFavorites: () => Promise<void>;
+  showLoginPrompt: boolean;
+  setShowLoginPrompt: (show: boolean) => void;
 }
 
 const LikesContext = createContext<LikesContextType | undefined>(undefined);
@@ -23,23 +25,20 @@ interface LikesProviderProps {
 
 export function LikesProvider({ children }: LikesProviderProps) {
   const [likedProducts, setLikedProducts] = useState<Set<string>>(new Set());
-  const [isLoaded, setIsLoaded] = useState(false);  const { user, session } = useAuth();
-  const supabase = createClient();
-  // Fetch products from Supabase and create ID mapping
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const { user, session } = useAuth();
+  const supabase = createClient();  // Fetch products from Supabase and create ID mapping
   const createIdMigrationMap = useCallback(async (): Promise<Record<string, string>> => {
     try {
       const { data: products, error } = await supabase
         .from('products')
         .select('id, name, category')
-        .order('created_at', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching products for migration:', error);
+        .order('created_at', { ascending: true });      if (error) {
+        console.log('Supabase não configurado ou indisponível (normal em desenvolvimento)');
         return {};
-      }
-
-      if (!products || products.length === 0) {
-        console.log('No products found in Supabase');
+      }if (!products || products.length === 0) {
+        console.log('No products found in Supabase for migration');
         return {};
       }
 
@@ -51,13 +50,11 @@ export function LikesProvider({ children }: LikesProviderProps) {
       });
 
       console.log('Created dynamic ID migration map:', migrationMap);
-      return migrationMap;
-    } catch (error) {
-      console.error('Error creating ID migration map:', error);
+      return migrationMap;    } catch (error) {
+      console.log('Supabase indisponível (normal em desenvolvimento), continuando sem migração');
       return {};
     }
   }, [supabase]);
-
   // Migrate old localStorage IDs to new UUIDs
   const migrateLocalStorageIds = useCallback(async () => {
     try {
@@ -78,9 +75,9 @@ export function LikesProvider({ children }: LikesProviderProps) {
       
       // Get dynamic mapping from Supabase
       const migrationMap = await createIdMigrationMap();
-      
-      if (Object.keys(migrationMap).length === 0) {
-        console.warn('Could not create migration map, keeping original IDs');
+        if (Object.keys(migrationMap).length === 0) {
+        console.warn('Could not create migration map, keeping original IDs for now');
+        // Keep original IDs instead of clearing completely
         return new Set(likedIds);
       }
 
@@ -104,10 +101,21 @@ export function LikesProvider({ children }: LikesProviderProps) {
       const stored = localStorage.getItem(LIKES_STORAGE_KEY);
       return stored ? new Set(JSON.parse(stored) as string[]) : new Set<string>();
     }
-  }, [createIdMigrationMap]);
-  // Load likes from localStorage and Supabase
+  }, [createIdMigrationMap]);  // Load likes from localStorage and Supabase
   useEffect(() => {    const loadFavorites = async () => {
       try {
+        // Check if Supabase is configured
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        
+        if (!supabaseUrl || !supabaseKey) {
+          console.log('Supabase not configured, using localStorage only');
+          const stored = localStorage.getItem(LIKES_STORAGE_KEY);
+          setLikedProducts(stored ? new Set(JSON.parse(stored) as string[]) : new Set<string>());
+          setIsLoaded(true);
+          return;
+        }
+
         // First, migrate any old localStorage IDs to new UUIDs
         const migratedLikes = await migrateLocalStorageIds();
         setLikedProducts(migratedLikes);
@@ -118,6 +126,9 @@ export function LikesProvider({ children }: LikesProviderProps) {
         }
       } catch (error) {
         console.error('Error loading favorites:', error);
+        // Fallback to localStorage only
+        const stored = localStorage.getItem(LIKES_STORAGE_KEY);
+        setLikedProducts(stored ? new Set(JSON.parse(stored) as string[]) : new Set<string>());
       } finally {
         setIsLoaded(true);
       }
@@ -244,7 +255,6 @@ export function LikesProvider({ children }: LikesProviderProps) {
       console.error('Catch error details:', JSON.stringify(error, null, 2));
     }
   }, [user, session, supabase]);
-
   // Toggle like status for a product
   const toggleLike = useCallback((productId: string) => {
     setLikedProducts(prev => {
@@ -253,6 +263,11 @@ export function LikesProvider({ children }: LikesProviderProps) {
       
       if (isLiking) {
         newLikes.add(productId);
+        
+        // Mostrar popup de login apenas se o usuário não estiver logado e estiver curtindo
+        if (!user && !session) {
+          setShowLoginPrompt(true);
+        }
       } else {
         newLikes.delete(productId);
       }
@@ -288,14 +303,15 @@ export function LikesProvider({ children }: LikesProviderProps) {
       await syncWithSupabase();
     }
   }, [syncWithSupabase, user, session]);
-
   const value: LikesContextType = {
     toggleLike,
     isLiked,
     getLikedProducts,
     likedCount,
     isLoaded,
-    syncFavorites
+    syncFavorites,
+    showLoginPrompt,
+    setShowLoginPrompt
   };
 
   return (

@@ -11,13 +11,14 @@ import { useLikes } from '@/contexts/LikesContextSupabase';
 import { ClientOnly } from '@/components/ui/ClientOnly';
 import { cn } from '@/lib/utils';
 import { AuthModal } from '@/components/AuthModal_centered';
+import { LoginPromptModal } from '@/components/LoginPromptModal';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const { likedCount, isLoaded } = useLikes();
+  const { likedCount, isLoaded, showLoginPrompt, setShowLoginPrompt } = useLikes();
   const { user, signOut } = useAuth();
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -172,8 +173,7 @@ export function Header() {
               </Button>
             </div>
           </form>
-          
-          {/* Navegação rápida à direita */}
+            {/* Navegação rápida à direita */}
           <nav>
             <ul className="flex items-center space-x-6">
               <li>
@@ -200,31 +200,6 @@ export function Header() {
                   <Sparkles size={20} /> 
                   <span>Consultoria</span>
                 </Link>
-              </li>
-              <li>
-                {user ? (
-                  <div className="flex items-center space-x-3">
-                    <span className="text-sm text-muted-foreground">
-                      Olá, {user.user_metadata?.full_name || user.email}
-                    </span>                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleSignOut}
-                      className="hover:bg-accent hover:text-accent-foreground transition-colors flex items-center space-x-1"
-                    >
-                      <LogOut size={16} />
-                      <span>Sair</span>
-                    </Button>
-                  </div>
-                ) : (                  <Button
-                    variant="ghost"
-                    onClick={() => setIsAuthModalOpen(true)}
-                    className="hover:bg-accent hover:text-accent-foreground transition-colors flex items-center space-x-1"
-                  >
-                    <User size={20} />
-                    <span>Entrar</span>
-                  </Button>
-                )}
               </li>
             </ul>
           </nav>
@@ -328,11 +303,10 @@ export function Header() {
                 height={32}
                 className="h-8 w-auto"
               />
-            </Link>
-              {/* Ações do mobile: Usuário, Favoritos e Busca */}
+            </Link>              {/* Ações do mobile: Usuário, Favoritos e Busca */}
             <div className="flex items-center gap-2">
-              {/* Botão de Usuário no Mobile */}
-              {user ? (
+              {/* Botão de Usuário no Mobile - apenas mostrar se logado */}
+              {user && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -341,16 +315,6 @@ export function Header() {
                   title="Sair"
                 >
                   <LogOut size={20} />
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsAuthModalOpen(true)}
-                  className="hover:bg-primary/10"
-                  title="Entrar"
-                >
-                  <User size={20} />
                 </Button>
               )}
 
@@ -407,12 +371,20 @@ export function Header() {
               </form>            </div>
           </div>
         </div>
-      </div>
-
-      {/* Modal de Autenticação */}
+      </div>      {/* Modal de Autenticação */}
       <AuthModal 
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 
+      />
+
+      {/* Modal de Prompt de Login após salvar favorito */}
+      <LoginPromptModal
+        isOpen={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        onLogin={() => {
+          setShowLoginPrompt(false);
+          setIsAuthModalOpen(true);
+        }}
       />
     </header>
   );
