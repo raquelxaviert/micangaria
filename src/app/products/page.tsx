@@ -45,9 +45,8 @@ function ProductCard({ product }: { product: Product }) {
                 <Zap className="w-3 h-3 mr-1" />
                 NOVO
               </Badge>
-            )}
-            {product.isPromotion && (
-              <Badge className="bg-destructive text-destructive-foreground font-bold shadow-lg animate-pulse">
+            )}            {product.isPromotion && (
+              <Badge className="bg-red-600 text-white font-bold shadow-lg animate-pulse">
                 <Tag className="w-3 h-3 mr-1" />
                 OFERTA
               </Badge>
@@ -93,10 +92,9 @@ function ProductCard({ product }: { product: Product }) {
             ))}
           </div>
         </div>
-        
-        {product.isPromotion && product.promotionDetails && (
-          <div className="bg-accent/10 border border-accent/20 rounded-lg p-3 mt-3">
-            <p className="text-sm text-accent-foreground font-medium flex items-center">
+          {product.isPromotion && product.promotionDetails && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
+            <p className="text-sm text-red-800 font-medium flex items-center">
               <Tag className="w-4 h-4 mr-2" />
               {product.promotionDetails}
             </p>

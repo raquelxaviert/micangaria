@@ -5,7 +5,7 @@ export interface Product {
   price: number;
   imageUrl: string;
   imageHint: string;
-  type: 'vestido' | 'blusa' | 'calca' | 'saia' | 'casaco' | 'acessorio' | 'conjunto' | 'bolsa';
+  type: 'acessorio' | 'conjunto' | 'bolsa';
   style: 'vintage' | 'retro' | 'boho-vintage' | 'anos-80' | 'anos-90';
   colors: string[];
   isNewArrival?: boolean;
@@ -16,14 +16,14 @@ export interface Product {
 export const products: Product[] = [
   {
     id: '1',
-    name: 'Vestido Vintage Bordeaux',
-    description: 'Vestido midi vintage dos anos 80, com corte atemporal e detalhes únicos. Uma peça de caráter e personalidade.',
+    name: 'Anel Vintage Dourado',
+    description: 'Anel vintage em metal dourado com design atemporal. Uma peça que adiciona elegância e sofisticação ao seu look.',
     price: 185.90,
     imageUrl: '/products/anel.jpg',
-    imageHint: 'vintage bordeaux midi dress with unique details',
-    type: 'vestido',
-    style: 'anos-80',
-    colors: ['bordeaux', 'vinho', 'dourado'],
+    imageHint: 'vintage golden ring with timeless design',
+    type: 'acessorio',
+    style: 'vintage',
+    colors: ['dourado', 'ouro', 'bronze'],
     isNewArrival: true,
   },
   {
@@ -41,19 +41,18 @@ export const products: Product[] = [
   },
   {
     id: '3',
-    name: 'Blusa Vintage Seda',
-    description: 'Blusa de seda vintage com estampa exclusiva. Sofisticação e elegância em uma peça única e especial.',
+    name: 'Brincos Vintage Elegantes',
+    description: 'Brincos vintage com design exclusivo. Sofisticação e elegância em uma peça única e especial.',
     price: 158.00,
     imageUrl: '/products/brinco.jpg',
-    imageHint: 'vintage silk blouse with exclusive print',
-    type: 'blusa',
+    imageHint: 'elegant vintage earrings with exclusive design',
+    type: 'acessorio',
     style: 'retro',
-    colors: ['nude', 'dourado', 'pérola'],
-    isNewArrival: true,
+    colors: ['dourado', 'pérola', 'cristal'],    isNewArrival: true,
   },
   {
     id: '4',
-    name: 'Acessório Vintage Statement',
+    name: 'Cinto Vintage Couro',
     description: 'Cinto vintage de couro com fivela statement. Peça perfeita para transformar qualquer look.',
     price: 98.50,
     imageUrl: '/products/cinto.jpg',
@@ -85,14 +84,13 @@ export const products: Product[] = [
     type: 'acessorio',
     style: 'vintage',
     colors: ['pérola', 'dourado', 'marfim'],
-  },
-  {
+  },  {
     id: '7',
-    name: 'Colar Vintage Turquesa',
-    description: 'Colar vintage com pedras turquesa genuínas. Peça boho-vintage com energia e personalidade.',
+    name: 'Colar Vintage Pedras',
+    description: 'Colar vintage com pedras naturais. Peça boho-vintage com energia e personalidade única.',
     price: 165.50,
     imageUrl: '/products/colar3.jpg',
-    imageHint: 'vintage turquoise stone necklace',
+    imageHint: 'vintage natural stone necklace',
     type: 'acessorio',
     style: 'boho-vintage',
     colors: ['turquesa', 'prata', 'azul'],
@@ -132,11 +130,10 @@ export const products: Product[] = [
     type: 'conjunto',
     style: 'vintage',
     colors: ['dourado', 'prata', 'rose gold'],
-  },
-  {
+  },  {
     id: '11',
-    name: 'Conjunto Vintage Completo',
-    description: 'Conjunto colar e brincos vintage, perfeito para ocasiões especiais. Elegância garantida.',
+    name: 'Conjunto Colar e Brincos',
+    description: 'Conjunto harmonioso colar e brincos vintage, perfeito para ocasiões especiais. Elegância garantida.',
     price: 298.50,
     imageUrl: '/products/conjunto_colar_e_brinco.jpg',
     imageHint: 'vintage necklace and earrings complete set',
@@ -190,11 +187,10 @@ export const products: Product[] = [
     type: 'conjunto',
     style: 'anos-90',
     colors: ['dourado', 'âmbar', 'bronze'],
-  },
-  {
+  },  {
     id: '16',
-    name: 'Conjunto Pulseiras Vintage IV',
-    description: 'Quarta coleção exclusiva de pulseiras vintage. Para quem busca autenticidade.',
+    name: 'Conjunto Pulseiras Premium',
+    description: 'Coleção exclusiva de pulseiras vintage. Para quem busca autenticidade e estilo único.',
     price: 195.50,
     imageUrl: '/products/conjunto_pulseiras4.jpg',
     imageHint: 'exclusive vintage bracelets collection for authenticity seekers',
