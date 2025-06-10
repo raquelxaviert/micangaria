@@ -10,7 +10,7 @@ import { useState } from 'react';
 import { useLikes } from '@/contexts/LikesContext';
 import { ClientOnly } from '@/components/ui/ClientOnly';
 import { cn } from '@/lib/utils';
-import { AuthModal } from '@/components/AuthModal_simple';
+import { AuthModal } from '@/components/AuthModal_centered';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function Header() {
