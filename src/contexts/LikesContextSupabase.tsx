@@ -6,13 +6,6 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const LIKES_STORAGE_KEY = 'ruge-liked-products';
 
-// Mapping from old localStorage IDs to new Supabase UUIDs
-const ID_MIGRATION_MAP: Record<string, string> = {
-  '1': 'c31139ee-bd31-47af-98f2-7cf31820f8fd', // Product 1
-  '2': '9bb69ac6-4e5b-4c08-b6b1-cddb876f3239', // Product 2
-  '3': 'ff962239-f175-425b-84b1-46a6c55ba2b5', // Product 3
-};
-
 interface LikesContextType {
   toggleLike: (productId: string) => void;
   isLiked: (productId: string) => boolean;
@@ -32,38 +25,91 @@ export function LikesProvider({ children }: LikesProviderProps) {
   const [likedProducts, setLikedProducts] = useState<Set<string>>(new Set());
   const [isLoaded, setIsLoaded] = useState(false);  const { user, session } = useAuth();
   const supabase = createClient();
+  // Fetch products from Supabase and create ID mapping
+  const createIdMigrationMap = useCallback(async (): Promise<Record<string, string>> => {
+    try {
+      const { data: products, error } = await supabase
+        .from('products')
+        .select('id, name, category')
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching products for migration:', error);
+        return {};
+      }
+
+      if (!products || products.length === 0) {
+        console.log('No products found in Supabase');
+        return {};
+      }
+
+      // Create mapping: old ID (based on order) -> new UUID
+      const migrationMap: Record<string, string> = {};
+      products.forEach((product, index) => {
+        const oldId = (index + 1).toString(); // '1', '2', '3', etc.
+        migrationMap[oldId] = product.id;
+      });
+
+      console.log('Created dynamic ID migration map:', migrationMap);
+      return migrationMap;
+    } catch (error) {
+      console.error('Error creating ID migration map:', error);
+      return {};
+    }
+  }, [supabase]);
 
   // Migrate old localStorage IDs to new UUIDs
-  const migrateLocalStorageIds = useCallback(() => {
+  const migrateLocalStorageIds = useCallback(async () => {
     try {
       const stored = localStorage.getItem(LIKES_STORAGE_KEY);
       if (!stored) return new Set<string>();
 
       const likedIds = JSON.parse(stored) as string[];
+      
+      // Check if we need migration (if any ID is numeric)
+      const needsMigration = likedIds.some(id => /^\d+$/.test(id));
+      
+      if (!needsMigration) {
+        console.log('No migration needed, IDs are already UUIDs');
+        return new Set(likedIds);
+      }
+
+      console.log('Migration needed for IDs:', likedIds);
+      
+      // Get dynamic mapping from Supabase
+      const migrationMap = await createIdMigrationMap();
+      
+      if (Object.keys(migrationMap).length === 0) {
+        console.warn('Could not create migration map, keeping original IDs');
+        return new Set(likedIds);
+      }
+
       const migratedIds = likedIds
-        .map(id => ID_MIGRATION_MAP[id] || id) // Use mapped UUID or keep original ID
+        .map(id => migrationMap[id] || id) // Use mapped UUID or keep original ID
         .filter(Boolean); // Remove any undefined values
 
       // Save migrated IDs back to localStorage
       localStorage.setItem(LIKES_STORAGE_KEY, JSON.stringify(migratedIds));
       
-      console.log('localStorage migration:', {
+      console.log('localStorage migration completed:', {
         original: likedIds,
-        migrated: migratedIds
+        migrated: migratedIds,
+        map: migrationMap
       });
 
       return new Set(migratedIds);
     } catch (error) {
       console.error('Error migrating localStorage IDs:', error);
-      return new Set<string>();
+      // Return original IDs if migration fails
+      const stored = localStorage.getItem(LIKES_STORAGE_KEY);
+      return stored ? new Set(JSON.parse(stored) as string[]) : new Set<string>();
     }
-  }, []);
-
+  }, [createIdMigrationMap]);
   // Load likes from localStorage and Supabase
   useEffect(() => {    const loadFavorites = async () => {
       try {
         // First, migrate any old localStorage IDs to new UUIDs
-        const migratedLikes = migrateLocalStorageIds();
+        const migratedLikes = await migrateLocalStorageIds();
         setLikedProducts(migratedLikes);
 
         // If user is logged in, sync with Supabase
@@ -75,7 +121,7 @@ export function LikesProvider({ children }: LikesProviderProps) {
       } finally {
         setIsLoaded(true);
       }
-    };    // Add delay to ensure client-side hydration is complete
+    };// Add delay to ensure client-side hydration is complete
     const timer = setTimeout(loadFavorites, 100);
     return () => clearTimeout(timer);
   }, [user, session, migrateLocalStorageIds]);
