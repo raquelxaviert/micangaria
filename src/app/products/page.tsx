@@ -11,9 +11,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Filter, X, Tag, ListFilter, Search, Heart, ShoppingBag, Star, ArrowRight, Zap, Sparkles } from 'lucide-react';
+import { Filter, X, Tag, ListFilter, Search, ShoppingBag, Star, ArrowRight, Zap, Sparkles } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useSearchParams } from 'next/navigation';
+import { LikeButton } from '@/components/ui/LikeButton';
 
 interface Filters {
   type: string | null;
@@ -52,15 +53,8 @@ function ProductCard({ product }: { product: Product }) {
               </Badge>
             )}
           </div>
-          
-          {/* Heart Icon */}
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="absolute top-3 right-3 bg-white/90 hover:bg-white hover:text-destructive transition-all duration-300 rounded-full opacity-0 group-hover:opacity-100"
-          >
-            <Heart className="w-4 h-4" />
-          </Button>
+            {/* Heart Icon */}
+          <LikeButton productId={product.id} />
         </div>
       </CardHeader>
       

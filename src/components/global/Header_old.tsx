@@ -41,7 +41,7 @@ export function Header() {
       <div className="container mx-auto px-4 py-4">
         {/* Layout desktop */}
         <div className="hidden md:flex items-center justify-between gap-4">
-          {/* Menu Hamburger + Logo à esquerda */}
+            {/* Menu Hamburger + Logo à esquerda */}
           <div className="flex items-center gap-4">
             <Sheet>
               <SheetTrigger asChild>
@@ -73,6 +73,17 @@ export function Header() {
                         <Link href="/products" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
                           <ShoppingBag size={18} />
                           <span>Todos os Produtos</span>
+                        </Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link href="/liked-products" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors relative">
+                          <Heart size={18} className={likedCount > 0 ? "text-red-500" : ""} />
+                          <span>Favoritos</span>
+                          {isLoaded && likedCount > 0 && (
+                            <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                              {likedCount > 99 ? '99+' : likedCount}
+                            </span>
+                          )}
                         </Link>
                       </SheetClose>
                       <SheetClose asChild>
@@ -160,8 +171,7 @@ export function Header() {
               </Button>
             </div>
           </form>
-          
-          {/* Navegação rápida à direita */}
+            {/* Navegação rápida à direita */}
           <nav>
             <ul className="flex items-center space-x-6">
               <li>
@@ -193,7 +203,7 @@ export function Header() {
 
         {/* Layout mobile */}
         <div className="md:hidden space-y-4">
-          {/* Primeira linha: Menu hamburger, Logo e ações */}
+            {/* Primeira linha: Menu hamburger, Logo e busca */}
           <div className="flex items-center justify-between gap-3">
             <Sheet>
               <SheetTrigger asChild>
@@ -225,6 +235,17 @@ export function Header() {
                         <Link href="/products" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
                           <ShoppingBag size={18} />
                           <span>Todos os Produtos</span>
+                        </Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link href="/liked-products" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors relative">
+                          <Heart size={18} className={likedCount > 0 ? "text-red-500" : ""} />
+                          <span>Favoritos</span>
+                          {isLoaded && likedCount > 0 && (
+                            <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                              {likedCount > 99 ? '99+' : likedCount}
+                            </span>
+                          )}
                         </Link>
                       </SheetClose>
                       <SheetClose asChild>
@@ -280,9 +301,7 @@ export function Header() {
                   </div>
                 </div>
               </SheetContent>
-            </Sheet>
-
-            <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+            </Sheet>            <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
               <Image
                 src="/logo.svg"
                 alt="RÜGE"

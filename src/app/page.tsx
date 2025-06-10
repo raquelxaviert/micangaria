@@ -4,7 +4,8 @@ import { products, Product } from '@/lib/ruge-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Tag, Zap, Sparkles, Star, Heart, Shield, Leaf, Truck, RotateCcw, CreditCard, Award, Users, MapPin, Phone, Mail, Cat } from 'lucide-react';
+import { ArrowRight, Tag, Zap, Sparkles, Star, Shield, Leaf, Truck, RotateCcw, CreditCard, Award, Users, MapPin, Phone, Mail, Cat } from 'lucide-react';
+import { LikeButton } from '@/components/ui/LikeButton';
 
 function ProductCard({ product }: { product: Product }) {
   return (
@@ -34,15 +35,8 @@ function ProductCard({ product }: { product: Product }) {
               </Badge>
             )}
           </div>
-          
-          {/* Heart Icon */}
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="absolute top-3 right-3 bg-white/90 hover:bg-white hover:text-destructive transition-all duration-300 rounded-full opacity-0 group-hover:opacity-100"
-          >
-            <Heart className="w-4 h-4" />
-          </Button>
+            {/* Heart Icon */}
+          <LikeButton productId={product.id} />
         </div>
       </CardHeader>
       
