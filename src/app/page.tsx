@@ -159,15 +159,22 @@ export default function HomePage() {
         <div className="relative z-10 container mx-auto px-4 sm:px-6 py-12 sm:py-20 md:py-32 text-center">
           {/* MODIFIED: Added bg-background/30 backdrop-blur-md p-6 md:p-8 rounded-xl shadow-lg */}
           <div className="max-w-5xl mx-auto space-y-6 sm:space-y-10 bg-background/30 backdrop-blur-md p-4 sm:p-6 md:p-8 rounded-xl shadow-lg">
-            <div className="space-y-4 sm:space-y-6">              <Badge className="bg-accent/15 text-accent-foreground border-accent/30 px-3 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium animate-bounce backdrop-blur-sm">
-                RÜGE - Força, Presença & Autenticidade 🐆
-              </Badge>
-              
-              <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-headline text-primary leading-tight animate-fade-in">
-                Vintage{' '}
-                <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent animate-gradient-x">
-                  Ousado & Atemporal
-                </span>
+            <div className="space-y-4 sm:space-y-6">              <Badge className="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium backdrop-blur-sm border-0" style={{ backgroundColor: '#780116', color: '#F5F0EB' }}>
+                Força, Presença & Autenticidade 🐆
+              </Badge>              <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-headline leading-tight animate-fade-in px-2">                <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3">
+                  <span className="animate-color-wave whitespace-nowrap">We don't whisper.</span>
+                  <div className="flex items-center whitespace-nowrap">
+                    <span className="animate-color-wave-alt">We</span>
+                    <span className="w-4"></span>
+                    <Image
+                      src="/logo.svg"
+                      alt="RÜGE Logo"
+                      width={200}
+                      height={80}
+                      className="w-auto h-[0.8em] sm:h-[1em] inline-block"
+                    />
+                  </div>
+                </div>
               </h1>
                 <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed px-2">
                 Curadoria especial de peças únicas por{' '}
@@ -177,15 +184,14 @@ export default function HomePage() {
                 <span className="text-accent font-semibold">originalidade</span>.
               </p>
             </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">              <Button 
+              <div className="flex flex-col gap-3 sm:gap-4 justify-center items-center px-2">              <Button 
                 asChild 
                 size="lg" 
-                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/80 hover:to-primary text-primary-foreground px-6 sm:px-10 py-4 sm:py-5 text-base sm:text-lg font-semibold rounded-full shadow-2xl hover:shadow-primary/40 transition-all duration-500 hover:-translate-y-1 transform w-full sm:w-auto group"
+                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/80 hover:to-primary text-primary-foreground px-4 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 text-sm sm:text-base lg:text-lg font-semibold rounded-full shadow-2xl hover:shadow-primary/40 transition-all duration-500 hover:-translate-y-1 transform w-full max-w-xs sm:max-w-sm group"
               >
                 <Link href="/products">
                   Explorar Brechó
-                  <ArrowRight className="ml-2 sm:ml-3 h-4 sm:h-5 w-4 sm:w-5 transition-transform duration-300 group-hover:translate-x-1.5" />
+                  <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-300 group-hover:translate-x-1.5" />
                 </Link>
               </Button>
               
@@ -193,14 +199,14 @@ export default function HomePage() {
                 asChild 
                 variant="outline"
                 size="lg"
-                className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 sm:px-10 py-4 sm:py-5 text-base sm:text-lg font-semibold rounded-full transition-all duration-500 hover:-translate-y-1 transform backdrop-blur-sm w-full sm:w-auto group"
+                className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-4 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 text-sm sm:text-base lg:text-lg font-semibold rounded-full transition-all duration-500 hover:-translate-y-1 transform backdrop-blur-sm w-full max-w-xs sm:max-w-sm group"
               >
                 <Link href="/style-advisor">
                   Consultoria de Styling
-                  <Sparkles className="ml-2 sm:ml-3 h-4 sm:h-5 w-4 sm:w-5 transition-transform duration-300 group-hover:rotate-12" />
+                  <Sparkles className="ml-2 h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-300 group-hover:rotate-12" />
                 </Link>
               </Button>
-            </div>              {/* Enhanced trust indicators */}
+            </div>{/* Enhanced trust indicators */}
             <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 pt-8 sm:pt-12">
               <div className="flex items-center gap-2 sm:gap-3 bg-white/20 backdrop-blur-sm rounded-full px-4 sm:px-6 py-2 sm:py-3 border border-primary/20">
                 <Shield className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
