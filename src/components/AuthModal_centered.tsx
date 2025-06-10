@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { X, Eye, EyeOff, Heart } from 'lucide-react';
+import { X, Eye, EyeOff } from 'lucide-react';
 import { useLikes } from '@/contexts/LikesContextSupabase';
+import Image from 'next/image';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -163,13 +164,16 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
             }}
           >
             <X style={{ width: '16px', height: '16px' }} />
-          </Button>
-
-          {/* Header */}
+          </Button>          {/* Header */}
           <div style={{ padding: '24px 24px 16px', textAlign: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
-              <Heart style={{ width: '24px', height: '24px', color: '#ef4444' }} />
-              <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111827', margin: 0 }}>RÜGE</h1>
+              <Image
+                src="/logo_completa.svg"
+                alt="RÜGE"
+                width={120}
+                height={40}
+                className="h-8 w-auto"
+              />
             </div>
             <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
               Entre na sua conta para sincronizar seus favoritos

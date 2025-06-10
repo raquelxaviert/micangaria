@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { Heart, X, Sparkles } from 'lucide-react';
+import { X, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import Image from 'next/image';
 
 interface LoginPromptModalProps {
   isOpen: boolean;
@@ -87,16 +88,16 @@ export function LoginPromptModal({ isOpen, onClose, onLogin }: LoginPromptModalP
             }}
           >
             <X style={{ width: '16px', height: '16px' }} />
-          </button>
-
-          {/* Header */}
+          </button>          {/* Header */}
           <div style={{ padding: '24px 24px 16px', textAlign: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
-              <div style={{ position: 'relative' }}>
-                <Heart style={{ width: '24px', height: '24px', color: '#ef4444', fill: 'currentColor' }} />
-                <Sparkles style={{ width: '16px', height: '16px', color: '#facc15', position: 'absolute', top: '-4px', right: '-4px' }} />
-              </div>
-              <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111827', margin: 0 }}>RÜGE</h1>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '12px' }}>
+              <Image
+                src="/logo_completa.svg"
+                alt="RÜGE"
+                width={120}
+                height={40}
+                className="h-8 w-auto"
+              />
             </div>
             <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
               Item salvo nos seus favoritos!
@@ -143,11 +144,10 @@ export function LoginPromptModal({ isOpen, onClose, onLogin }: LoginPromptModalP
                   justifyContent: 'center',
                   gap: '8px',
                   transition: 'background-color 0.2s'
-                }}
-                onMouseOver={(e) => (e.target as HTMLElement).style.backgroundColor = '#5a0e13'}
+                }}                onMouseOver={(e) => (e.target as HTMLElement).style.backgroundColor = '#5a0e13'}
                 onMouseOut={(e) => (e.target as HTMLElement).style.backgroundColor = '#780116'}
               >
-                <Heart style={{ width: '16px', height: '16px' }} />
+                <Sparkles style={{ width: '16px', height: '16px' }} />
                 Fazer Login / Registrar
               </button>
               
