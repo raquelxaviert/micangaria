@@ -169,16 +169,17 @@ export function Header() {
                   <ShoppingBag size={20} />
                   <span>Produtos</span>
                 </Link>
-              </li>
-              <li>
-                <Link href="/liked-products" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap relative">
+              </li>              <li>
+                <Link href="/liked-products" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap">
                   <Heart size={20} className={likedCount > 0 ? "text-red-500" : ""} />
-                  <span>Favoritos</span>
-                  {isLoaded && likedCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                      {likedCount > 99 ? '99+' : likedCount}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1">
+                    <span>Favoritos</span>
+                    {isLoaded && likedCount > 0 && (
+                      <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                        {likedCount > 99 ? '99+' : likedCount}
+                      </span>
+                    )}
+                  </div>
                 </Link>
               </li>
               <li>
