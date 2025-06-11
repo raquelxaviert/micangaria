@@ -152,7 +152,7 @@ export default function FullStorePage() {
             {/* Container interno com blur menor para facilitar leitura */}
             <div className="max-w-5xl mx-auto space-y-6 bg-background/70 backdrop-blur-[3px] p-6 sm:p-8 md:p-12 rounded-2xl shadow-xl">
               <div className="space-y-4"> {/* Reduced spacing from space-y-8 */}
-                <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-7xl font-headline leading-tight animate-fade-in"> {/* Changed text-3xl to text-2xl for mobile */}
+                <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-8xl font-headline leading-tight animate-fade-in"> {/* Increased font sizes */}
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
                     <span className="animate-color-wave whitespace-nowrap">We don't whisper.</span>
                     <div className="flex items-center whitespace-nowrap gap-2 sm:gap-3">
