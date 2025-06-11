@@ -269,12 +269,12 @@ function ProductsContent() {
 
     fetchProducts();
   }, [supabase]);
-
   // Set initial filters based on URL params
   useEffect(() => {
     const filter = searchParams.get('filter');
     const search = searchParams.get('search');
     const category = searchParams.get('category');
+    const type = searchParams.get('type');
     
     if (filter === 'new') {
       setFilters(prev => ({ ...prev, showNew: true }));
@@ -288,6 +288,10 @@ function ProductsContent() {
 
     if (category) {
       setFilters(prev => ({ ...prev, type: category }));
+    }
+
+    if (type) {
+      setFilters(prev => ({ ...prev, type: type }));
     }
   }, [searchParams]);
 

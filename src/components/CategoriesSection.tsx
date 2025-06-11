@@ -17,10 +17,70 @@ interface Category {
   type: string;
 }
 
+// Mapa de ícones para diferentes tipos de produtos
+const typeIconMap: { [key: string]: { icon: string; displayName: string } } = {
+  // Joias e Acessórios
+  'anel': { icon: '💍', displayName: 'Anéis' },
+  'colar': { icon: '📿', displayName: 'Colares' },
+  'brinco': { icon: '💎', displayName: 'Brincos' },
+  'pulseira': { icon: '⌚', displayName: 'Pulseiras' },
+  'gargantilha': { icon: '🔗', displayName: 'Gargantilhas' },
+  'piercing': { icon: '✨', displayName: 'Piercings' },
+  
+  // Bolsas e Carteiras
+  'bolsa': { icon: '👜', displayName: 'Bolsas' },
+  'carteira': { icon: '💳', displayName: 'Carteiras' },
+  'mochila': { icon: '🎒', displayName: 'Mochilas' },
+  'clutch': { icon: '👛', displayName: 'Clutches' },
+  
+  // Roupas Femininas
+  'vestido': { icon: '👗', displayName: 'Vestidos' },
+  'blusa': { icon: '👚', displayName: 'Blusas' },
+  'camisa': { icon: '👕', displayName: 'Camisas' },
+  'calca': { icon: '👖', displayName: 'Calças' },
+  'saia': { icon: '🩱', displayName: 'Saias' },
+  'shorts': { icon: '🩳', displayName: 'Shorts' },
+  'jaqueta': { icon: '🧥', displayName: 'Jaquetas' },
+  'casaco': { icon: '🧥', displayName: 'Casacos' },
+  'blazer': { icon: '🥼', displayName: 'Blazers' },
+  'cardigã': { icon: '🧶', displayName: 'Cardigãs' },
+  'cardiga': { icon: '🧶', displayName: 'Cardigãs' },
+  'top': { icon: '👙', displayName: 'Tops' },
+  'cropped': { icon: '👚', displayName: 'Croppeds' },
+  
+  // Calçados
+  'sapato': { icon: '👠', displayName: 'Sapatos' },
+  'sandalia': { icon: '👡', displayName: 'Sandálias' },
+  'bota': { icon: '🥾', displayName: 'Botas' },
+  'tenis': { icon: '👟', displayName: 'Tênis' },
+  'chinelo': { icon: '🩴', displayName: 'Chinelos' },
+  'sapatilha': { icon: '🥿', displayName: 'Sapatilhas' },
+  
+  // Acessórios
+  'cinto': { icon: '👔', displayName: 'Cintos' },
+  'relogio': { icon: '⌚', displayName: 'Relógios' },
+  'oculos': { icon: '🕶️', displayName: 'Óculos' },
+  'chapeu': { icon: '👒', displayName: 'Chapéus' },
+  'bone': { icon: '🧢', displayName: 'Bonés' },
+  'cachecol': { icon: '🧣', displayName: 'Cachecóis' },
+  'lenco': { icon: '🎀', displayName: 'Lenços' },
+  'faixa': { icon: '🎀', displayName: 'Faixas' },
+  'tiara': { icon: '👑', displayName: 'Tiaras' },
+  
+  // Conjunto e Outros
+  'conjunto': { icon: '✨', displayName: 'Conjuntos' },
+  'acessorio': { icon: '💫', displayName: 'Acessórios' },
+  'necessaire': { icon: '💄', displayName: 'Necessaires' },
+  'porta-joias': { icon: '💎', displayName: 'Porta-joias' },
+  'decoracao': { icon: '🏠', displayName: 'Decoração' },
+  
+  // Fallback para tipos não mapeados
+  'default': { icon: '🛍️', displayName: 'Outros' }
+};
+
 export default function CategoriesSection() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
     const loadCategoryCounts = async () => {
       try {
@@ -36,10 +96,12 @@ export default function CategoriesSection() {
           console.error('Erro ao carregar produtos:', error);
           // Fallback para dados mock
           setCategories([
-            { name: 'Acessórios', count: 0, icon: '💎', href: '/products?category=acessorios', type: 'acessorio' },
-            { name: 'Bolsas', count: 0, icon: '👜', href: '/products?category=bolsas', type: 'bolsa' },
-            { name: 'Conjuntos', count: 0, icon: '✨', href: '/products?category=conjuntos', type: 'conjunto' }
+            { name: 'Anéis', count: 0, icon: '💍', href: '/products?type=anel', type: 'anel' },
+            { name: 'Bolsas', count: 0, icon: '👜', href: '/products?type=bolsa', type: 'bolsa' },
+            { name: 'Colares', count: 0, icon: '📿', href: '/products?type=colar', type: 'colar' },
+            { name: 'Conjuntos', count: 0, icon: '✨', href: '/products?type=conjunto', type: 'conjunto' }
           ]);
+          setIsLoading(false);
           return;
         }
 
@@ -51,39 +113,32 @@ export default function CategoriesSection() {
           }
         });
 
-        // Mapear para categorias
-        const categoriesData: Category[] = [
-          { 
-            name: 'Acessórios', 
-            count: (typeCounts['acessorio'] || 0) + (typeCounts['anel'] || 0) + (typeCounts['brinco'] || 0) + (typeCounts['pulseira'] || 0) + (typeCounts['colar'] || 0) + (typeCounts['cinto'] || 0) + (typeCounts['sandalia'] || 0), 
-            icon: '💎', 
-            href: '/products?category=acessorios',
-            type: 'acessorio'
-          },
-          { 
-            name: 'Bolsas', 
-            count: typeCounts['bolsa'] || 0, 
-            icon: '👜', 
-            href: '/products?category=bolsas',
-            type: 'bolsa'
-          },
-          { 
-            name: 'Conjuntos', 
-            count: typeCounts['conjunto'] || 0, 
-            icon: '✨', 
-            href: '/products?category=conjuntos',
-            type: 'conjunto'
-          }
-        ];
+        // Criar categorias baseadas nos tipos encontrados
+        const categoriesData: Category[] = Object.entries(typeCounts)
+          .map(([type, count]) => {
+            const typeInfo = typeIconMap[type] || typeIconMap['default'];
+            return {
+              name: typeInfo.displayName,
+              count: count,
+              icon: typeInfo.icon,
+              href: `/products?type=${type}`,
+              type: type
+            };
+          })
+          .filter(category => category.count > 0) // Só mostrar categorias com produtos
+          .sort((a, b) => b.count - a.count); // Ordenar por quantidade (maior para menor)
 
+        console.log('📂 Categorias encontradas:', categoriesData.map(c => `${c.icon} ${c.name}: ${c.count}`));
         setCategories(categoriesData);
+
       } catch (error) {
         console.error('Erro ao carregar categorias:', error);
-        // Fallback
+        // Fallback para dados mock em caso de erro
         setCategories([
-          { name: 'Acessórios', count: 0, icon: '💎', href: '/products?category=acessorios', type: 'acessorio' },
-          { name: 'Bolsas', count: 0, icon: '👜', href: '/products?category=bolsas', type: 'bolsa' },
-          { name: 'Conjuntos', count: 0, icon: '✨', href: '/products?category=conjuntos', type: 'conjunto' }
+          { name: 'Anéis', count: 0, icon: '💍', href: '/products?type=anel', type: 'anel' },
+          { name: 'Bolsas', count: 0, icon: '👜', href: '/products?type=bolsa', type: 'bolsa' },
+          { name: 'Colares', count: 0, icon: '📿', href: '/products?type=colar', type: 'colar' },
+          { name: 'Conjuntos', count: 0, icon: '✨', href: '/products?type=conjunto', type: 'conjunto' }
         ]);
       } finally {
         setIsLoading(false);

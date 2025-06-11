@@ -17,12 +17,10 @@ import { useCategories } from '@/hooks/useCategories';
 
 export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { likedCount, isLoaded, showLoginPrompt, setShowLoginPrompt } = useLikes();
   const { user, signOut } = useAuth();
   const { categories, isLoading: categoriesLoading } = useCategories();
-  
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -36,8 +34,7 @@ export function Header() {
       await signOut();
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
-    }
-  };
+    }  };
 
   // Coleções para o menu lateral
   const menuCollections = [
@@ -47,104 +44,9 @@ export function Header() {
     { name: 'Vintage Collection', href: '/products?collection=vintage' },
   ];
 
-  const MenuSidebar = () => (
-    <div className="mt-6 space-y-6 pb-6">
-      {/* Navegação Principal */}
-      <div>
-        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
-          Navegação
-        </h3>
-        <div className="space-y-2">
-          <SheetClose asChild>
-            <Link href="/products" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
-              <ShoppingBag size={18} />
-              <span>Todos os Produtos</span>
-            </Link>
-          </SheetClose>
-          <SheetClose asChild>
-            <Link href="/style-advisor" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
-              <Sparkles size={18} />
-              <span>Consultoria de Imagem</span>
-            </Link>
-          </SheetClose>
-          <SheetClose asChild>
-            <Link href="/about" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
-              <Info size={18} />
-              <span>Sobre Nós</span>
-            </Link>
-          </SheetClose>
-        </div>
-      </div>
-
-      {/* Categorias Dinâmicas */}
-      <div>
-        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
-          Categorias
-        </h3>
-        <div className="space-y-2">
-          {categoriesLoading ? (
-            // Loading skeleton para categorias
-            Array.from({ length: 6 }).map((_, index) => (
-              <div key={index} className="flex items-center gap-3 px-3 py-2">
-                <div className="w-4 h-4 bg-muted rounded animate-pulse"></div>
-                <div className="h-4 bg-muted rounded flex-1 animate-pulse"></div>
-                <div className="w-6 h-3 bg-muted rounded animate-pulse"></div>
-              </div>
-            ))
-          ) : (
-            categories.map((category) => (
-              <SheetClose key={category.type} asChild>
-                <Link 
-                  href={category.href} 
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors group"
-                >
-                  <span className="text-base group-hover:scale-110 transition-transform">
-                    {category.icon}
-                  </span>
-                  <span className="flex-1">{category.name}</span>
-                  <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
-                    {category.count}
-                  </span>
-                </Link>
-              </SheetClose>
-            ))
-          )}
-          {/* Link para ver todas as categorias */}
-          <SheetClose asChild>
-            <Link 
-              href="/products" 
-              className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent/50 transition-colors text-sm text-muted-foreground border-t pt-3 mt-3"
-            >
-              <span>🔍</span>
-              <span>Ver todos os produtos</span>
-            </Link>
-          </SheetClose>
-        </div>
-      </div>
-
-      {/* Coleções */}
-      <div>
-        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
-          Coleções
-        </h3>
-        <div className="space-y-2">
-          {menuCollections.map((collection) => (
-            <SheetClose key={collection.name} asChild>
-              <Link href={collection.href} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
-                <div className="w-4 h-4 rounded-full bg-primary/20"></div>
-                <span>{collection.name}</span>
-              </Link>
-            </SheetClose>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <header className="sticky top-0 z-40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 text-foreground shadow-md border-b border-border">
-      <div className="container mx-auto px-4 py-4">
-        {/* Layout desktop */}
+      <div className="container mx-auto px-4 py-4">        {/* Layout desktop */}
         <div className="hidden md:flex items-center justify-between gap-4">
           {/* Menu Hamburger + Logo à esquerda */}
           <div className="flex items-center gap-4">
@@ -167,7 +69,71 @@ export function Header() {
                   </SheetTitle>
                 </SheetHeader>
                 
-                <MenuSidebar />
+                <div className="mt-6 space-y-6 pb-6">
+                  {/* Navegação Principal */}
+                  <div>
+                    <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
+                      Navegação
+                    </h3>
+                    <div className="space-y-2">
+                      <SheetClose asChild>
+                        <Link href="/products" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+                          <ShoppingBag size={18} />
+                          <span>Todos os Produtos</span>
+                        </Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link href="/style-advisor" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+                          <Sparkles size={18} />
+                          <span>Consultoria de Imagem</span>
+                        </Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link href="/about" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+                          <Info size={18} />
+                          <span>Sobre Nós</span>
+                        </Link>
+                      </SheetClose>
+                    </div>
+                  </div>
+
+                  {/* Categorias */}
+                  <div>
+                    <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
+                      Categorias
+                    </h3>
+                    <div className="space-y-2">
+                      {menuCategories.map((category) => {
+                        const IconComponent = category.icon;
+                        return (
+                          <SheetClose key={category.name} asChild>
+                            <Link href={category.href} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+                              <IconComponent size={18} />
+                              <span>{category.name}</span>
+                            </Link>
+                          </SheetClose>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Coleções */}
+                  <div>
+                    <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
+                      Coleções
+                    </h3>
+                    <div className="space-y-2">
+                      {menuCollections.map((collection) => (
+                        <SheetClose key={collection.name} asChild>
+                          <Link href={collection.href} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+                            <div className="w-4 h-4 rounded-full bg-primary/20"></div>
+                            <span>{collection.name}</span>
+                          </Link>
+                        </SheetClose>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </SheetContent>
             </Sheet>
 
@@ -201,8 +167,7 @@ export function Header() {
               </Button>
             </div>
           </form>
-          
-          {/* Navegação rápida à direita */}
+            {/* Navegação rápida à direita */}
           <nav>
             <ul className="flex items-center space-x-6">
               <li>
@@ -210,9 +175,7 @@ export function Header() {
                   <ShoppingBag size={20} />
                   <span>Produtos</span>
                 </Link>
-              </li>
-              
-              <li>
+              </li>              <li>
                 <Link href="/liked-products" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap">
                   <Heart size={20} className={cn(likedCount > 0 ? "text-red-500 fill-current" : "")} />
                   <div className="flex items-center gap-1">
@@ -226,9 +189,7 @@ export function Header() {
                     </ClientOnly>
                   </div>
                 </Link>
-              </li>
-              
-              <li>
+              </li>              <li>
                 <Link href="/style-advisor" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap">
                   <Sparkles size={20} /> 
                   <span>Consultoria</span>
@@ -239,8 +200,7 @@ export function Header() {
         </div>
 
         {/* Layout mobile */}
-        <div className="md:hidden space-y-4">
-          {/* Primeira linha: Menu hamburger, Logo e ações */}
+        <div className="md:hidden space-y-4">          {/* Primeira linha: Menu hamburger, Logo e ações */}
           <div className="flex items-center justify-between gap-3">
             <Sheet>
               <SheetTrigger asChild>
@@ -261,7 +221,71 @@ export function Header() {
                   </SheetTitle>
                 </SheetHeader>
                 
-                <MenuSidebar />
+                <div className="mt-6 space-y-6 pb-6">
+                  {/* Navegação Principal */}
+                  <div>
+                    <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
+                      Navegação
+                    </h3>
+                    <div className="space-y-2">
+                      <SheetClose asChild>
+                        <Link href="/products" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+                          <ShoppingBag size={18} />
+                          <span>Todos os Produtos</span>
+                        </Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link href="/style-advisor" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+                          <Sparkles size={18} />
+                          <span>Consultoria de Imagem</span>
+                        </Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link href="/about" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+                          <Info size={18} />
+                          <span>Sobre Nós</span>
+                        </Link>
+                      </SheetClose>
+                    </div>
+                  </div>
+
+                  {/* Categorias */}
+                  <div>
+                    <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
+                      Categorias
+                    </h3>
+                    <div className="space-y-2">
+                      {menuCategories.map((category) => {
+                        const IconComponent = category.icon;
+                        return (
+                          <SheetClose key={category.name} asChild>
+                            <Link href={category.href} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+                              <IconComponent size={18} />
+                              <span>{category.name}</span>
+                            </Link>
+                          </SheetClose>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Coleções */}
+                  <div>
+                    <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
+                      Coleções
+                    </h3>
+                    <div className="space-y-2">
+                      {menuCollections.map((collection) => (
+                        <SheetClose key={collection.name} asChild>
+                          <Link href={collection.href} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+                            <div className="w-4 h-4 rounded-full bg-primary/20"></div>
+                            <span>{collection.name}</span>
+                          </Link>
+                        </SheetClose>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </SheetContent>
             </Sheet>
 
@@ -273,9 +297,7 @@ export function Header() {
                 height={32}
                 className="h-8 w-auto"
               />
-            </Link>
-            
-            {/* Ações do mobile: Usuário, Favoritos e Busca */}
+            </Link>              {/* Ações do mobile: Usuário, Favoritos e Busca */}
             <div className="flex items-center gap-2">
               {/* Botão de Usuário no Mobile - apenas mostrar se logado */}
               {user && (
@@ -340,13 +362,10 @@ export function Header() {
                     </Button>
                   )}
                 </div>
-              </form>
-            </div>
+              </form>            </div>
           </div>
         </div>
-      </div>
-      
-      {/* Modal de Autenticação */}
+      </div>      {/* Modal de Autenticação */}
       <AuthModal 
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 
