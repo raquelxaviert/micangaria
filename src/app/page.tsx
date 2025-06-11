@@ -35,13 +35,11 @@ export default function HomePage() {
             priority
           />
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10" />
-        </div>
-        
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 py-8 text-center">
+        </div>        <div className="relative z-10 container mx-auto px-6 sm:px-8 py-8 text-center">
           {/* Container interno com blur menor para facilitar leitura */}
-          <div className="max-w-5xl mx-auto space-y-6 bg-background/70 backdrop-blur-[3px] p-6 sm:p-8 md:p-12 rounded-2xl shadow-xl">
+          <div className="max-w-3xl sm:max-w-4xl mx-auto space-y-6 bg-background/80 backdrop-blur-[2px] p-4 sm:p-6 md:p-8 lg:p-10 rounded-2xl shadow-lg">
             <div className="space-y-8">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-headline leading-tight animate-fade-in">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-headline leading-tight animate-fade-in">
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
                   <span className="animate-color-wave whitespace-nowrap">We don't whisper.</span>
                   <div className="flex items-center whitespace-nowrap gap-2 sm:gap-3">

@@ -204,78 +204,60 @@ html {
 @keyframes color-wave {
   0% {
     color: #780116; /* Vinho */
-    text-shadow: 0 0 20px rgba(120, 1, 22, 0.5);
   }
   12% {
     color: #8B0419; /* Vinho mais claro */
-    text-shadow: 0 0 25px rgba(139, 4, 25, 0.6);
   }
   25% {
     color: #5A0112; /* Vinho mais escuro */
-    text-shadow: 0 0 15px rgba(90, 1, 18, 0.4);
   }
   38% {
     color: #2D0009; /* Quase preto com toque de vinho */
-    text-shadow: 0 0 30px rgba(45, 0, 9, 0.7);
   }
   50% {
     color: #000000; /* Preto */
-    text-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
   }
   63% {
     color: #1A0003; /* Preto com toque de vinho */
-    text-shadow: 0 0 18px rgba(26, 0, 3, 0.6);
   }
   75% {
     color: #450E14; /* Tom intermediário */
-    text-shadow: 0 0 25px rgba(69, 14, 20, 0.7);
   }
   88% {
     color: #6B0115; /* Vinho médio */
-    text-shadow: 0 0 22px rgba(107, 1, 21, 0.6);
   }
   100% {
     color: #780116; /* Volta ao vinho */
-    text-shadow: 0 0 20px rgba(120, 1, 22, 0.5);
   }
 }
 
 @keyframes color-wave-alt {
   0% {
     color: #000000; /* Preto */
-    text-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
   }
   15% {
     color: #1A0003; /* Preto com toque de vinho */
-    text-shadow: 0 0 18px rgba(26, 0, 3, 0.6);
   }
   30% {
     color: #450E14; /* Tom intermediário */
-    text-shadow: 0 0 25px rgba(69, 14, 20, 0.7);
   }
   42% {
     color: #5A0112; /* Vinho mais escuro */
-    text-shadow: 0 0 15px rgba(90, 1, 18, 0.5);
   }
   55% {
     color: #780116; /* Vinho */
-    text-shadow: 0 0 30px rgba(120, 1, 22, 0.8);
   }
   68% {
     color: #8B0419; /* Vinho mais claro */
-    text-shadow: 0 0 25px rgba(139, 4, 25, 0.6);
   }
   80% {
     color: #3A0C0F; /* Tom escuro intermediário */
-    text-shadow: 0 0 20px rgba(58, 12, 15, 0.7);
   }
   92% {
     color: #0D0001; /* Quase preto */
-    text-shadow: 0 0 16px rgba(13, 0, 1, 0.5);
   }
   100% {
     color: #000000; /* Volta ao preto */
-    text-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
   }
 }
 

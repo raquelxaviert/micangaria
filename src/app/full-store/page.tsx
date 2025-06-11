@@ -252,11 +252,10 @@ export default function FullStorePage() {
               priority
             />
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10" />
-          </div>          <div className="relative z-10 container mx-auto px-4 sm:px-6 py-8 text-center">
-            {/* Container interno com blur menor para facilitar leitura */}
-            <div className="max-w-full mx-auto space-y-6 bg-background/70 backdrop-blur-[3px] p-6 sm:p-8 md:p-12 lg:p-16 xl:p-20 rounded-2xl shadow-xl overflow-hidden">
-              <div className="space-y-4"> {/* Reduced spacing from space-y-8 */}
-                <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-headline leading-tight animate-fade-in break-words hyphens-auto text-center"> {/* Increased font sizes */}
+          </div>          <div className="relative z-10 container mx-auto px-6 sm:px-8 py-8 text-center">
+            {/* Container interno com blur menor para facilitar leitura */}            <div className="max-w-3xl sm:max-w-4xl mx-auto space-y-6 bg-background/80 backdrop-blur-[2px] p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12 rounded-2xl shadow-lg overflow-hidden">
+              <div className="space-y-2"> {/* Reduced spacing from space-y-4 */}
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-headline leading-tight animate-fade-in break-words hyphens-auto text-center"> {/* Increased font sizes */}
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 flex-wrap">
                     <span className="animate-color-wave whitespace-nowrap">We don't whisper.</span>
                     <div className="flex items-center whitespace-nowrap gap-2 sm:gap-3">
@@ -270,10 +269,9 @@ export default function FullStorePage() {
                       />
                       <span className="animate-color-wave-alt">.</span>
                     </div>
-                  </div>
-                </h1>
+                  </div>                </h1>
                 
-                <p className="text-[0.6rem] sm:text-xs text-foreground/80 hover:text-foreground transition-colors duration-200 pt-2 sm:pt-3"> {/* Further reduced font size and padding */}
+                <p className="text-xs sm:text-sm text-foreground/80 hover:text-foreground transition-colors duration-200 pt-1 sm:pt-2"> {/* Reduced padding and increased font size */}
                   Clique para conhecer a coleção 🐆
                 </p>
               </div>
