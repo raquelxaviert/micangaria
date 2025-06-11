@@ -43,6 +43,7 @@ interface Product {
   is_new_arrival: boolean;
   is_on_sale: boolean;
   promotion_text: string | null;
+  care_instructions: string | null;
   created_at: string;
   is_active: boolean;
 }
@@ -485,16 +486,29 @@ export default function ProductPage() {
                       )}
                     </div>
                   )}
-                  
-                  {activeTab === 'care' && (
+                    {activeTab === 'care' && (
                     <div>
                       <h4 className="font-semibold mb-2">Cuidados Especiais:</h4>
-                      <ul className="space-y-1 text-sm text-muted-foreground">
-                        <li>• Lavar à mão com água fria</li>
-                        <li>• Não usar alvejante</li>
-                        <li>• Secar na sombra</li>
-                        <li>• Guardar em local seco</li>
-                      </ul>
+                      {product.care_instructions ? (
+                        <div className="prose prose-sm max-w-none">
+                          <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                            {product.care_instructions}
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-3">
+                            Instruções gerais de cuidados para peças vintage:
+                          </p>
+                          <ul className="space-y-1 text-sm text-muted-foreground">
+                            <li>• Lavar à mão com água fria</li>
+                            <li>• Não usar alvejante</li>
+                            <li>• Secar na sombra</li>
+                            <li>• Guardar em local seco</li>
+                            <li>• Evitar exposição prolongada ao sol</li>
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

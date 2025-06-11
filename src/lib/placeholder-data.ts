@@ -31,11 +31,11 @@ export interface Product {
   is_active?: boolean;
   is_featured?: boolean;
   sale_start_date?: string;
-  sale_end_date?: string;
-  search_keywords?: string[];
+  sale_end_date?: string;  search_keywords?: string[];
   vendor?: string;
   collection?: string;
   notes?: string;
+  care_instructions?: string;
   gallery_urls?: string[];
 }
 
