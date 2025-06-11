@@ -19,6 +19,8 @@ export interface ProductData {
   type: string;
   style: string;
   colors?: string[];
+  materials?: string[]; // Materiais do produto
+  sizes?: string[]; // Tamanhos disponíveis
   isNewArrival?: boolean;
   is_new_arrival?: boolean; // Supabase format
   isOnSale?: boolean;
@@ -92,19 +94,25 @@ export function ProductCard({
         )}
       </div>
 
-      <CardContent className={`space-y-2 sm:space-y-4 ${variant === 'compact' ? 'p-2 sm:p-3' : 'p-5'}`}>        
-        {/* Badges de categoria logo acima do título */}
-        <div className="flex items-center gap-1.5">
-          <Badge variant="outline" className={`text-xs capitalize ${
-            variant === 'compact' ? 'px-1.5 py-0.5' : 'px-2 py-0.5'
-          }`}>
-            {product.type}
-          </Badge>
-          <Badge variant="secondary" className={`text-xs capitalize ${
-            variant === 'compact' ? 'px-1.5 py-0.5' : 'px-2 py-0.5'
-          }`}>
-            {product.style}
-          </Badge>
+      <CardContent className={`space-y-2 sm:space-y-4 ${variant === 'compact' ? 'p-2 sm:p-3' : 'p-5'}`}>        {/* Badges de materiais e tamanhos logo acima do título */}
+        <div className="flex items-center gap-1 flex-wrap">
+          {/* Badge de Material (primeiro material) */}
+          {product.materials && product.materials.length > 0 && (
+            <Badge variant="outline" className={`capitalize text-xs leading-none ${
+              variant === 'compact' ? 'px-1 py-0 h-4' : 'px-1.5 py-0.5 h-5'
+            }`}>
+              {product.materials[0]}
+            </Badge>
+          )}
+          
+          {/* Badge de Tamanho (primeiro tamanho) */}
+          {product.sizes && product.sizes.length > 0 && (
+            <Badge variant="secondary" className={`capitalize text-xs leading-none ${
+              variant === 'compact' ? 'px-1 py-0 h-4' : 'px-1.5 py-0.5 h-5'
+            }`}>
+              {product.sizes[0]}
+            </Badge>
+          )}
         </div>
 
         {/* Tags/cores do produto */}

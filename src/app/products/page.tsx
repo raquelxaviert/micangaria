@@ -37,6 +37,8 @@ function convertProductToProductData(product: Product): ProductData {
     type: product.type,
     style: product.style,
     colors: product.colors,
+    materials: product.materials || [],
+    sizes: product.sizes || [],
     is_new_arrival: product.isNewArrival,
     is_promotion: product.isPromotion,
     promotion_details: product.promotionDetails || undefined
