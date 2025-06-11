@@ -48,7 +48,7 @@ export default function HomePage() {
                       alt="RÜGE Logo"
                       width={200}
                       height={80}
-                      className="w-auto h-[1em] inline-block translate-y-0.5 sm:translate-y-1"
+                      className="w-auto h-[1em] inline-block translate-y-0"
                     />
                     <span className="animate-color-wave-alt">.</span>
                   </div>
