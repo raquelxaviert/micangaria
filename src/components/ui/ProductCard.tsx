@@ -124,9 +124,8 @@ export function ProductCard({
         </div>
       </div>
 
-      <CardContent className={`space-y-2 sm:space-y-4 ${variant === 'compact' ? 'p-2 sm:p-3' : 'p-5'}`}>
-        <Link href={`/products/${product.id}`} className="block cursor-pointer">          {/* Badges de materiais e tamanhos logo acima do título */}
-          <div className="flex items-center gap-1 flex-wrap">
+      <CardContent className={`space-y-2 sm:space-y-4 ${variant === 'compact' ? 'p-2 sm:p-3' : 'p-5'}`}>        <Link href={`/products/${product.id}`} className="block cursor-pointer">          {/* Todos os badges inline em uma única linha */}
+          <div className="flex items-center gap-1 flex-wrap mb-2">
             {/* Badge de Material (primeiro material) - apenas se configurado para mostrar */}
             {product.show_materials_badge === true && product.materials && product.materials.length > 0 && (              <Badge variant="outline" className={`capitalize text-xs leading-none ${
                 variant === 'compact' ? 'px-1.5 py-0.5 h-5' : 'px-2 py-1 h-6'
@@ -142,31 +141,34 @@ export function ProductCard({
                 {product.sizes[0]}
               </Badge>
             )}
-          </div>          {/* Cores - apenas se configurado para mostrar */}
-          {showColors && product.show_colors_badge === true && product.colors && product.colors.length > 0 && (            <div className="flex items-center gap-1 flex-wrap">
-              {product.colors.slice(0, 3).map((color, index) => (
-                <Badge
-                  key={index}
-                  variant="outline"
-                  className={`text-xs leading-none capitalize ${
-                    variant === 'compact' ? 'px-1.5 py-0.5 h-5' : 'px-2 py-1 h-6'
-                  }`}
-                >
-                  {color}
-                </Badge>
-              ))}
-              {product.colors.length > 3 && (
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs leading-none ${
-                    variant === 'compact' ? 'px-1.5 py-0.5 h-5' : 'px-2 py-1 h-6'
-                  }`}
-                >
-                  +{product.colors.length - 3}
-                </Badge>
-              )}
-            </div>
-          )}
+
+            {/* Badges de Cores - apenas se configurado para mostrar */}
+            {showColors && product.show_colors_badge === true && product.colors && product.colors.length > 0 && (
+              <>
+                {product.colors.slice(0, 3).map((color, index) => (
+                  <Badge
+                    key={index}
+                    variant="outline"
+                    className={`text-xs leading-none capitalize ${
+                      variant === 'compact' ? 'px-1.5 py-0.5 h-5' : 'px-2 py-1 h-6'
+                    }`}
+                  >
+                    {color}
+                  </Badge>
+                ))}
+                {product.colors.length > 3 && (
+                  <Badge 
+                    variant="outline" 
+                    className={`text-xs leading-none ${
+                      variant === 'compact' ? 'px-1.5 py-0.5 h-5' : 'px-2 py-1 h-6'
+                    }`}
+                  >
+                    +{product.colors.length - 3}
+                  </Badge>
+                )}
+              </>
+            )}
+          </div>
 
           {/* Nome do produto */}
           <h3 className={`font-semibold leading-tight group-hover:text-primary transition-colors duration-300 line-clamp-2 ${

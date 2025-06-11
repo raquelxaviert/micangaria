@@ -30,6 +30,10 @@ export interface CollectionProduct {
   isActive: boolean;
   isNewArrival?: boolean;
   isOnSale?: boolean;
+  // Badge display configuration
+  show_colors_badge?: boolean;
+  show_materials_badge?: boolean;
+  show_sizes_badge?: boolean;
 }
 
 export function useCollections() {
@@ -180,7 +184,11 @@ export function useCollections() {
           sizes: sizes,
           isActive: product.is_active,
           isNewArrival: product.is_new_arrival,
-          isOnSale: product.is_on_sale
+          isOnSale: product.is_on_sale,
+          // Badge display configuration
+          show_colors_badge: product.show_colors_badge,
+          show_materials_badge: product.show_materials_badge,
+          show_sizes_badge: product.show_sizes_badge
         };
       }).slice(0, 6); // Limitar a 6 produtos para as coleções
     } catch (error) {
