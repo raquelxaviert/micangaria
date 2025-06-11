@@ -1226,12 +1226,16 @@ function CollectionsManagement({ products }: { products: Product[] }) {
         const { data: supabaseCollections, error } = await supabase
           .from('collections_with_counts')
           .select('*')
-          .order('display_order');
-
-        if (!error && supabaseCollections && supabaseCollections.length > 0) {
+          .order('display_order');        if (!error && supabaseCollections && supabaseCollections.length > 0) {
           console.log('✅ Coleções carregadas do Supabase:', supabaseCollections.length);
           setCollections(supabaseCollections.map(c => ({
-            ...c,
+            id: c.id, // Usar UUID real do Supabase
+            name: c.name,
+            description: c.description,
+            slug: c.slug,
+            color: c.color,
+            isActive: c.is_active,
+            displayOrder: c.display_order,
             productIds: [], // Será carregado separadamente
             createdAt: new Date(c.created_at)
           })));
@@ -1271,11 +1275,15 @@ function CollectionsManagement({ products }: { products: Product[] }) {
     try {
       const { data: collectionProducts, error } = await supabase
         .from('collection_products')
-        .select('collection_id, product_id');
-
-      if (!error && collectionProducts) {
+        .select('collection_id, product_id');      if (!error && collectionProducts) {
         const updatedCollections = collectionsData.map(collection => ({
-          ...collection,
+          id: collection.id,
+          name: collection.name,
+          description: collection.description,
+          slug: collection.slug,
+          color: collection.color,
+          isActive: collection.is_active,
+          displayOrder: collection.display_order,
           productIds: collectionProducts
             .filter(cp => cp.collection_id === collection.id)
             .map(cp => cp.product_id),
@@ -1452,24 +1460,12 @@ function CollectionsManagement({ products }: { products: Product[] }) {
         } else {
           console.log('📝 Nenhum produto selecionado para esta coleção');
         }
-      }
-
-      setHasUnsavedChanges(false);
+      }      setHasUnsavedChanges(false);
       alert('✅ Coleções salvas com sucesso no Supabase!');
       console.log('✅ Todas as coleções foram processadas');
       
     } catch (error) {
       console.error('❌ Erro geral ao salvar no Supabase:', error);
-      alert('❌ Erro ao salvar no Supabase. Dados mantidos localmente.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-      alert('✅ Coleções salvas com sucesso no Supabase!');
-      console.log('✅ Todas as coleções foram salvas no Supabase');
-      
-    } catch (error) {
-      console.error('❌ Erro ao salvar no Supabase:', error);
       alert('❌ Erro ao salvar no Supabase. Dados mantidos localmente.');
     } finally {
       setIsSaving(false);
