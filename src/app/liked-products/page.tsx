@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { products, Product } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,14 +10,30 @@ import { ArrowRight, Tag, Zap, Star, Heart, ShoppingBag } from 'lucide-react';
 import { useLikes } from '@/contexts/LikesContextSupabase';
 import { LikeButton } from '@/components/ui/LikeButton';
 import { ClientOnly } from '@/components/ui/ClientOnly';
+import { createClient } from '@/lib/supabase/client';
 
-function LikedProductCard({ product }: { product: Product }) {
+// Interface para produto do Supabase
+interface SupabaseProduct {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image_url: string;
+  type: string;
+  style: string;
+  colors: string[];
+  is_new_arrival?: boolean;
+  is_promotion?: boolean;
+  promotion_details?: string;
+}
+
+function LikedProductCard({ product }: { product: SupabaseProduct }) {
   return (
     <Card className="group flex flex-col h-full shadow-md hover:shadow-2xl transition-all duration-500 rounded-xl overflow-hidden bg-card border-0 hover:-translate-y-2">
       <CardHeader className="relative p-0">
         <div className="relative h-64 w-full overflow-hidden">
           <Image
-            src={product.imageUrl}
+            src={product.image_url || '/products/placeholder.jpg'}
             alt={product.name}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -31,13 +46,13 @@ function LikedProductCard({ product }: { product: Product }) {
           
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-2">
-            {product.isNewArrival && (
+            {product.is_new_arrival && (
               <Badge className="bg-green-600 text-white font-bold shadow-lg">
                 <Zap className="w-3 h-3 mr-1" />
                 NOVO
               </Badge>
             )}
-            {product.isPromotion && (
+            {product.is_promotion && (
               <Badge className="bg-red-600 text-white font-bold shadow-lg animate-pulse">
                 <Tag className="w-3 h-3 mr-1" />
                 OFERTA
@@ -97,14 +112,57 @@ function LikedProductCard({ product }: { product: Product }) {
 
 function LikedProductsContent() {
   const { getLikedProducts, isLoaded, likedCount } = useLikes();
-  const likedProducts = useMemo(() => {
-    if (!isLoaded) return [];
-    const likedIds = getLikedProducts();
-    return products.filter(product => likedIds.includes(product.id));
-  }, [getLikedProducts, isLoaded]);
+  const [products, setProducts] = useState<SupabaseProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const supabase = createClient();
 
-  // Show loading state while checking localStorage
-  if (!isLoaded) {
+  // Buscar produtos do Supabase
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('is_active', true);
+
+        if (error) {
+          console.error('Erro ao buscar produtos:', error);
+          return;
+        }
+
+        if (data) {
+          setProducts(data);
+        }
+      } catch (error) {
+        console.error('Erro ao conectar com Supabase:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [supabase]);
+
+  const likedProducts = useMemo(() => {
+    if (!isLoaded || loading) return [];
+    const likedIds = getLikedProducts();
+    
+    console.log('🔍 Página favoritos - dados Supabase:', {
+      isLoaded,
+      loading,
+      likedCount,
+      likedIds,
+      totalProducts: products.length,
+      firstFewProductIds: products.slice(0, 5).map(p => ({ id: p.id, name: p.name }))
+    });
+    
+    const filtered = products.filter(product => likedIds.includes(product.id));
+    console.log('🔍 Produtos filtrados:', filtered.map(p => ({ id: p.id, name: p.name })));
+    
+    return filtered;
+  }, [getLikedProducts, isLoaded, likedCount, products, loading]);
+  // Show loading state while checking localStorage and Supabase
+  if (!isLoaded || loading) {
     return (
       <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="text-center">
@@ -123,9 +181,7 @@ function LikedProductsContent() {
           <Heart className="w-8 h-8 text-red-500 fill-current" />
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-headline text-primary">
             Meus Favoritos
-          </h1>
-        </div>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          </h1>        </div>        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
           {likedCount > 0 
             ? `Você tem ${likedCount} ${likedCount === 1 ? 'produto favorito' : 'produtos favoritos'} salvos`
             : 'Seus produtos favoritos aparecerão aqui'

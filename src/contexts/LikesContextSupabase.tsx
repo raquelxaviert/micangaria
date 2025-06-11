@@ -28,7 +28,11 @@ export function LikesProvider({ children }: LikesProviderProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const { user, session } = useAuth();
-  const supabase = createClient();  // Fetch products from Supabase and create ID mapping
+  const supabase = createClient();  // Function to validate and clean invalid IDs
+  const validateAndCleanIds = useCallback((ids: string[]): string[] => {
+    // Temporariamente desabilitando validação - todos os IDs são válidos
+    return ids;
+  }, []);// Fetch products from Supabase and create ID mapping
   const createIdMigrationMap = useCallback(async (): Promise<Record<string, string>> => {
     try {
       const { data: products, error } = await supabase
@@ -102,23 +106,18 @@ export function LikesProvider({ children }: LikesProviderProps) {
       return stored ? new Set(JSON.parse(stored) as string[]) : new Set<string>();
     }
   }, [createIdMigrationMap]);  // Load likes from localStorage and Supabase
-  useEffect(() => {    const loadFavorites = async () => {
+  useEffect(() => {
+    const loadFavorites = async () => {
       try {
-        // Check if Supabase is configured
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-        
-        if (!supabaseUrl || !supabaseKey) {
-          console.log('Supabase not configured, using localStorage only');
-          const stored = localStorage.getItem(LIKES_STORAGE_KEY);
-          setLikedProducts(stored ? new Set(JSON.parse(stored) as string[]) : new Set<string>());
-          setIsLoaded(true);
-          return;
+        // Load from localStorage - não validar IDs aqui, deixar o componente fazer isso
+        const stored = localStorage.getItem(LIKES_STORAGE_KEY);
+        if (stored) {
+          const storedIds = JSON.parse(stored) as string[];
+          console.log('🔄 Carregando favoritos do localStorage:', storedIds);
+          setLikedProducts(new Set(storedIds));
+        } else {
+          setLikedProducts(new Set<string>());
         }
-
-        // First, migrate any old localStorage IDs to new UUIDs
-        const migratedLikes = await migrateLocalStorageIds();
-        setLikedProducts(migratedLikes);
 
         // If user is logged in, sync with Supabase
         if (user && session) {
@@ -126,16 +125,17 @@ export function LikesProvider({ children }: LikesProviderProps) {
         }
       } catch (error) {
         console.error('Error loading favorites:', error);
-        // Fallback to localStorage only
-        const stored = localStorage.getItem(LIKES_STORAGE_KEY);
-        setLikedProducts(stored ? new Set(JSON.parse(stored) as string[]) : new Set<string>());
+        // Fallback to empty set
+        setLikedProducts(new Set<string>());
       } finally {
         setIsLoaded(true);
       }
-    };// Add delay to ensure client-side hydration is complete
+    };
+
+    // Add delay to ensure client-side hydration is complete
     const timer = setTimeout(loadFavorites, 100);
     return () => clearTimeout(timer);
-  }, [user, session, migrateLocalStorageIds]);
+  }, [user, session]);
 
   // Sync with Supabase
   const syncWithSupabase = useCallback(async () => {
@@ -254,8 +254,7 @@ export function LikesProvider({ children }: LikesProviderProps) {
       console.error('Error updating favorite in Supabase:', error);
       console.error('Catch error details:', JSON.stringify(error, null, 2));
     }
-  }, [user, session, supabase]);
-  // Toggle like status for a product
+  }, [user, session, supabase]);  // Toggle like status for a product
   const toggleLike = useCallback((productId: string) => {
     setLikedProducts(prev => {
       const newLikes = new Set(prev);
@@ -287,9 +286,7 @@ export function LikesProvider({ children }: LikesProviderProps) {
   // Check if a product is liked
   const isLiked = useCallback((productId: string) => {
     return likedProducts.has(productId);
-  }, [likedProducts]);
-
-  // Get array of liked product IDs
+  }, [likedProducts]);  // Get array of liked product IDs
   const getLikedProducts = useCallback(() => {
     return Array.from(likedProducts);
   }, [likedProducts]);
