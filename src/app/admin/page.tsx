@@ -84,10 +84,10 @@ export default function AdminPage() {
           sale_start_date: p.sale_start_date,
           sale_end_date: p.sale_end_date,
           promotionDetails: p.promotion_text,
-          search_keywords: p.search_keywords,
-          vendor: p.vendor,
+          search_keywords: p.search_keywords,          vendor: p.vendor,
           collection: p.collection,
           notes: p.notes,
+          care_instructions: p.care_instructions,
           gallery_urls: p.gallery_urls || []
         }));
         
@@ -540,7 +540,8 @@ function ProductForm({
     promotion_text: '',    search_keywords: '',
     vendor: '',
     collection: '',
-    notes: '',    imageUrl: '',
+    notes: '',
+    care_instructions: '',    imageUrl: '',
     gallery_urls: [],
     alt_text: ''
   });
@@ -693,10 +694,10 @@ function ProductForm({
             sale_end_date: formData.sale_end_date || null,
             promotion_text: formData.promotion_text || null,
             tags: formData.tags || [],
-            search_keywords: formData.search_keywords || null,
-            vendor: formData.vendor || null,
+            search_keywords: formData.search_keywords || null,            vendor: formData.vendor || null,
             collection: formData.collection || null,
             notes: formData.notes || null,
+            care_instructions: formData.care_instructions || null,
             image_url: finalImageUrl,
             gallery_urls: formData.gallery_urls || []
             // SKU será gerado automaticamente (#20xx)
@@ -1201,8 +1202,7 @@ function ProductForm({
           <h3 className="text-lg font-semibold">📝 Notas Internas</h3>
           <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
         </div>
-        
-        <div>
+          <div>
           <Label htmlFor="notes">Observações</Label>
           <Textarea
             id="notes"
@@ -1211,6 +1211,20 @@ function ProductForm({
             placeholder="Anotações internas sobre o produto..."
             rows={3}
           />
+        </div>
+        
+        <div>
+          <Label htmlFor="care_instructions">🧼 Instruções de Cuidados</Label>
+          <Textarea
+            id="care_instructions"
+            value={formData.care_instructions || ''}
+            onChange={(e) => setFormData({ ...formData, care_instructions: e.target.value })}
+            placeholder="Ex: Lavar à mão com água fria, não usar alvejante, secar à sombra..."
+            rows={4}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Instruções para conservação e manutenção do produto (aparecerá na página do produto)
+          </p>
         </div>
       </div>
 
