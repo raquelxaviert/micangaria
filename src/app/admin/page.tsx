@@ -19,6 +19,7 @@ import ImageUploadTemp from '@/components/ImageUploadTemp';
 import { uploadImageToSupabase } from '@/lib/uploadUtils';
 import Image from 'next/image';
 import { MultiSelectInput } from '@/components/ui/MultiSelectInput';
+import { SelectInput } from '@/components/ui/SelectInput';
 
 // Simulação de autenticação simples
 const ADMIN_PASSWORD = 'micangaria2024'; // Em produção, usar sistema de auth real
@@ -718,12 +719,34 @@ function ProductForm({
         setIsUploading(false);
       }
     }
-  };
-  return (
+  };  return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Informações sobre flexibilidade do formulário */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+            <span className="text-white text-xs font-bold">i</span>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold text-blue-900 mb-1">
+              ✨ Formulário Flexível e Inteligente
+            </h4>
+            <ul className="text-xs text-blue-800 space-y-1">
+              <li>• <strong>Apenas 4 campos obrigatórios:</strong> Nome, Descrição, Preço e Categorização</li>
+              <li>• <strong>Preencha na ordem que quiser</strong> - não há sequência obrigatória</li>
+              <li>• <strong>Crie novas categorias</strong> digitando diretamente nos campos de seleção</li>
+              <li>• <strong>Suas categorias ficam salvas</strong> e aparecem nas próximas vezes</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       {/* Informações Básicas */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">📝 Informações Básicas</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">📝 Informações Básicas</h3>
+          <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">Essencial</span>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -759,26 +782,81 @@ function ProductForm({
             required
           />
         </div>
+
+        <div>
+          <Label htmlFor="price">Preço de Venda (R$) *</Label>
+          <Input
+            id="price"
+            type="number"
+            step="0.01"
+            value={formData.price || ''}
+            onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+            placeholder="0.00"
+            required
+            className="max-w-xs"
+          />
+        </div>
+      </div>      {/* Categorização - Campos mais flexíveis */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">📂 Categorização</h3>
+          <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">Organize seu produto</span>
+        </div>
+        
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+          <p className="text-sm text-amber-800">
+            <strong>💡 Dica:</strong> Digite qualquer categoria que não esteja na lista para criá-la automaticamente. 
+            Suas categorias personalizadas ficarão salvas para uso futuro.
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SelectInput
+            label="Tipo de Produto"
+            value={formData.type || ''}
+            onChange={(type) => setFormData({ ...formData, type })}
+            options={typeSuggestions}
+            placeholder="Selecione ou crie um tipo"
+            allowCustom={true}
+          />
+
+          <SelectInput
+            label="Estilo"
+            value={formData.style || ''}
+            onChange={(style) => setFormData({ ...formData, style })}
+            options={styleSuggestions}
+            placeholder="Selecione ou crie um estilo"
+            allowCustom={true}
+          />
+
+          <SelectInput
+            label="Fornecedor/Marca"
+            value={formData.vendor || ''}
+            onChange={(vendor) => setFormData({ ...formData, vendor })}
+            options={vendorSuggestions}
+            placeholder="Selecione ou crie um fornecedor"
+            allowCustom={true}
+          />
+
+          <SelectInput
+            label="Coleção"
+            value={formData.collection || ''}
+            onChange={(collection) => setFormData({ ...formData, collection })}
+            options={collectionSuggestions}
+            placeholder="Selecione ou crie uma coleção"
+            allowCustom={true}
+          />
+        </div>
       </div>
 
-      {/* Preços e Financeiro */}
+      {/* Preços Adicionais - Seção opcional */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">💰 Preços e Financeiro</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">💰 Preços Adicionais</h3>
+          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+        </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <Label htmlFor="price">Preço de Venda (R$) *</Label>
-            <Input
-              id="price"
-              type="number"
-              step="0.01"
-              value={formData.price || ''}
-              onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-              placeholder="0.00"
-              required
-            />
-          </div>
-          
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="compare_at_price">Preço Original (R$)</Label>
             <Input
@@ -787,7 +865,7 @@ function ProductForm({
               step="0.01"
               value={formData.compare_at_price || ''}
               onChange={(e) => setFormData({ ...formData, compare_at_price: parseFloat(e.target.value) || 0 })}
-              placeholder="0.00"
+              placeholder="Para mostrar desconto"
             />
           </div>
 
@@ -799,88 +877,18 @@ function ProductForm({
               step="0.01"
               value={formData.cost_price || ''}
               onChange={(e) => setFormData({ ...formData, cost_price: parseFloat(e.target.value) || 0 })}
-              placeholder="0.00"
+              placeholder="Seu custo interno"
             />
-          </div>
-        </div>
-      </div>
-
-      {/* Categorização */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">📂 Categorização</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="type">Tipo de Produto</Label>
-            <Input
-              id="type"
-              value={formData.type || ''}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-              placeholder="Digite ou selecione"
-              list="type-suggestions"
-            />
-            <datalist id="type-suggestions">
-              {typeSuggestions.map(type => (
-                <option key={type} value={type} />
-              ))}
-            </datalist>
-          </div>
-
-          <div>
-            <Label htmlFor="style">Estilo</Label>
-            <Input
-              id="style"
-              value={formData.style || ''}
-              onChange={(e) => setFormData({ ...formData, style: e.target.value })}
-              placeholder="Digite ou selecione"
-              list="style-suggestions"
-            />
-            <datalist id="style-suggestions">
-              {styleSuggestions.map(style => (
-                <option key={style} value={style} />
-              ))}
-            </datalist>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="vendor">Fornecedor/Marca</Label>
-            <Input
-              id="vendor"
-              value={formData.vendor || ''}
-              onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
-              placeholder="Digite ou selecione"
-              list="vendor-suggestions"
-            />
-            <datalist id="vendor-suggestions">
-              {vendorSuggestions.map(vendor => (
-                <option key={vendor} value={vendor} />
-              ))}
-            </datalist>
-          </div>
-
-          <div>
-            <Label htmlFor="collection">Coleção</Label>
-            <Input
-              id="collection"
-              value={formData.collection || ''}
-              onChange={(e) => setFormData({ ...formData, collection: e.target.value })}
-              placeholder="Digite ou selecione"
-              list="collection-suggestions"
-            />
-            <datalist id="collection-suggestions">
-              {collectionSuggestions.map(collection => (
-                <option key={collection} value={collection} />
-              ))}
-            </datalist>
           </div>
         </div>
       </div>
 
       {/* Características do Produto */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">🎨 Características</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">🎨 Características</h3>
+          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+        </div>
         
         <div className="space-y-4">
           <MultiSelectInput
@@ -942,11 +950,12 @@ function ProductForm({
             />
           </div>
         </div>
-      </div>
-
-      {/* Imagens */}
+      </div>      {/* Imagens - Seção opcional */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">🖼️ Imagens</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">🖼️ Imagens</h3>
+          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+        </div>
         
         <div>
           <Label htmlFor="imageUrl">Imagem Principal</Label>
@@ -958,11 +967,22 @@ function ProductForm({
             }}
           />
         </div>
-      </div>
 
-      {/* Inventário */}
+        <div>
+          <Label htmlFor="alt_text">Texto Alternativo (ALT)</Label>
+          <Input
+            id="alt_text"
+            value={formData.alt_text || ''}
+            onChange={(e) => setFormData({ ...formData, alt_text: e.target.value })}
+            placeholder="Descrição da imagem para acessibilidade"
+          />
+        </div>
+      </div>      {/* Inventário e Controle - Seção opcional */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">📦 Inventário</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">📦 Inventário</h3>
+          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -971,8 +991,7 @@ function ProductForm({
               id="sku"
               value={formData.sku || ''}
               onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-              placeholder="Será gerado automaticamente"
-              disabled
+              placeholder="Ex: COL-001"
             />
           </div>
 
@@ -1017,11 +1036,12 @@ function ProductForm({
             <Label htmlFor="allow_backorder">Permitir Encomenda</Label>
           </div>
         </div>
-      </div>
-
-      {/* Status e Promoções */}
+      </div>      {/* Status e Promoções - Seção opcional */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">🏷️ Status e Promoções</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">🏷️ Status e Promoções</h3>
+          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+        </div>
         
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center space-x-2">
@@ -1096,11 +1116,12 @@ function ProductForm({
             </div>
           </div>
         )}
-      </div>
-
-      {/* SEO */}
+      </div>      {/* SEO - Seção opcional */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">🔍 SEO</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">🔍 SEO</h3>
+          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+        </div>
         
         <div>
           <Label htmlFor="meta_title">Título SEO</Label>
@@ -1126,9 +1147,12 @@ function ProductForm({
         </div>
       </div>
 
-      {/* Notas Internas */}
+      {/* Notas Internas - Seção opcional */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">📝 Notas Internas</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">📝 Notas Internas</h3>
+          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+        </div>
         
         <div>
           <Label htmlFor="notes">Observações</Label>
