@@ -128,16 +128,16 @@ const ProductCard = ({ product }: { product: CollectionProduct }) => (
         <Button 
           variant="outline" 
           size="sm"
-          className="flex-1 hover:bg-primary hover:text-white transition-colors duration-300 px-3"
+          className="flex-1 hover:bg-primary hover:text-white transition-colors duration-300 text-xs"
         >
-          <Eye className="w-4 h-4 mr-2" />
+          <Eye className="w-3 h-3 mr-1" />
           Ver Detalhes
         </Button>
         <Button 
           size="sm"
-          className="flex-1 bg-primary hover:bg-primary/90 transition-colors duration-300 px-3"
+          className="flex-1 bg-primary hover:bg-primary/90 transition-colors duration-300 text-xs"
         >
-          <ShoppingCart className="w-4 h-4 mr-2" />
+          <ShoppingCart className="w-3 h-3 mr-1" />
           Adicionar
         </Button>
       </div>
