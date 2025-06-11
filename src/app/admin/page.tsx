@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, Edit, Trash2, Save, Upload, Eye, ShoppingBag, Settings, BarChart3, Package, Users } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, Upload, Eye, ShoppingBag, Settings, BarChart3, Package, Users, Layers3 } from 'lucide-react';
 import { Product, products } from '@/lib/placeholder-data';
 import OrdersManagement from '@/components/OrdersManagement';
 import ImageUploadTemp from '@/components/ImageUploadTemp';
@@ -20,6 +20,8 @@ import { uploadImageToSupabase } from '@/lib/uploadUtils';
 import Image from 'next/image';
 import { MultiSelectInput } from '@/components/ui/MultiSelectInput';
 import { SelectInput } from '@/components/ui/SelectInput';
+import SmartSelect from '@/components/SmartSelect';
+import useProductMetadata from '@/hooks/useProductMetadata';
 
 // Simulação de autenticação simples
 const ADMIN_PASSWORD = 'micangaria2024'; // Em produção, usar sistema de auth real
@@ -207,10 +209,14 @@ export default function AdminPage() {
             Sair
           </Button>
         </div>        <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full max-w-lg grid-cols-5">
+          <TabsList className="grid w-full max-w-2xl grid-cols-6">
             <TabsTrigger value="products" className="flex items-center gap-2">
               <Package className="w-4 h-4" />
               <span className="hidden sm:inline">Produtos</span>
+            </TabsTrigger>
+            <TabsTrigger value="collections" className="flex items-center gap-2">
+              <Layers3 className="w-4 h-4" />
+              <span className="hidden sm:inline">Coleções</span>
             </TabsTrigger>
             <TabsTrigger value="orders" className="flex items-center gap-2">
               <ShoppingBag className="w-4 h-4" />
@@ -238,6 +244,10 @@ export default function AdminPage() {
               setIsCreateDialogOpen={setIsCreateDialogOpen}
               loadProductsFromSupabase={loadProductsFromSupabase}
             />
+          </TabsContent>
+
+          <TabsContent value="collections">
+            <CollectionsManagement products={productList} />
           </TabsContent>
 
           <TabsContent value="orders">
@@ -492,7 +502,14 @@ function ProductForm({
   product?: Product; 
   onSave: (product: Product) => void; 
   onCancel?: () => void;
-}) {  const [formData, setFormData] = useState<Partial<any>>(product || {
+}) {  // Hook para metadados de produtos (tipos e estilos inteligentes)
+  const { 
+    loading: metadataLoading, 
+    getAllTypes, 
+    getAllStyles, 
+    addCustomType, 
+    addCustomStyle 
+  } = useProductMetadata();const [formData, setFormData] = useState<Partial<any>>(product || {
     name: '',
     description: '',
     price: 0,
@@ -809,22 +826,23 @@ function ProductForm({
             Suas categorias personalizadas ficarão salvas para uso futuro.
           </p>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <SelectInput
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SmartSelect
             label="Tipo de Produto"
             value={formData.type || ''}
             onChange={(type) => setFormData({ ...formData, type })}
-            options={typeSuggestions}
+            options={getAllTypes()}
+            onAddNew={addCustomType}
             placeholder="Selecione ou crie um tipo"
             allowCustom={true}
           />
 
-          <SelectInput
+          <SmartSelect
             label="Estilo"
             value={formData.style || ''}
             onChange={(style) => setFormData({ ...formData, style })}
-            options={styleSuggestions}
+            options={getAllStyles()}
+            onAddNew={addCustomStyle}
             placeholder="Selecione ou crie um estilo"
             allowCustom={true}
           />
@@ -1175,6 +1193,378 @@ function ProductForm({
             Cancelar
           </Button>
         )}
+      </div>
+    </form>  );
+}
+
+// Interface para Coleções
+interface Collection {
+  id: string;
+  name: string;
+  description: string;
+  slug: string;
+  color: string;
+  isActive: boolean;
+  productIds: string[];
+  displayOrder: number;
+  createdAt: Date;
+}
+
+// Componente de Gerenciamento de Coleções
+function CollectionsManagement({ products }: { products: Product[] }) {
+  // Coleções predefinidas do sistema
+  const [collections, setCollections] = useState<Collection[]>([
+    {
+      id: '1',
+      name: 'Promoções Especiais',
+      description: 'Produtos em destaque com preços especiais',
+      slug: 'promocoes-especiais',
+      color: '#dc2626',
+      isActive: true,
+      productIds: [],
+      displayOrder: 1,
+      createdAt: new Date()
+    },
+    {
+      id: '2',
+      name: 'Novidades',
+      description: 'Últimas peças que chegaram ao nosso acervo',
+      slug: 'novidades',
+      color: '#16a34a',
+      isActive: true,
+      productIds: [],
+      displayOrder: 2,
+      createdAt: new Date()
+    },
+    {
+      id: '3',
+      name: 'Peças Selecionadas',
+      description: 'Curadoria especial de peças exclusivas',
+      slug: 'pecas-selecionadas',
+      color: '#9333ea',
+      isActive: true,
+      productIds: [],
+      displayOrder: 3,
+      createdAt: new Date()
+    },
+    {
+      id: '4',
+      name: 'Coleção Vintage',
+      description: 'Autênticas peças vintage com história',
+      slug: 'colecao-vintage',
+      color: '#eab308',
+      isActive: true,
+      productIds: [],
+      displayOrder: 4,
+      createdAt: new Date()
+    }
+  ]);
+
+  const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
+  // Carregar coleções do localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem('micangaria_collections');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setCollections(parsed.map((c: any) => ({
+          ...c,
+          createdAt: new Date(c.createdAt)
+        })));
+      } catch (error) {
+        console.error('Erro ao carregar coleções:', error);
+      }
+    }
+  }, []);
+
+  // Salvar coleções no localStorage
+  const saveCollections = (newCollections: Collection[]) => {
+    setCollections(newCollections);
+    localStorage.setItem('micangaria_collections', JSON.stringify(newCollections));
+  };
+
+  const handleCreateCollection = (collectionData: Partial<Collection>) => {
+    const newCollection: Collection = {
+      id: Date.now().toString(),
+      name: collectionData.name || '',
+      description: collectionData.description || '',
+      slug: (collectionData.name || '').toLowerCase().replace(/\s+/g, '-'),
+      color: collectionData.color || '#6b7280',
+      isActive: true,
+      productIds: [],
+      displayOrder: collections.length + 1,
+      createdAt: new Date()
+    };
+
+    saveCollections([...collections, newCollection]);
+    setIsCreateDialogOpen(false);
+  };
+
+  const handleUpdateCollection = (id: string, updates: Partial<Collection>) => {
+    const updatedCollections = collections.map(c => 
+      c.id === id ? { ...c, ...updates } : c
+    );
+    saveCollections(updatedCollections);
+    setEditingCollection(null);
+  };
+
+  const handleDeleteCollection = (id: string) => {
+    if (confirm('Tem certeza que deseja excluir esta coleção?')) {
+      const filteredCollections = collections.filter(c => c.id !== id);
+      saveCollections(filteredCollections);
+    }
+  };
+
+  const handleToggleProduct = (collectionId: string, productId: string) => {
+    const updatedCollections = collections.map(collection => {
+      if (collection.id === collectionId) {
+        const productIds = collection.productIds.includes(productId)
+          ? collection.productIds.filter(id => id !== productId)
+          : [...collection.productIds, productId];
+        return { ...collection, productIds };
+      }
+      return collection;
+    });
+    saveCollections(updatedCollections);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Cabeçalho */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold">Gerenciar Coleções</h2>
+          <p className="text-muted-foreground">
+            Organize produtos em coleções temáticas para exibição no site
+          </p>
+        </div>
+        
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-primary hover:bg-primary/90">
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Coleção
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Criar Nova Coleção</DialogTitle>
+            </DialogHeader>
+            <CollectionForm 
+              onSave={handleCreateCollection}
+              onCancel={() => setIsCreateDialogOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Lista de Coleções */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {collections.map(collection => (
+          <Card key={collection.id} className="overflow-hidden">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="w-4 h-4 rounded-full"
+                    style={{ backgroundColor: collection.color }}
+                  />
+                  <div>
+                    <CardTitle className="text-lg">{collection.name}</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      {collection.productIds.length} produtos
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant={collection.isActive ? "default" : "secondary"}>
+                    {collection.isActive ? 'Ativo' : 'Inativo'}
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditingCollection(collection)}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteCollection(collection.id)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                {collection.description}
+              </p>
+              
+              {/* Produtos na Coleção */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium">Produtos na Coleção:</h4>
+                <div className="max-h-40 overflow-y-auto space-y-2">
+                  {products.map(product => {
+                    const isInCollection = collection.productIds.includes(product.id);
+                    return (
+                      <div
+                        key={product.id}
+                        className="flex items-center justify-between p-2 rounded border"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
+                            {product.imageUrl ? (
+                              <Image
+                                src={product.imageUrl}
+                                alt={product.name}
+                                width={32}
+                                height={32}
+                                className="w-8 h-8 object-cover rounded"
+                              />
+                            ) : (
+                              <Package className="w-4 h-4 text-muted-foreground" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium line-clamp-1">
+                              {product.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              R$ {product.price.toFixed(2)}
+                            </p>
+                          </div>
+                        </div>
+                        <Checkbox
+                          checked={isInCollection}
+                          onCheckedChange={() => handleToggleProduct(collection.id, product.id)}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Dialog de Edição */}
+      {editingCollection && (
+        <Dialog open={!!editingCollection} onOpenChange={() => setEditingCollection(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Coleção</DialogTitle>
+            </DialogHeader>
+            <CollectionForm 
+              collection={editingCollection}
+              onSave={(updates) => handleUpdateCollection(editingCollection.id, updates)}
+              onCancel={() => setEditingCollection(null)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+}
+
+// Formulário de Coleção
+function CollectionForm({ 
+  collection, 
+  onSave, 
+  onCancel 
+}: {
+  collection?: Collection;
+  onSave: (data: Partial<Collection>) => void;
+  onCancel: () => void;
+}) {
+  const [formData, setFormData] = useState({
+    name: collection?.name || '',
+    description: collection?.description || '',
+    color: collection?.color || '#6b7280',
+    isActive: collection?.isActive ?? true
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  const predefinedColors = [
+    '#dc2626', '#ea580c', '#d97706', '#eab308', 
+    '#16a34a', '#059669', '#0891b2', '#0284c7',
+    '#6366f1', '#8b5cf6', '#9333ea', '#c026d3',
+    '#e11d48', '#6b7280', '#374151', '#111827'
+  ];
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="name" className="block">Nome da Coleção</Label>
+        <Input
+          id="name"
+          value={formData.name}
+          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+          placeholder="Ex: Promoções Especiais"
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="description" className="block">Descrição</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          placeholder="Descreva o propósito desta coleção..."
+          rows={3}
+        />
+      </div>
+
+      <div>
+        <Label className="block mb-2">Cor da Coleção</Label>
+        <div className="grid grid-cols-8 gap-2">
+          {predefinedColors.map(color => (
+            <button
+              key={color}
+              type="button"
+              className={`w-8 h-8 rounded-full border-2 ${
+                formData.color === color ? 'border-ring' : 'border-transparent'
+              }`}
+              style={{ backgroundColor: color }}
+              onClick={() => setFormData(prev => ({ ...prev, color }))}
+            />
+          ))}
+        </div>
+        <Input
+          type="color"
+          value={formData.color}
+          onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
+          className="mt-2 w-20 h-8"
+        />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="isActive"
+          checked={formData.isActive}
+          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: !!checked }))}
+        />
+        <Label htmlFor="isActive">Coleção ativa (visível no site)</Label>
+      </div>
+
+      <div className="flex gap-2 pt-4">
+        <Button type="submit" className="flex-1">
+          <Save className="w-4 h-4 mr-2" />
+          Salvar
+        </Button>
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancelar
+        </Button>
       </div>
     </form>
   );
