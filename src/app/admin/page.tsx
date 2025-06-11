@@ -284,10 +284,45 @@ function ProductManagement({
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleDeleteProduct = (productId: string) => {
+  const handleDeleteProduct = async (productId: string) => {
     if (confirm('Tem certeza que deseja excluir este produto?')) {
-      setProducts(products.filter(p => p.id !== productId));
+      try {
+        // Verificar se é um UUID válido do Supabase
+        const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(productId);
+        
+        if (isValidUUID) {
+          // Deletar do Supabase
+          const { createClient } = await import('@/lib/supabase/client');
+          const supabase = createClient();
+          
+          const { error } = await supabase
+            .from('products')
+            .delete()
+            .eq('id', productId);
+            
+          if (error) {
+            console.error('❌ Erro ao deletar produto do Supabase:', error);
+            alert(`Erro ao deletar produto do banco de dados: ${error.message}`);
+            return;
+          }
+          
+          console.log('✅ Produto deletado do Supabase:', productId);
+        }
+        
+        // Remover da lista local
+        setProducts(products.filter(p => p.id !== productId));
+        
+        // Recarregar produtos do Supabase após deletar
+        if (isValidUUID) {
+          setTimeout(() => {
+            loadProductsFromSupabase();
+          }, 500);
+        }
+        
+      } catch (error) {
+        console.error('❌ Erro ao deletar produto:', error);
+        alert('Erro ao deletar produto. Tente novamente.');
+      }
     }
   };
 
@@ -430,12 +465,11 @@ function ProductManagement({
                     />
                   </DialogContent>
                 </Dialog>
-                
-                <Button
+                  <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handleDeleteProduct(product.id)}
-                  className="text-destructive hover:text-destructive"
+                  className="text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/20 hover:border-destructive transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
