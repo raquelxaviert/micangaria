@@ -11,6 +11,31 @@ export interface Product {
   isNewArrival?: boolean;
   isPromotion?: boolean;
   promotionDetails?: string;
+  
+  // Extended fields for admin/Supabase integration
+  compare_at_price?: number;
+  cost_price?: number;
+  materials?: string[];
+  sizes?: string[];
+  tags?: string[];
+  weight_grams?: number;
+  sku?: string;
+  barcode?: string;
+  track_inventory?: boolean;
+  quantity?: number;
+  allow_backorder?: boolean;
+  slug?: string;
+  meta_title?: string;
+  meta_description?: string;
+  is_active?: boolean;
+  is_featured?: boolean;
+  sale_start_date?: string;
+  sale_end_date?: string;
+  search_keywords?: string[];
+  vendor?: string;
+  collection?: string;
+  notes?: string;
+  gallery_urls?: string[];
 }
 
 export const products: Product[] = [

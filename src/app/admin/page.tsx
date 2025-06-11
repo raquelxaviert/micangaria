@@ -18,6 +18,7 @@ import OrdersManagement from '@/components/OrdersManagement';
 import ImageUploadTemp from '@/components/ImageUploadTemp';
 import { uploadImageToSupabase } from '@/lib/uploadUtils';
 import Image from 'next/image';
+import { MultiSelectInput } from '@/components/ui/MultiSelectInput';
 
 // Simulação de autenticação simples
 const ADMIN_PASSWORD = 'micangaria2024'; // Em produção, usar sistema de auth real
@@ -47,21 +48,43 @@ export default function AdminPage() {
         return;
       }
       
-      if (supabaseProducts && supabaseProducts.length > 0) {
-        // Converter produtos do Supabase para o formato local
+      if (supabaseProducts && supabaseProducts.length > 0) {        // Converter produtos do Supabase para o formato local
         const convertedProducts = supabaseProducts.map(p => ({
           id: p.id,
           name: p.name,
           description: p.description,
           price: p.price,
+          compare_at_price: p.compare_at_price,
+          cost_price: p.cost_price,
           imageUrl: p.image_url,
           imageHint: p.name.toLowerCase(),
           type: p.type,
           style: p.style,
           colors: p.colors || [],
+          materials: p.materials || [],
+          sizes: p.sizes || [],
+          tags: p.tags || [],
+          weight_grams: p.weight_grams,
+          sku: p.sku,
+          barcode: p.barcode,
+          track_inventory: p.track_inventory,
+          quantity: p.quantity,
+          allow_backorder: p.allow_backorder,
+          slug: p.slug,
+          meta_title: p.meta_title,
+          meta_description: p.meta_description,
+          is_active: p.is_active,
+          is_featured: p.is_featured,
           isNewArrival: p.is_new_arrival,
           isPromotion: p.is_on_sale,
-          promotionDetails: p.promotion_text
+          sale_start_date: p.sale_start_date,
+          sale_end_date: p.sale_end_date,
+          promotionDetails: p.promotion_text,
+          search_keywords: p.search_keywords,
+          vendor: p.vendor,
+          collection: p.collection,
+          notes: p.notes,
+          gallery_urls: p.gallery_urls || []
         }));
         
         console.log('✅ Produtos carregados do Supabase:', convertedProducts.length);
@@ -212,6 +235,7 @@ export default function AdminPage() {
               setEditingProduct={setEditingProduct}
               isCreateDialogOpen={isCreateDialogOpen}
               setIsCreateDialogOpen={setIsCreateDialogOpen}
+              loadProductsFromSupabase={loadProductsFromSupabase}
             />
           </TabsContent>
 
@@ -243,7 +267,8 @@ function ProductManagement({
   editingProduct, 
   setEditingProduct,
   isCreateDialogOpen,
-  setIsCreateDialogOpen 
+  setIsCreateDialogOpen,
+  loadProductsFromSupabase
 }: {
   products: Product[];
   setProducts: (products: Product[]) => void;
@@ -251,6 +276,7 @@ function ProductManagement({
   setEditingProduct: (product: Product | null) => void;
   isCreateDialogOpen: boolean;
   setIsCreateDialogOpen: (open: boolean) => void;
+  loadProductsFromSupabase: () => Promise<void>;
 }) {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -290,6 +316,11 @@ function ProductManagement({
                 const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                 setProducts([...products, { ...product, id: tempId }]);
                 setIsCreateDialogOpen(false);
+                
+                // Recarregar produtos do Supabase após criar
+                setTimeout(() => {
+                  loadProductsFromSupabase();
+                }, 1000);
               }}
               onCancel={() => setIsCreateDialogOpen(false)}
             />
@@ -332,16 +363,48 @@ function ProductManagement({
                 )}
               </div>
             </div>
-            
-            <CardContent className="p-4 space-y-3">
+              <CardContent className="p-4 space-y-3">
               <div>
                 <h3 className="font-semibold text-lg line-clamp-1">{product.name}</h3>
-                <p className="text-sm text-muted-foreground capitalize">{product.type} • {product.style}</p>
+                <p className="text-sm text-muted-foreground capitalize">
+                  {product.type} • {product.style}
+                  {product.sku && (
+                    <span className="ml-2 bg-muted px-2 py-0.5 rounded text-xs">
+                      {product.sku}
+                    </span>
+                  )}
+                </p>
               </div>
               
-              <div className="text-xl font-bold text-primary">
-                R$ {product.price.toFixed(2)}
+              <div className="space-y-1">
+                <div className="text-xl font-bold text-primary">
+                  R$ {product.price.toFixed(2)}
+                </div>
+                {product.compare_at_price && product.compare_at_price > product.price && (
+                  <div className="text-sm text-muted-foreground line-through">
+                    De: R$ {product.compare_at_price.toFixed(2)}
+                  </div>
+                )}
               </div>
+
+              {/* Tags rápidas */}
+              <div className="flex flex-wrap gap-1">
+                {product.colors?.slice(0, 3).map((color, idx) => (
+                  <span key={idx} className="text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded">
+                    {color}
+                  </span>
+                ))}
+                {product.colors?.length > 3 && (
+                  <span className="text-xs text-muted-foreground">+{product.colors.length - 3}</span>
+                )}
+              </div>
+
+              {/* Status do estoque */}
+              {product.track_inventory && (
+                <div className="text-xs text-muted-foreground">
+                  Estoque: {product.quantity || 0} unidades
+                </div>
+              )}
               
               <div className="flex gap-2">
                 <Dialog>
@@ -354,11 +417,15 @@ function ProductManagement({
                   <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Editar Produto</DialogTitle>
-                    </DialogHeader>
-                    <ProductForm 
+                    </DialogHeader>                    <ProductForm 
                       product={product}
                       onSave={(updatedProduct) => {
                         setProducts(products.map(p => p.id === product.id ? updatedProduct : p));
+                        
+                        // Recarregar produtos do Supabase após editar
+                        setTimeout(() => {
+                          loadProductsFromSupabase();
+                        }, 1000);
                       }}
                     />
                   </DialogContent>
@@ -390,19 +457,91 @@ function ProductForm({
   product?: Product; 
   onSave: (product: Product) => void; 
   onCancel?: () => void;
-}) {  const [formData, setFormData] = useState<Partial<Product>>(product || {
+}) {  const [formData, setFormData] = useState<Partial<any>>(product || {
     name: '',
     description: '',
     price: 0,
+    compare_at_price: 0,
+    cost_price: 0,
     type: 'colar',
-    style: 'vintage',  // Mudado de 'boho' para 'vintage'
+    style: 'vintage',
     colors: [],
+    materials: [],
+    sizes: [],
+    tags: [],
+    weight_grams: 0,
+    sku: '',
+    barcode: '',
+    track_inventory: false,
+    quantity: 0,
+    allow_backorder: false,
+    slug: '',
+    meta_title: '',
+    meta_description: '',
+    is_active: true,
+    is_featured: false,
+    is_new_arrival: false,
+    is_on_sale: false,
+    sale_start_date: '',
+    sale_end_date: '',
+    promotion_text: '',
+    search_keywords: '',
+    vendor: '',
+    collection: '',
+    notes: '',
     imageUrl: '',
-    isNewArrival: false,
-    isPromotion: false,
-    promotionDetails: '',
-    id: '' // SKU será gerado automaticamente pelo Supabase (#20xx)
+    gallery_urls: []
   });
+
+  // Sugestões para os campos de array
+  const colorSuggestions = [
+    'preto', 'branco', 'dourado', 'prata', 'rose gold', 'bronze', 'cobre',
+    'vermelho', 'azul', 'verde', 'amarelo', 'roxo', 'rosa', 'laranja',
+    'marrom', 'bege', 'cinza', 'turquesa', 'coral', 'vinho'
+  ];
+
+  const materialSuggestions = [
+    'prata 925', 'ouro 18k', 'ouro folheado', 'aço inoxidável', 'bronze',
+    'cobre', 'alumínio', 'couro', 'algodão', 'seda', 'linho', 'poliéster',
+    'pérolas', 'cristais', 'pedras naturais', 'resina', 'madeira', 'bambu',
+    'cerâmica', 'vidro', 'acrílico', 'miçangas', 'strass'
+  ];
+
+  const sizeSuggestions = [
+    'PP', 'P', 'M', 'G', 'GG', 'XG', 'Único',
+    '34', '35', '36', '37', '38', '39', '40', '41', '42',
+    'Ajustável', '40cm', '45cm', '50cm', '60cm', '70cm'
+  ];
+
+  const tagSuggestions = [
+    'vintage', 'boho', 'minimalista', 'elegante', 'casual', 'festa',
+    'artesanal', 'handmade', 'exclusivo', 'limitado', 'sustentável',
+    'reciclado', 'étnico', 'tribal', 'moderno', 'clássico', 'romântico',
+    'rock', 'hippie', 'retrô', 'anos 80', 'anos 90', 'contemporâneo'
+  ];
+
+  const typeSuggestions = [
+    'colar', 'brinco', 'pulseira', 'anel', 'bolsa', 'cinto', 'sandalia',
+    'conjunto', 'broche', 'tornozeleira', 'tiara', 'presilha', 'carteira',
+    'nécessaire', 'clutch'
+  ];
+
+  const styleSuggestions = [
+    'vintage', 'retro', 'boho-vintage', 'anos-80', 'anos-90', 'moderno',
+    'minimalista', 'maximalista', 'étnico', 'tribal', 'gótico', 'punk',
+    'romântico', 'clássico', 'contemporâneo'
+  ];
+
+  const collectionSuggestions = [
+    'Verão 2024', 'Inverno 2024', 'Primavera 2024', 'Outono 2024',
+    'Edição Limitada', 'Coleção Especial', 'Básicos', 'Premium',
+    'Artesanal', 'Sustentável', 'Vintage Collection', 'Modern Boho'
+  ];
+
+  const vendorSuggestions = [
+    'RÜGE', 'Artesão Local', 'Fornecedor Nacional', 'Importado',
+    'Produção Própria', 'Parceiro Exclusivo'
+  ];
   
   // Estado para gerenciar upload de imagem
   const [imageData, setImageData] = useState<{ url: string; file?: File; isTemp?: boolean }>({ 
@@ -441,19 +580,39 @@ function ProductForm({
           console.log('🔧 Verificando configuração Supabase...');
           console.log('URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
           console.log('Key exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-          
-          const productData = {
+            const productData = {
             name: formData.name,
             description: formData.description,
             price: formData.price,
+            compare_at_price: formData.compare_at_price || null,
+            cost_price: formData.cost_price || null,
             type: formData.type,
             style: formData.style,
             colors: formData.colors || [],
+            materials: formData.materials || [],
+            sizes: formData.sizes || [],
+            weight_grams: formData.weight_grams || null,
+            barcode: formData.barcode || null,
+            track_inventory: formData.track_inventory || false,
+            quantity: formData.quantity || 0,
+            allow_backorder: formData.allow_backorder || false,
+            slug: formData.slug || null,
+            meta_title: formData.meta_title || null,
+            meta_description: formData.meta_description || null,
+            is_active: formData.is_active !== false,
+            is_featured: formData.is_featured || false,
+            is_new_arrival: formData.is_new_arrival || false,
+            is_on_sale: formData.is_on_sale || false,
+            sale_start_date: formData.sale_start_date || null,
+            sale_end_date: formData.sale_end_date || null,
+            promotion_text: formData.promotion_text || null,
+            tags: formData.tags || [],
+            search_keywords: formData.search_keywords || null,
+            vendor: formData.vendor || null,
+            collection: formData.collection || null,
+            notes: formData.notes || null,
             image_url: finalImageUrl,
-            is_new_arrival: formData.isNewArrival || false,
-            is_on_sale: formData.isPromotion || false,
-            promotion_text: formData.promotionDetails || null,
-            is_active: true
+            gallery_urls: formData.gallery_urls || []
             // SKU será gerado automaticamente (#20xx)
           };
           
@@ -526,124 +685,431 @@ function ProductForm({
       }
     }
   };
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Informações Básicas */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold border-b pb-2">📝 Informações Básicas</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="name">Nome do Produto *</Label>
+            <Input
+              id="name"
+              value={formData.name || ''}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Ex: Colar Lua Cheia"
+              required
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="slug">URL Amigável (Slug)</Label>
+            <Input
+              id="slug"
+              value={formData.slug || ''}
+              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+              placeholder="colar-lua-cheia"
+            />
+          </div>
+        </div>
+
         <div>
-          <Label htmlFor="name">Nome do Produto *</Label>
-          <Input
-            id="name"
-            value={formData.name || ''}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="Ex: Colar Lua Cheia"
+          <Label htmlFor="description">Descrição *</Label>
+          <Textarea
+            id="description"
+            value={formData.description || ''}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            placeholder="Descreva o produto, materiais, inspiração..."
+            rows={3}
             required
           />
         </div>
+      </div>
+
+      {/* Preços e Financeiro */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold border-b pb-2">💰 Preços e Financeiro</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <Label htmlFor="price">Preço de Venda (R$) *</Label>
+            <Input
+              id="price"
+              type="number"
+              step="0.01"
+              value={formData.price || ''}
+              onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+              placeholder="0.00"
+              required
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="compare_at_price">Preço Original (R$)</Label>
+            <Input
+              id="compare_at_price"
+              type="number"
+              step="0.01"
+              value={formData.compare_at_price || ''}
+              onChange={(e) => setFormData({ ...formData, compare_at_price: parseFloat(e.target.value) || 0 })}
+              placeholder="0.00"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="cost_price">Custo (R$)</Label>
+            <Input
+              id="cost_price"
+              type="number"
+              step="0.01"
+              value={formData.cost_price || ''}
+              onChange={(e) => setFormData({ ...formData, cost_price: parseFloat(e.target.value) || 0 })}
+              placeholder="0.00"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Categorização */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold border-b pb-2">📂 Categorização</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="type">Tipo de Produto</Label>
+            <Input
+              id="type"
+              value={formData.type || ''}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+              placeholder="Digite ou selecione"
+              list="type-suggestions"
+            />
+            <datalist id="type-suggestions">
+              {typeSuggestions.map(type => (
+                <option key={type} value={type} />
+              ))}
+            </datalist>
+          </div>
+
+          <div>
+            <Label htmlFor="style">Estilo</Label>
+            <Input
+              id="style"
+              value={formData.style || ''}
+              onChange={(e) => setFormData({ ...formData, style: e.target.value })}
+              placeholder="Digite ou selecione"
+              list="style-suggestions"
+            />
+            <datalist id="style-suggestions">
+              {styleSuggestions.map(style => (
+                <option key={style} value={style} />
+              ))}
+            </datalist>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="vendor">Fornecedor/Marca</Label>
+            <Input
+              id="vendor"
+              value={formData.vendor || ''}
+              onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
+              placeholder="Digite ou selecione"
+              list="vendor-suggestions"
+            />
+            <datalist id="vendor-suggestions">
+              {vendorSuggestions.map(vendor => (
+                <option key={vendor} value={vendor} />
+              ))}
+            </datalist>
+          </div>
+
+          <div>
+            <Label htmlFor="collection">Coleção</Label>
+            <Input
+              id="collection"
+              value={formData.collection || ''}
+              onChange={(e) => setFormData({ ...formData, collection: e.target.value })}
+              placeholder="Digite ou selecione"
+              list="collection-suggestions"
+            />
+            <datalist id="collection-suggestions">
+              {collectionSuggestions.map(collection => (
+                <option key={collection} value={collection} />
+              ))}
+            </datalist>
+          </div>
+        </div>
+      </div>
+
+      {/* Características do Produto */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold border-b pb-2">🎨 Características</h3>
+        
+        <div className="space-y-4">
+          <MultiSelectInput
+            label="Cores"
+            value={formData.colors || []}
+            onChange={(colors) => setFormData({ ...formData, colors })}
+            suggestions={colorSuggestions}
+            placeholder="Digite uma cor e pressione Enter"
+            maxItems={8}
+          />
+
+          <MultiSelectInput
+            label="Materiais"
+            value={formData.materials || []}
+            onChange={(materials) => setFormData({ ...formData, materials })}
+            suggestions={materialSuggestions}
+            placeholder="Digite um material e pressione Enter"
+            maxItems={10}
+          />
+
+          <MultiSelectInput
+            label="Tamanhos"
+            value={formData.sizes || []}
+            onChange={(sizes) => setFormData({ ...formData, sizes })}
+            suggestions={sizeSuggestions}
+            placeholder="Digite um tamanho e pressione Enter"
+            maxItems={6}
+          />
+
+          <MultiSelectInput
+            label="Tags/Palavras-chave"
+            value={formData.tags || []}
+            onChange={(tags) => setFormData({ ...formData, tags })}
+            suggestions={tagSuggestions}
+            placeholder="Digite uma tag e pressione Enter"
+            maxItems={12}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="weight_grams">Peso (gramas)</Label>
+            <Input
+              id="weight_grams"
+              type="number"
+              value={formData.weight_grams || ''}
+              onChange={(e) => setFormData({ ...formData, weight_grams: parseInt(e.target.value) || 0 })}
+              placeholder="0"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="search_keywords">Palavras-chave para busca</Label>
+            <Input
+              id="search_keywords"
+              value={formData.search_keywords || ''}
+              onChange={(e) => setFormData({ ...formData, search_keywords: e.target.value })}
+              placeholder="colar vintage dourado bohemio"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Imagens */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold border-b pb-2">🖼️ Imagens</h3>
         
         <div>
-          <Label htmlFor="price">Preço (R$) *</Label>
+          <Label htmlFor="imageUrl">Imagem Principal</Label>
+          <ImageUploadTemp
+            currentImage={imageData.url}
+            onImageChange={(data) => {
+              setImageData(data);
+              setFormData({ ...formData, imageUrl: data.url });
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Inventário */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold border-b pb-2">📦 Inventário</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <Label htmlFor="sku">SKU (Código)</Label>
+            <Input
+              id="sku"
+              value={formData.sku || ''}
+              onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+              placeholder="Será gerado automaticamente"
+              disabled
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="barcode">Código de Barras</Label>
+            <Input
+              id="barcode"
+              value={formData.barcode || ''}
+              onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+              placeholder="7891234567890"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="quantity">Quantidade em Estoque</Label>
+            <Input
+              id="quantity"
+              type="number"
+              value={formData.quantity || ''}
+              onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
+              placeholder="0"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="track_inventory"
+              checked={formData.track_inventory || false}
+              onCheckedChange={(checked) => setFormData({ ...formData, track_inventory: !!checked })}
+            />
+            <Label htmlFor="track_inventory">Controlar Estoque</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="allow_backorder"
+              checked={formData.allow_backorder || false}
+              onCheckedChange={(checked) => setFormData({ ...formData, allow_backorder: !!checked })}
+            />
+            <Label htmlFor="allow_backorder">Permitir Encomenda</Label>
+          </div>
+        </div>
+      </div>
+
+      {/* Status e Promoções */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold border-b pb-2">🏷️ Status e Promoções</h3>
+        
+        <div className="flex flex-wrap gap-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="is_active"
+              checked={formData.is_active !== false}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_active: !!checked })}
+            />
+            <Label htmlFor="is_active">Produto Ativo</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="is_featured"
+              checked={formData.is_featured || false}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_featured: !!checked })}
+            />
+            <Label htmlFor="is_featured">Produto em Destaque</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="is_new_arrival"
+              checked={formData.is_new_arrival || false}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_new_arrival: !!checked })}
+            />
+            <Label htmlFor="is_new_arrival">Produto Novo</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="is_on_sale"
+              checked={formData.is_on_sale || false}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_on_sale: !!checked })}
+            />
+            <Label htmlFor="is_on_sale">Em Promoção</Label>
+          </div>
+        </div>
+
+        {formData.is_on_sale && (
+          <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
+            <div>
+              <Label htmlFor="promotion_text">Texto da Promoção</Label>
+              <Input
+                id="promotion_text"
+                value={formData.promotion_text || ''}
+                onChange={(e) => setFormData({ ...formData, promotion_text: e.target.value })}
+                placeholder="Ex: 20% OFF por tempo limitado"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="sale_start_date">Data de Início</Label>
+                <Input
+                  id="sale_start_date"
+                  type="datetime-local"
+                  value={formData.sale_start_date || ''}
+                  onChange={(e) => setFormData({ ...formData, sale_start_date: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="sale_end_date">Data de Fim</Label>
+                <Input
+                  id="sale_end_date"
+                  type="datetime-local"
+                  value={formData.sale_end_date || ''}
+                  onChange={(e) => setFormData({ ...formData, sale_end_date: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* SEO */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold border-b pb-2">🔍 SEO</h3>
+        
+        <div>
+          <Label htmlFor="meta_title">Título SEO</Label>
           <Input
-            id="price"
-            type="number"
-            step="0.01"
-            value={formData.price || ''}
-            onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-            placeholder="0.00"
-            required
+            id="meta_title"
+            value={formData.meta_title || ''}
+            onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
+            placeholder="Título para mecanismos de busca"
+            maxLength={60}
           />
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="description">Descrição *</Label>
-        <Textarea
-          id="description"
-          value={formData.description || ''}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          placeholder="Descreva o produto, materiais, inspiração..."
-          rows={3}
-          required
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="type">Categoria</Label>
-          <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value as any })}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="colar">Colar</SelectItem>
-              <SelectItem value="brinco">Brincos</SelectItem>
-              <SelectItem value="pulseira">Pulseira</SelectItem>
-              <SelectItem value="anel">Anel</SelectItem>
-              <SelectItem value="bolsa">Bolsa</SelectItem>
-              <SelectItem value="cinto">Cinto</SelectItem>
-              <SelectItem value="sandalia">Sandália</SelectItem>
-              <SelectItem value="conjunto">Conjunto</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
         <div>
-          <Label htmlFor="style">Estilo</Label>
-          <Select value={formData.style} onValueChange={(value) => setFormData({ ...formData, style: value as any })}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>            <SelectContent>
-              <SelectItem value="vintage">Vintage</SelectItem>
-              <SelectItem value="retro">Retro</SelectItem>
-              <SelectItem value="boho-vintage">Boho Vintage</SelectItem>
-              <SelectItem value="anos-80">Anos 80</SelectItem>
-              <SelectItem value="anos-90">Anos 90</SelectItem>
-              <SelectItem value="moderno">Moderno</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>      <div>
-        <Label htmlFor="imageUrl">Imagem do Produto</Label>
-        <ImageUploadTemp
-          currentImage={imageData.url}
-          onImageChange={(data) => {
-            setImageData(data);
-            setFormData({ ...formData, imageUrl: data.url });
-          }}
-        />
-      </div>
-
-      <div className="flex flex-wrap gap-4">
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="isNewArrival"
-            checked={formData.isNewArrival || false}
-            onCheckedChange={(checked) => setFormData({ ...formData, isNewArrival: !!checked })}
+          <Label htmlFor="meta_description">Descrição SEO</Label>
+          <Textarea
+            id="meta_description"
+            value={formData.meta_description || ''}
+            onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
+            placeholder="Descrição para mecanismos de busca"
+            maxLength={160}
+            rows={2}
           />
-          <Label htmlFor="isNewArrival">Produto Novo</Label>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="isPromotion"
-            checked={formData.isPromotion || false}
-            onCheckedChange={(checked) => setFormData({ ...formData, isPromotion: !!checked })}
-          />
-          <Label htmlFor="isPromotion">Em Promoção</Label>
         </div>
       </div>
 
-      {formData.isPromotion && (
+      {/* Notas Internas */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold border-b pb-2">📝 Notas Internas</h3>
+        
         <div>
-          <Label htmlFor="promotionDetails">Detalhes da Promoção</Label>
-          <Input
-            id="promotionDetails"
-            value={formData.promotionDetails || ''}
-            onChange={(e) => setFormData({ ...formData, promotionDetails: e.target.value })}
-            placeholder="Ex: 20% OFF por tempo limitado"
+          <Label htmlFor="notes">Observações</Label>
+          <Textarea
+            id="notes"
+            value={formData.notes || ''}
+            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            placeholder="Anotações internas sobre o produto..."
+            rows={3}
           />
         </div>
-      )}      <div className="flex gap-2 pt-4">
+      </div>
+
+      {/* Botões de Ação */}
+      <div className="flex gap-2 pt-6 border-t">
         <Button type="submit" className="flex-1" disabled={isUploading}>
           <Save className="w-4 h-4 mr-2" />
           {isUploading ? 'Salvando...' : 'Salvar Produto'}
