@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Upload, X, Image as ImageIcon, Plus, Move } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Plus, Move, ArrowUp, ArrowDown, GripVertical } from 'lucide-react';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { uploadImageToSupabase } from '@/lib/uploadUtils';
@@ -131,7 +131,6 @@ export function MultiImageUpload({
     setImageItems(newItems);
     updateParent(newItems);
   };
-
   const moveImage = (fromIndex: number, toIndex: number) => {
     if (toIndex < 0 || toIndex >= imageItems.length) return;
     
@@ -143,6 +142,23 @@ export function MultiImageUpload({
     updateParent(newItems);
   };
 
+  const moveImageUp = (index: number) => {
+    if (index > 0) {
+      moveImage(index, index - 1);
+    }
+  };
+
+  const moveImageDown = (index: number) => {
+    if (index < imageItems.length - 1) {
+      moveImage(index, index + 1);
+    }
+  };
+
+  const makeImagePrimary = (index: number) => {
+    if (index === 0) return; // Já é a primeira
+    moveImage(index, 0);
+  };
+
   const handleClick = () => {
     if (imageItems.length < maxImages) {
       fileInputRef.current?.click();
@@ -150,73 +166,122 @@ export function MultiImageUpload({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Existing Images */}
+    <div className="space-y-4">      {/* Existing Images */}
       {imageItems.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {imageItems.map((item, index) => (
-            <Card key={index} className="relative overflow-hidden">
-              <CardContent className="p-0">
-                <div className="relative aspect-square">
-                  <Image
-                    src={item.url}
-                    alt={`Produto ${index + 1}`}
-                    fill
-                    className="object-cover"
-                  />
-                  
-                  {/* Loading overlay */}
-                  {item.isUploading && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-                    </div>
-                  )}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-medium text-gray-700">
+              Imagens do Produto ({imageItems.length}/{maxImages})
+            </h4>
+            <div className="text-xs text-gray-500">
+              Arraste ou use as setas para reordenar
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            {imageItems.map((item, index) => (
+              <Card key={index} className="relative overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="flex items-center gap-3 p-3">
+                    {/* Image Preview */}
+                    <div className="relative w-20 h-20 flex-shrink-0">
+                      <Image
+                        src={item.url}
+                        alt={`Produto ${index + 1}`}
+                        fill
+                        className="object-cover rounded-lg"
+                      />
+                      
+                      {/* Loading overlay */}
+                      {item.isUploading && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                        </div>
+                      )}
 
-                  {/* Controls */}
-                  <div className="absolute top-2 right-2 flex gap-1">
-                    {/* Move buttons */}
-                    {index > 0 && (
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8 bg-white/80 hover:bg-white/90"
-                        onClick={() => moveImage(index, index - 1)}
-                      >
-                        ←
-                      </Button>
-                    )}
-                    {index < imageItems.length - 1 && (
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8 bg-white/80 hover:bg-white/90"
-                        onClick={() => moveImage(index, index + 1)}
-                      >
-                        →
-                      </Button>
-                    )}
-                    
-                    {/* Remove button */}
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => removeImage(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                      {/* Primary image indicator */}
+                      {index === 0 && (
+                        <div className="absolute -top-1 -left-1 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full font-medium">
+                          Principal
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Image Info and Controls */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium truncate">
+                            Imagem {index + 1}
+                            {index === 0 && <span className="text-primary ml-1">(Principal)</span>}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {item.isUploading ? 'Enviando...' : 'Pronta'}
+                          </p>
+                        </div>
+
+                        {/* Move Controls */}
+                        <div className="flex items-center gap-1">
+                          {/* Drag handle */}
+                          <div className="p-1 cursor-move text-gray-400 hover:text-gray-600">
+                            <GripVertical className="h-4 w-4" />
+                          </div>
+
+                          {/* Up/Down buttons */}
+                          <div className="flex flex-col">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => moveImageUp(index)}
+                              disabled={index === 0}
+                              title="Mover para cima"
+                            >
+                              <ArrowUp className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => moveImageDown(index)}
+                              disabled={index === imageItems.length - 1}
+                              title="Mover para baixo"
+                            >
+                              <ArrowDown className="h-3 w-3" />
+                            </Button>
+                          </div>
+
+                          {/* Make primary button */}
+                          {index !== 0 && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 text-xs"
+                              onClick={() => makeImagePrimary(index)}
+                              title="Tornar principal"
+                            >
+                              Principal
+                            </Button>
+                          )}
+                          
+                          {/* Remove button */}
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => removeImage(index)}
+                            title="Remover imagem"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-
-                  {/* Primary image indicator */}
-                  {index === 0 && (
-                    <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
-                      Principal
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 
