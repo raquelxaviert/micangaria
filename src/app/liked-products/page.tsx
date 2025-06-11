@@ -96,7 +96,7 @@ function LikedProductsContent() {
               <ProductCard 
                 key={product.id} 
                 product={product} 
-                variant="detailed"
+                variant="favorites"
                 showRating={true}
               />
             ))}

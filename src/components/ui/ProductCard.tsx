@@ -29,7 +29,7 @@ export interface ProductData {
 
 interface ProductCardProps {
   product: ProductData;
-  variant?: 'default' | 'compact' | 'detailed';
+  variant?: 'default' | 'compact' | 'detailed' | 'favorites';
   showActions?: boolean;
   showDescription?: boolean;
   showColors?: boolean;
@@ -84,10 +84,8 @@ export function ProductCard({
           productId={product.id} 
           variant="floating"
           size="md"
-        />
-
-        {/* Overlay gradient em detailed */}
-        {variant === 'detailed' && (
+        />        {/* Overlay gradient em detailed */}
+        {(variant === 'detailed' || variant === 'favorites') && (
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         )}
       </div>
@@ -134,10 +132,8 @@ export function ProductCard({
           <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
             {product.description}
           </p>
-        )}
-
-        {/* Rating (para variante detailed) */}
-        {showRating && variant === 'detailed' && (
+        )}        {/* Rating (para variantes detailed e favorites) */}
+        {showRating && (variant === 'detailed' || variant === 'favorites') && (
           <div className="flex items-center gap-1 text-yellow-500">
             {[...Array(5)].map((_, i) => (
               <Star key={i} className="w-4 h-4 fill-current" />
@@ -154,9 +150,7 @@ export function ProductCard({
               R$ {product.price.toFixed(2).replace('.', ',')}
             </span>
           </div>
-        </div>
-
-        {/* Botões de ação */}
+        </div>        {/* Botões de ação */}
         {showActions && (
           <div className={`flex gap-2 pt-2 ${variant === 'detailed' ? 'flex-col' : ''}`}>
             <Button 
