@@ -51,18 +51,18 @@ export function ProductCard({
   const isNewArrival = product.isNewArrival || product.is_new_arrival || false;
   const isOnSale = product.isOnSale || product.is_promotion || false;
   const promotionDetails = product.promotionDetails || product.promotion_details;
-
   return (
-    <Card className={`group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95 ${className}`}>
-      <div className="relative overflow-hidden">
-        <Image
-          src={imageUrl}
-          alt={product.name}
-          width={400}
-          height={400}          className={`w-full object-cover group-hover:scale-110 transition-transform duration-700 ${
-            variant === 'compact' ? 'h-40 sm:h-48' : 'h-72'
-          }`}
-        />
+    <Link href={`/products/${product.id}`} className="block">
+      <Card className={`group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95 cursor-pointer ${className}`}>
+        <div className="relative overflow-hidden">
+          <Image
+            src={imageUrl}
+            alt={product.name}
+            width={400}
+            height={400}          className={`w-full object-cover group-hover:scale-110 transition-transform duration-700 ${
+              variant === 'compact' ? 'h-40 sm:h-48' : 'h-72'
+            }`}
+          />
           {/* Badges superior esquerdo */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           {isNewArrival && (
@@ -138,45 +138,36 @@ export function ProductCard({
               <Star key={i} className="w-4 h-4 fill-current" />
             ))}
           </div>
-        )}        {/* Preços */}
-        <div className="space-y-1">
-          <div className="flex items-baseline gap-2">
+        )}        {/* Preços e botão de adicionar */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex-1">
             <span className={`font-bold text-primary ${
               variant === 'compact' ? 'text-base sm:text-lg' : 'text-2xl'
             }`}>
               R$ {product.price.toFixed(2).replace('.', ',')}
             </span>
           </div>
-        </div>{/* Botões de ação */}
-        {showActions && (
-          <div className={`flex gap-1 sm:gap-2 pt-1 sm:pt-2 ${variant === 'detailed' ? 'flex-col' : ''}`}>
-            <Button 
-              asChild
-              variant="outline" 
-              size="sm"
-              className={`flex-1 hover:bg-primary hover:text-white transition-colors duration-300 ${
-                variant === 'compact' ? 'text-xs px-2 py-1 h-8' : 'text-xs'
-              }`}
-            >
-              <Link href={`/products/${product.id}`}>
-                <Eye className="w-3 h-3 mr-1" />
-                <span className="hidden sm:inline">Ver Detalhes</span>
-                <span className="sm:hidden">Ver</span>
-              </Link>
-            </Button>
+          
+          {showActions && (
             <Button 
               size="sm"
-              className={`flex-1 bg-primary hover:bg-primary/90 transition-colors duration-300 ${
-                variant === 'compact' ? 'text-xs px-2 py-1 h-8' : 'text-xs'
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Aqui você pode adicionar a lógica de adicionar ao carrinho
+                console.log('Produto adicionado ao carrinho:', product.id);
+              }}
+              className={`bg-primary hover:bg-primary/90 transition-colors duration-300 ${
+                variant === 'compact' ? 'text-xs px-2 py-1 h-8' : 'text-xs px-3 py-2'
               }`}
             >
               <ShoppingCart className="w-3 h-3 mr-1" />
               <span className="hidden sm:inline">Adicionar</span>
               <span className="sm:hidden">+</span>
             </Button>
-          </div>
-        )}
+          )}        </div>
       </CardContent>
     </Card>
+    </Link>
   );
 }
