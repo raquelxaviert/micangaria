@@ -8,7 +8,30 @@ import Image from 'next/image';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen">      {/* Hero Section */}
+    <>
+      {/* CSS customizado só para esta página - esconde elementos do header */}
+      <style jsx global>{`
+        /* Esconde tudo do header exceto a logo */
+        header .container > div > div:first-child > button, /* botão menu hamburger */
+        header .container > div > div form, /* barra de pesquisa */
+        header .container > div > div nav, /* navegação à direita */
+        header .container > div.md\\:hidden /* layout mobile completo */ {
+          display: none !important;
+        }
+        
+        /* Centraliza a logo no header */
+        header .container > div {
+          justify-content: center !important;
+        }
+        
+        /* Garante que a logo fique visível e centralizada */
+        header .container > div > div:first-child {
+          justify-content: center !important;
+          width: 100% !important;
+        }
+      `}</style>
+      
+      <div className="min-h-screen">{/* Hero Section */}
       <section className="relative overflow-hidden min-h-[80vh] flex items-center">
         <div className="absolute inset-0">
           {/* Banner para desktop */}
@@ -55,9 +78,9 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-headline text-primary leading-tight animate-color-wave">
             Algo incrível está chegando...
-          </h2>
-        </div>
+          </h2>        </div>
       </section>
     </div>
+  </>
   );
 }
