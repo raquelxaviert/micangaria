@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, Edit, Trash2, Save, Upload, Eye, ShoppingBag, Settings, BarChart3, Package, Users, Layers3 } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, Upload, Eye, ShoppingBag, Settings, BarChart3, Package, Users, Layers3, AlertCircle } from 'lucide-react';
 import { Product, products } from '@/lib/placeholder-data';
 import OrdersManagement from '@/components/OrdersManagement';
 import ImageUploadTemp from '@/components/ImageUploadTemp';
@@ -22,9 +22,13 @@ import { MultiSelectInput } from '@/components/ui/MultiSelectInput';
 import { SelectInput } from '@/components/ui/SelectInput';
 import SmartSelect from '@/components/SmartSelect';
 import useProductMetadata from '@/hooks/useProductMetadata';
+import { createClient } from '@/lib/supabase/client';
 
 // Simulação de autenticação simples
 const ADMIN_PASSWORD = 'micangaria2024'; // Em produção, usar sistema de auth real
+
+// Criar cliente Supabase
+const supabase = createClient();
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -34,13 +38,9 @@ export default function AdminPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-
   // Carregar produtos reais do Supabase
   const loadProductsFromSupabase = async () => {
     try {
-      const { createClient } = await import('@/lib/supabase/client');
-      const supabase = createClient();
-      
       const { data: supabaseProducts, error } = await supabase
         .from('products')
         .select('*')
@@ -1212,77 +1212,268 @@ interface Collection {
 
 // Componente de Gerenciamento de Coleções
 function CollectionsManagement({ products }: { products: Product[] }) {
-  // Coleções predefinidas do sistema
-  const [collections, setCollections] = useState<Collection[]>([
-    {
-      id: '1',
-      name: 'Promoções Especiais',
-      description: 'Produtos em destaque com preços especiais',
-      slug: 'promocoes-especiais',
-      color: '#dc2626',
-      isActive: true,
-      productIds: [],
-      displayOrder: 1,
-      createdAt: new Date()
-    },
-    {
-      id: '2',
-      name: 'Novidades',
-      description: 'Últimas peças que chegaram ao nosso acervo',
-      slug: 'novidades',
-      color: '#16a34a',
-      isActive: true,
-      productIds: [],
-      displayOrder: 2,
-      createdAt: new Date()
-    },
-    {
-      id: '3',
-      name: 'Peças Selecionadas',
-      description: 'Curadoria especial de peças exclusivas',
-      slug: 'pecas-selecionadas',
-      color: '#9333ea',
-      isActive: true,
-      productIds: [],
-      displayOrder: 3,
-      createdAt: new Date()
-    },
-    {
-      id: '4',
-      name: 'Coleção Vintage',
-      description: 'Autênticas peças vintage com história',
-      slug: 'colecao-vintage',
-      color: '#eab308',
-      isActive: true,
-      productIds: [],
-      displayOrder: 4,
-      createdAt: new Date()
-    }
-  ]);
-
+  const [collections, setCollections] = useState<Collection[]>([]);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // Carregar coleções do localStorage
+  // Carregar coleções (localStorage como fallback, Supabase como preferência)
   useEffect(() => {
-    const stored = localStorage.getItem('micangaria_collections');
-    if (stored) {
+    const loadCollections = async () => {
       try {
-        const parsed = JSON.parse(stored);
-        setCollections(parsed.map((c: any) => ({
-          ...c,
-          createdAt: new Date(c.createdAt)
-        })));
+        // Tentar carregar do Supabase primeiro
+        const { data: supabaseCollections, error } = await supabase
+          .from('collections_with_counts')
+          .select('*')
+          .order('display_order');
+
+        if (!error && supabaseCollections && supabaseCollections.length > 0) {
+          console.log('✅ Coleções carregadas do Supabase:', supabaseCollections.length);
+          setCollections(supabaseCollections.map(c => ({
+            ...c,
+            productIds: [], // Será carregado separadamente
+            createdAt: new Date(c.created_at)
+          })));
+          
+          // Carregar produtos das coleções
+          await loadCollectionProducts(supabaseCollections);
+        } else {
+          // Fallback para localStorage
+          const stored = localStorage.getItem('micangaria_collections');
+          if (stored) {
+            try {
+              const parsed = JSON.parse(stored);
+              setCollections(parsed.map((c: any) => ({
+                ...c,
+                createdAt: new Date(c.createdAt)
+              })));
+              console.log('📦 Coleções carregadas do localStorage:', parsed.length);
+            } catch (error) {
+              console.error('Erro ao carregar coleções do localStorage:', error);
+              initializeDefaultCollections();
+            }
+          } else {
+            initializeDefaultCollections();
+          }
+        }
       } catch (error) {
         console.error('Erro ao carregar coleções:', error);
+        initializeDefaultCollections();
       }
-    }
+    };
+
+    loadCollections();
   }, []);
 
-  // Salvar coleções no localStorage
-  const saveCollections = (newCollections: Collection[]) => {
+  // Carregar produtos das coleções do Supabase
+  const loadCollectionProducts = async (collectionsData: any[]) => {
+    try {
+      const { data: collectionProducts, error } = await supabase
+        .from('collection_products')
+        .select('collection_id, product_id');
+
+      if (!error && collectionProducts) {
+        const updatedCollections = collectionsData.map(collection => ({
+          ...collection,
+          productIds: collectionProducts
+            .filter(cp => cp.collection_id === collection.id)
+            .map(cp => cp.product_id),
+          createdAt: new Date(collection.created_at)
+        }));
+        setCollections(updatedCollections);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar produtos das coleções:', error);
+    }
+  };
+
+  // Inicializar coleções padrão
+  const initializeDefaultCollections = () => {
+    const defaultCollections = [
+      {
+        id: '1',
+        name: 'Promoções Especiais',
+        description: 'Produtos em destaque com preços especiais',
+        slug: 'promocoes-especiais',
+        color: '#dc2626',
+        isActive: true,
+        productIds: [],
+        displayOrder: 1,
+        createdAt: new Date()
+      },
+      {
+        id: '2',
+        name: 'Novidades',
+        description: 'Últimas peças que chegaram ao nosso acervo',
+        slug: 'novidades',
+        color: '#16a34a',
+        isActive: true,
+        productIds: [],
+        displayOrder: 2,
+        createdAt: new Date()
+      },
+      {
+        id: '3',
+        name: 'Peças Selecionadas',
+        description: 'Curadoria especial de peças exclusivas',
+        slug: 'pecas-selecionadas',
+        color: '#9333ea',
+        isActive: true,
+        productIds: [],
+        displayOrder: 3,
+        createdAt: new Date()
+      },
+      {
+        id: '4',
+        name: 'Coleção Vintage',
+        description: 'Autênticas peças vintage com história',
+        slug: 'colecao-vintage',
+        color: '#eab308',
+        isActive: true,
+        productIds: [],
+        displayOrder: 4,
+        createdAt: new Date()
+      }
+    ];
+    setCollections(defaultCollections);
+    localStorage.setItem('micangaria_collections', JSON.stringify(defaultCollections));
+  };
+
+  // Salvar no Supabase e localStorage
+  const saveCollections = async (newCollections: Collection[]) => {
     setCollections(newCollections);
     localStorage.setItem('micangaria_collections', JSON.stringify(newCollections));
+    setHasUnsavedChanges(true);
+  };
+  // Salvar todas as mudanças no Supabase
+  const handleSaveToSupabase = async () => {
+    setIsSaving(true);
+    try {
+      console.log('💾 Salvando coleções no Supabase...');
+      
+      for (const collection of collections) {
+        console.log(`📝 Processando coleção: ${collection.name} (${collection.slug})`);
+        
+        // Buscar coleção existente pelo slug
+        const { data: existingCollection, error: selectError } = await supabase
+          .from('collections')
+          .select('id')
+          .eq('slug', collection.slug)
+          .single();
+          
+        if (selectError && selectError.code !== 'PGRST116') {
+          console.error('❌ Erro ao buscar coleção:', selectError);
+          continue;
+        }
+
+        const collectionData = {
+          name: collection.name,
+          description: collection.description,
+          slug: collection.slug,
+          color: collection.color,
+          is_active: collection.isActive,
+          display_order: collection.displayOrder,
+        };
+
+        let collectionId: string;
+
+        if (existingCollection) {
+          // Atualizar coleção existente
+          console.log(`🔄 Atualizando coleção existente: ${existingCollection.id}`);
+          const { error: updateError } = await supabase
+            .from('collections')
+            .update(collectionData)
+            .eq('id', existingCollection.id);
+            
+          if (updateError) {
+            console.error('❌ Erro ao atualizar coleção:', updateError);
+            continue;
+          }
+          collectionId = existingCollection.id;
+        } else {
+          // Criar nova coleção
+          console.log(`➕ Criando nova coleção: ${collection.name}`);
+          const { data: newCollection, error: insertError } = await supabase
+            .from('collections')
+            .insert([collectionData])
+            .select('id')
+            .single();
+            
+          if (insertError) {
+            console.error('❌ Erro ao criar coleção:', insertError);
+            continue;
+          }
+          
+          if (!newCollection) {
+            console.error('❌ Nenhuma coleção retornada após inserção');
+            continue;
+          }
+          
+          collectionId = newCollection.id;
+        }
+
+        console.log(`🆔 ID da coleção para produtos: ${collectionId}`);
+
+        // Limpar produtos existentes da coleção
+        const { error: deleteError } = await supabase
+          .from('collection_products')
+          .delete()
+          .eq('collection_id', collectionId);
+          
+        if (deleteError) {
+          console.error('❌ Erro ao deletar produtos da coleção:', deleteError);
+        }
+
+        // Adicionar produtos à coleção
+        if (collection.productIds.length > 0) {
+          console.log(`📦 Adicionando ${collection.productIds.length} produtos à coleção`);
+          console.log('🔍 Product IDs:', collection.productIds);
+          
+          const collectionProducts = collection.productIds.map((productId, index) => ({
+            collection_id: collectionId,
+            product_id: productId,
+            display_order: index
+          }));
+          
+          console.log('💾 Dados para inserção:', collectionProducts);
+
+          const { data: insertedData, error: insertProductsError } = await supabase
+            .from('collection_products')
+            .insert(collectionProducts)
+            .select();
+
+          if (insertProductsError) {
+            console.error('❌ Erro ao inserir produtos na coleção:', insertProductsError);
+            console.error('🔍 Detalhes do erro:', JSON.stringify(insertProductsError, null, 2));
+          } else {
+            console.log('✅ Produtos inseridos com sucesso:', insertedData?.length || 0);
+          }
+        } else {
+          console.log('📝 Nenhum produto selecionado para esta coleção');
+        }
+      }
+
+      setHasUnsavedChanges(false);
+      alert('✅ Coleções salvas com sucesso no Supabase!');
+      console.log('✅ Todas as coleções foram processadas');
+      
+    } catch (error) {
+      console.error('❌ Erro geral ao salvar no Supabase:', error);
+      alert('❌ Erro ao salvar no Supabase. Dados mantidos localmente.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+      alert('✅ Coleções salvas com sucesso no Supabase!');
+      console.log('✅ Todas as coleções foram salvas no Supabase');
+      
+    } catch (error) {
+      console.error('❌ Erro ao salvar no Supabase:', error);
+      alert('❌ Erro ao salvar no Supabase. Dados mantidos localmente.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCreateCollection = (collectionData: Partial<Collection>) => {
@@ -1341,24 +1532,60 @@ function CollectionsManagement({ products }: { products: Product[] }) {
           </p>
         </div>
         
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90">
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Coleção
+        <div className="flex gap-2">
+          {hasUnsavedChanges && (
+            <Button 
+              onClick={handleSaveToSupabase}
+              disabled={isSaving}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isSaving ? (
+                <>
+                  <div className="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Salvar Mudanças
+                </>
+              )}
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Criar Nova Coleção</DialogTitle>
-            </DialogHeader>
-            <CollectionForm 
-              onSave={handleCreateCollection}
-              onCancel={() => setIsCreateDialogOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
+          )}
+          
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-primary hover:bg-primary/90">
+                <Plus className="w-4 h-4 mr-2" />
+                Nova Coleção
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Criar Nova Coleção</DialogTitle>
+              </DialogHeader>
+              <CollectionForm 
+                onSave={handleCreateCollection}
+                onCancel={() => setIsCreateDialogOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
+
+      {/* Aviso sobre mudanças não salvas */}
+      {hasUnsavedChanges && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-yellow-800">
+              <AlertCircle className="w-4 h-4" />
+              <span className="text-sm">
+                Você tem mudanças não salvas. Clique em "Salvar Mudanças" para sincronizar com o Supabase.
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Lista de Coleções */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1414,7 +1641,9 @@ function CollectionsManagement({ products }: { products: Product[] }) {
                     return (
                       <div
                         key={product.id}
-                        className="flex items-center justify-between p-2 rounded border"
+                        className={`flex items-center justify-between p-2 rounded border transition-colors ${
+                          isInCollection ? 'bg-primary/10 border-primary/30' : 'hover:bg-muted/50'
+                        }`}
                       >
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
@@ -1447,6 +1676,14 @@ function CollectionsManagement({ products }: { products: Product[] }) {
                     );
                   })}
                 </div>
+                
+                {products.length === 0 && (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Nenhum produto disponível</p>
+                    <p className="text-xs">Adicione produtos primeiro na aba "Produtos"</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
