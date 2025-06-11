@@ -127,7 +127,7 @@ export default function FullStorePage() {
   return (
     <div className="min-h-screen bg-background"> {/* Hero Section */}
       <Link href="/products" className="block cursor-pointer">
-        <section className="relative overflow-hidden flex-1 min-h-[40vh] flex items-center"> {/* Changed min-h from 50vh to 40vh */}
+        <section className="relative overflow-hidden flex-1 min-h-[30vh] sm:min-h-[40vh] flex items-center"> {/* Changed min-h for mobile and sm screens */}
           <div className="absolute inset-0">
             {/* Desktop image */}
             <Image
