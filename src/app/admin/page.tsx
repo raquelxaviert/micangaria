@@ -16,7 +16,7 @@ import { Plus, Edit, Trash2, Save, Upload, Eye, ShoppingBag, Settings, BarChart3
 import { Product, products } from '@/lib/placeholder-data';
 import OrdersManagement from '@/components/OrdersManagement';
 import ImageUploadTemp from '@/components/ImageUploadTemp';
-import { MultiImageUpload } from '@/components/ui/MultiImageUpload';
+import { MultiImageUpload } from '@/components/ui/MultiImageUploadDragDrop';
 import { uploadImageToSupabase } from '@/lib/uploadUtils';
 import Image from 'next/image';
 import { MultiSelectInput } from '@/components/ui/MultiSelectInput';
