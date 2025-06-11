@@ -166,14 +166,13 @@ export function useCollections() {
         } catch (e) {
           console.warn('Erro ao processar sizes:', e);
           sizes = [];
-        }
-
-        return {
+        }        return {
           id: product.id,
           name: product.name,
           description: product.description,
           price: product.price,
           imageUrl: product.image_url,
+          gallery_urls: product.gallery_urls || [],
           type: product.type,
           style: product.style,
           colors: product.colors || [],

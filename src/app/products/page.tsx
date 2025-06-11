@@ -35,6 +35,7 @@ function convertProductToProductData(product: Product): ProductData {
     description: product.description,
     price: product.price,
     image_url: product.imageUrl,
+    gallery_urls: product.galleryUrls || [],
     type: product.type,
     style: product.style,
     colors: product.colors,
@@ -236,14 +237,13 @@ function ProductsContent() {
               materialsType: typeof p.materials,
               sizes: p.sizes,
               sizesType: typeof p.sizes
-            });
-
-            return {
+            });            return {
               id: p.id,
               name: p.name,
               description: p.description,
               price: p.price,
               imageUrl: p.image_url || '/products/placeholder.jpg',
+              galleryUrls: Array.isArray(p.gallery_urls) ? p.gallery_urls : [],
               imageHint: p.name.toLowerCase(),
               type: p.type,
               style: p.style,

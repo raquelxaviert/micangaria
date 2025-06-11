@@ -1,0 +1,340 @@
+'use client';
+
+import { useState, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Upload, X, Image as ImageIcon, Plus, Move } from 'lucide-react';
+import Image from 'next/image';
+import { createClient } from '@/lib/supabase/client';
+import { uploadImageToSupabase } from '@/lib/uploadUtils';
+
+interface MultiImageUploadProps {
+  images: string[];
+  onImagesChange: (images: string[]) => void;
+  maxImages?: number;
+  accept?: string;
+  maxSize?: number; // em MB
+}
+
+interface ImageItem {
+  url: string;
+  isUploading?: boolean;
+  isTemp?: boolean;
+  file?: File;
+}
+
+export function MultiImageUpload({ 
+  images, 
+  onImagesChange, 
+  maxImages = 5,
+  accept = 'image/*',
+  maxSize = 5 
+}: MultiImageUploadProps) {
+  const [imageItems, setImageItems] = useState<ImageItem[]>(
+    images.map(url => ({ url }))
+  );
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const updateParent = (items: ImageItem[]) => {
+    const urls = items.map(item => item.url);
+    onImagesChange(urls);
+  };
+
+  const handleFileSelect = async (files: FileList | null) => {
+    if (!files) return;
+
+    const newFiles = Array.from(files);
+    const remainingSlots = maxImages - imageItems.length;
+    const filesToProcess = newFiles.slice(0, remainingSlots);
+
+    for (const file of filesToProcess) {
+      // Validar tipo de arquivo
+      if (!file.type.startsWith('image/')) {
+        alert('Por favor, selecione apenas arquivos de imagem.');
+        continue;
+      }
+
+      // Validar tamanho
+      if (file.size > maxSize * 1024 * 1024) {
+        alert(`O arquivo ${file.name} deve ter no máximo ${maxSize}MB.`);
+        continue;
+      }
+
+      // Criar preview temporário
+      const tempItem: ImageItem = {
+        url: URL.createObjectURL(file),
+        isUploading: true,
+        isTemp: true,
+        file
+      };
+
+      const newItems = [...imageItems, tempItem];
+      setImageItems(newItems);
+
+      try {
+        // Upload para Supabase
+        const uploadResult = await uploadImageToSupabase(file);
+        
+        if (uploadResult.success && uploadResult.url) {
+          // Substituir item temporário pelo final
+          const updatedItems = imageItems.map(item => 
+            item.url === tempItem.url 
+              ? { url: uploadResult.url, isUploading: false, isTemp: false }
+              : item
+          );
+          const finalItems = [...updatedItems, { url: uploadResult.url, isUploading: false, isTemp: false }];
+          setImageItems(finalItems);
+          updateParent(finalItems);
+        } else {
+          // Upload falhou, usar imagem local
+          const fallbackUrl = `/products/${file.name}`;
+          const updatedItems = imageItems.map(item => 
+            item.url === tempItem.url 
+              ? { url: fallbackUrl, isUploading: false, isTemp: false }
+              : item
+          );
+          const finalItems = [...updatedItems, { url: fallbackUrl, isUploading: false, isTemp: false }];
+          setImageItems(finalItems);
+          updateParent(finalItems);
+          alert(`Upload falhou: ${uploadResult.error}. Usando imagem local como fallback.`);
+        }
+      } catch (error) {
+        console.error('Erro no upload:', error);
+        // Remover item que falhou
+        const filteredItems = imageItems.filter(item => item.url !== tempItem.url);
+        setImageItems(filteredItems);
+        updateParent(filteredItems);
+        alert(`Erro ao fazer upload de ${file.name}`);
+      }
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    handleFileSelect(e.dataTransfer.files);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const removeImage = (index: number) => {
+    const newItems = imageItems.filter((_, i) => i !== index);
+    setImageItems(newItems);
+    updateParent(newItems);
+  };
+
+  const moveImage = (fromIndex: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= imageItems.length) return;
+    
+    const newItems = [...imageItems];
+    const [movedItem] = newItems.splice(fromIndex, 1);
+    newItems.splice(toIndex, 0, movedItem);
+    
+    setImageItems(newItems);
+    updateParent(newItems);
+  };
+
+  const handleClick = () => {
+    if (imageItems.length < maxImages) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Existing Images */}
+      {imageItems.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {imageItems.map((item, index) => (
+            <Card key={index} className="relative overflow-hidden">
+              <CardContent className="p-0">
+                <div className="relative aspect-square">
+                  <Image
+                    src={item.url}
+                    alt={`Produto ${index + 1}`}
+                    fill
+                    className="object-cover"
+                  />
+                  
+                  {/* Loading overlay */}
+                  {item.isUploading && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                    </div>
+                  )}
+
+                  {/* Controls */}
+                  <div className="absolute top-2 right-2 flex gap-1">
+                    {/* Move buttons */}
+                    {index > 0 && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 bg-white/80 hover:bg-white/90"
+                        onClick={() => moveImage(index, index - 1)}
+                      >
+                        ←
+                      </Button>
+                    )}
+                    {index < imageItems.length - 1 && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 bg-white/80 hover:bg-white/90"
+                        onClick={() => moveImage(index, index + 1)}
+                      >
+                        →
+                      </Button>
+                    )}
+                    
+                    {/* Remove button */}
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => removeImage(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Primary image indicator */}
+                  {index === 0 && (
+                    <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
+                      Principal
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Upload Area */}
+      {imageItems.length < maxImages && (
+        <Card 
+          className={`border-2 border-dashed transition-colors cursor-pointer ${
+            isDragging 
+              ? 'border-blue-400 bg-blue-50' 
+              : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+          }`}
+          onClick={handleClick}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+        >
+          <CardContent className="p-8">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={accept}
+              multiple
+              onChange={(e) => handleFileSelect(e.target.files)}
+              className="hidden"
+            />
+
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                {isDragging ? (
+                  <Upload className="w-8 h-8 text-blue-600" />
+                ) : (
+                  <Plus className="w-8 h-8 text-gray-400" />
+                )}
+              </div>
+              
+              <p className="text-base font-medium text-gray-700 mb-2">
+                {isDragging ? 'Solte as imagens aqui' : 'Adicionar mais imagens'}
+              </p>
+              
+              <p className="text-sm text-gray-500 mb-1">
+                Clique ou arraste imagens para enviar
+              </p>
+              
+              <p className="text-xs text-gray-400">
+                {imageItems.length}/{maxImages} imagens • Máx. {maxSize}MB cada
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Quick Select from Existing */}
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-gray-700">Ou selecione imagens existentes:</p>
+        <div className="grid grid-cols-4 gap-2">
+          {[
+            '/products/colar.jpg',
+            '/products/brinco.jpg',
+            '/products/pulseira.jpg',
+            '/products/anel.jpg',
+            '/products/conjunto_colares.jpg',
+            '/products/conjunto_pulseiras.jpg',
+            '/products/sandalia.jpg',
+            '/products/cinto.jpg'
+          ].map((imagePath, index) => (
+            <button
+              key={index}
+              type="button"
+              className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all hover:scale-105 ${
+                imageItems.some(item => item.url === imagePath)
+                  ? 'border-blue-400 ring-2 ring-blue-200' 
+                  : 'border-gray-200 hover:border-blue-300'
+              }`}
+              onClick={() => {
+                if (imageItems.length < maxImages && !imageItems.some(item => item.url === imagePath)) {
+                  const newItems = [...imageItems, { url: imagePath }];
+                  setImageItems(newItems);
+                  updateParent(newItems);
+                }
+              }}
+              disabled={imageItems.length >= maxImages}
+            >
+              <Image
+                src={imagePath}
+                alt={`Opção ${index + 1}`}
+                fill
+                className="object-cover"
+              />
+              {imageItems.some(item => item.url === imagePath) && (
+                <div className="absolute inset-0 bg-blue-400 bg-opacity-30 flex items-center justify-center">
+                  <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                    <div className="w-3 h-3 bg-white rounded-full"></div>
+                  </div>
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+            <ImageIcon className="w-3 h-3 text-white" />
+          </div>
+          <div>
+            <p className="text-sm text-blue-800 font-medium mb-1">
+              Múltiplas Imagens por Produto
+            </p>
+            <p className="text-xs text-blue-700">
+              • A primeira imagem será exibida como principal nos cards de produto<br />
+              • Use as setas para reordenar as imagens<br />
+              • Upload automático para Supabase Storage com URLs permanentes
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

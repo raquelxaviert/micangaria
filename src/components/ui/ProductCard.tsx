@@ -16,6 +16,7 @@ export interface ProductData {
   price: number;
   imageUrl?: string;
   image_url?: string; // Supabase format
+  gallery_urls?: string[]; // Supabase multiple images
   type: string;
   style: string;
   colors?: string[];
@@ -47,12 +48,14 @@ export function ProductCard({
   showColors = true,
   showRating = false,
   className = ""
-}: ProductCardProps) {
-  // Normalize product data to handle both formats
+}: ProductCardProps) {  // Normalize product data to handle both formats
   const imageUrl = product.imageUrl || product.image_url || '/products/placeholder.jpg';
   const isNewArrival = product.isNewArrival || product.is_new_arrival || false;
   const isOnSale = product.isOnSale || product.is_promotion || false;
   const promotionDetails = product.promotionDetails || product.promotion_details;
+  
+  // Get total number of images for indicator
+  const totalImages = 1 + (Array.isArray(product.gallery_urls) ? product.gallery_urls.length : 0);
 
   return (
     <Card className={`group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95 ${className}`}>
@@ -85,7 +88,20 @@ export function ProductCard({
                   {variant === 'compact' ? 'OFERTA' : (promotionDetails || 'OFERTA')}
                 </Badge>
               )}
-            </div>
+            </div>            {/* Multiple images indicator */}
+            {totalImages > 1 && (
+              <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 grid grid-cols-2 gap-0.5">
+                    <div className="w-1 h-1 bg-white rounded-full"></div>
+                    <div className="w-1 h-1 bg-white rounded-full"></div>
+                    <div className="w-1 h-1 bg-white rounded-full"></div>
+                    <div className="w-1 h-1 bg-white rounded-full"></div>
+                  </div>
+                  <span>{totalImages}</span>
+                </div>
+              </div>
+            )}
 
             {/* Overlay gradient em detailed */}
             {(variant === 'detailed' || variant === 'favorites') && (

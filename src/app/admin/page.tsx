@@ -16,6 +16,7 @@ import { Plus, Edit, Trash2, Save, Upload, Eye, ShoppingBag, Settings, BarChart3
 import { Product, products } from '@/lib/placeholder-data';
 import OrdersManagement from '@/components/OrdersManagement';
 import ImageUploadTemp from '@/components/ImageUploadTemp';
+import { MultiImageUpload } from '@/components/ui/MultiImageUpload';
 import { uploadImageToSupabase } from '@/lib/uploadUtils';
 import Image from 'next/image';
 import { MultiSelectInput } from '@/components/ui/MultiSelectInput';
@@ -542,6 +543,8 @@ function ProductForm({
     collection: '',
     notes: '',
     imageUrl: '',
+    gallery_urls: [],
+    alt_text: '',
     gallery_urls: []
   });
 
@@ -966,21 +969,35 @@ function ProductForm({
             />
           </div>
         </div>
-      </div>      {/* Imagens - Seção opcional */}
+      </div>      {/* Imagens - Múltiplas imagens com carrossel */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold">🖼️ Imagens</h3>
-          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+          <h3 className="text-lg font-semibold">🖼️ Imagens do Produto</h3>
+          <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">Múltiplas imagens</span>
+        </div>
+        
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p className="text-sm text-blue-800">
+            <strong>✨ Novo:</strong> Agora você pode adicionar até 5 imagens por produto! 
+            A primeira imagem será exibida como principal nos cards de produto.
+          </p>
         </div>
         
         <div>
-          <Label htmlFor="imageUrl">Imagem Principal</Label>
-          <ImageUploadTemp
-            currentImage={imageData.url}
-            onImageChange={(data) => {
-              setImageData(data);
-              setFormData({ ...formData, imageUrl: data.url });
+          <MultiImageUpload
+            images={[
+              ...(formData.imageUrl ? [formData.imageUrl] : []),
+              ...(Array.isArray(formData.gallery_urls) ? formData.gallery_urls : [])
+            ].filter(Boolean)}
+            onImagesChange={(images) => {
+              const [primaryImage, ...galleryImages] = images;
+              setFormData({ 
+                ...formData, 
+                imageUrl: primaryImage || '',
+                gallery_urls: galleryImages
+              });
             }}
+            maxImages={5}
           />
         </div>
 
@@ -990,10 +1007,10 @@ function ProductForm({
             id="alt_text"
             value={formData.alt_text || ''}
             onChange={(e) => setFormData({ ...formData, alt_text: e.target.value })}
-            placeholder="Descrição da imagem para acessibilidade"
+            placeholder="Descrição das imagens para acessibilidade"
           />
         </div>
-      </div>      {/* Inventário e Controle - Seção opcional */}
+      </div>{/* Inventário e Controle - Seção opcional */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold">📦 Inventário</h3>

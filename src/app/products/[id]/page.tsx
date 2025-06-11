@@ -26,6 +26,7 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import { LikeButton } from '@/components/ui/LikeButton';
 import { ProductCard, ProductData } from '@/components/ui/ProductCard';
+import { ImageCarousel } from '@/components/ui/ImageCarousel';
 
 interface Product {
   id: string;
@@ -33,6 +34,7 @@ interface Product {
   description: string;
   price: number;
   image_url: string;
+  gallery_urls: string[] | null;
   type: string;
   style: string;
   colors: string[];
@@ -214,20 +216,22 @@ export default function ProductPage() {
           Voltar
         </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Imagem do Produto */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">          {/* Imagens do Produto */}
           <div className="space-y-4">
-            <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted group">
-              <Image
-                src={product.image_url}
+            <div className="relative">
+              <ImageCarousel
+                images={[
+                  product.image_url,
+                  ...(Array.isArray(product.gallery_urls) ? product.gallery_urls : [])
+                ].filter(Boolean)}
                 alt={product.name}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                priority
+                showThumbnails={true}
+                showZoom={true}
+                className="rounded-2xl overflow-hidden"
               />
               
               {/* Badges */}
-              <div className="absolute top-4 left-4 flex flex-col gap-2">
+              <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
                 {product.is_new_arrival && (
                   <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg">
                     NOVO
@@ -241,7 +245,7 @@ export default function ProductPage() {
               </div>
 
               {/* Botões de ação */}
-              <div className="absolute top-4 right-4 flex flex-col gap-2">
+              <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
                 <LikeButton 
                   productId={product.id} 
                   variant="floating"
@@ -256,7 +260,7 @@ export default function ProductPage() {
                   <Share2 className="h-4 w-4" />
                 </Button>
               </div>
-            </div>            {/* Trust Badges - Desktop */}
+            </div>{/* Trust Badges - Desktop */}
             <div className="grid grid-cols-3 gap-4 pt-4 hidden md:grid">
               <div className="flex flex-col items-center text-center space-y-2">
                 <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
