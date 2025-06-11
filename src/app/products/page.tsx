@@ -261,13 +261,11 @@ function ProductsContent() {
       }
     }
   }, []);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {/* Header */}
-        <div className="mb-8 sm:mb-12">
-          <div className="text-center mb-6 sm:mb-8">
+      <div className="container mx-auto px-2 sm:px-6 py-4 sm:py-8">        {/* Header */}
+        <div className="mb-6 sm:mb-12">
+          <div className="text-center mb-4 sm:mb-8">
             <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">
               Nossa Coleção Completa
             </Badge>
@@ -323,7 +321,7 @@ function ProductsContent() {
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
           {/* Desktop Filters - Hidden on mobile */}
           <aside className="hidden lg:block lg:w-80 xl:w-96 sticky top-6 h-fit">
             <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
@@ -338,17 +336,16 @@ function ProductsContent() {
               </CardContent>
             </Card>
           </aside>
-          
-          {/* Products Grid */}
+            {/* Products Grid */}
           <main className="flex-1">            {filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 lg:gap-6">
                 {filteredProducts.map(product => (
                   <ProductCard 
                     key={product.id} 
                     product={convertProductToProductData(product)}
-                    variant="detailed"
-                    showRating={true}
-                    className="hover:-translate-y-2"
+                    variant="compact"
+                    showRating={false}
+                    className="hover:-translate-y-1 sm:hover:-translate-y-2"
                   />
                 ))}
               </div>

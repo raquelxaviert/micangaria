@@ -59,9 +59,8 @@ export function ProductCard({
           src={imageUrl}
           alt={product.name}
           width={400}
-          height={400}
-          className={`w-full object-cover group-hover:scale-110 transition-transform duration-700 ${
-            variant === 'compact' ? 'h-48' : 'h-72'
+          height={400}          className={`w-full object-cover group-hover:scale-110 transition-transform duration-700 ${
+            variant === 'compact' ? 'h-40 sm:h-48' : 'h-72'
           }`}
         />
         
@@ -90,9 +89,8 @@ export function ProductCard({
         )}
       </div>
 
-      <CardContent className={`space-y-4 ${variant === 'compact' ? 'p-3' : 'p-5'}`}>
-        {/* Tags/cores do produto */}
-        {showColors && product.colors && product.colors.length > 0 && (
+      <CardContent className={`space-y-2 sm:space-y-4 ${variant === 'compact' ? 'p-2 sm:p-3' : 'p-5'}`}>        {/* Tags/cores do produto */}
+        {showColors && product.colors && product.colors.length > 0 && variant !== 'compact' && (
           <div className="flex flex-wrap gap-2">
             {product.colors.slice(0, 3).map((color: string) => (
               <span 
@@ -108,68 +106,68 @@ export function ProductCard({
               </span>
             )}
           </div>
-        )}
-
-        {/* Badges de tipo e estilo */}
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-xs capitalize">
-            {product.type}
-          </Badge>
-          <Badge variant="secondary" className="text-xs capitalize">
-            {product.style}
-          </Badge>
-        </div>
-
-        {/* Nome do produto */}
+        )}        {/* Badges de tipo e estilo */}
+        {variant !== 'compact' && (
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs capitalize">
+              {product.type}
+            </Badge>
+            <Badge variant="secondary" className="text-xs capitalize">
+              {product.style}
+            </Badge>
+          </div>
+        )}        {/* Nome do produto */}
         <h3 className={`font-semibold leading-tight group-hover:text-primary transition-colors duration-300 line-clamp-2 ${
-          variant === 'compact' ? 'text-base' : 'text-lg'
+          variant === 'compact' ? 'text-sm sm:text-base' : 'text-lg'
         }`}>
           {product.name}
-        </h3>
-
-        {/* Descrição */}
-        {showDescription && (
+        </h3>        {/* Descrição */}
+        {showDescription && variant !== 'compact' && (
           <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
             {product.description}
           </p>
-        )}        {/* Rating (para variantes detailed e favorites) */}
+        )}{/* Rating (para variantes detailed e favorites) */}
         {showRating && (variant === 'detailed' || variant === 'favorites') && (
           <div className="flex items-center gap-1 text-yellow-500">
             {[...Array(5)].map((_, i) => (
               <Star key={i} className="w-4 h-4 fill-current" />
             ))}
           </div>
-        )}
-
-        {/* Preços */}
+        )}        {/* Preços */}
         <div className="space-y-2">
           <div className="flex items-baseline gap-2">
             <span className={`font-bold text-primary ${
-              variant === 'compact' ? 'text-xl' : 'text-2xl'
+              variant === 'compact' ? 'text-lg sm:text-xl' : 'text-2xl'
             }`}>
               R$ {product.price.toFixed(2).replace('.', ',')}
             </span>
           </div>
         </div>        {/* Botões de ação */}
         {showActions && (
-          <div className={`flex gap-2 pt-2 ${variant === 'detailed' ? 'flex-col' : ''}`}>
+          <div className={`flex gap-1 sm:gap-2 pt-1 sm:pt-2 ${variant === 'detailed' ? 'flex-col' : ''}`}>
             <Button 
               asChild
               variant="outline" 
               size="sm"
-              className="flex-1 hover:bg-primary hover:text-white transition-colors duration-300 text-xs"
+              className={`flex-1 hover:bg-primary hover:text-white transition-colors duration-300 ${
+                variant === 'compact' ? 'text-xs px-2 py-1 h-8' : 'text-xs'
+              }`}
             >
               <Link href={`/products/${product.id}`}>
                 <Eye className="w-3 h-3 mr-1" />
-                Ver Detalhes
+                <span className="hidden sm:inline">Ver Detalhes</span>
+                <span className="sm:hidden">Ver</span>
               </Link>
             </Button>
             <Button 
               size="sm"
-              className="flex-1 bg-primary hover:bg-primary/90 transition-colors duration-300 text-xs"
+              className={`flex-1 bg-primary hover:bg-primary/90 transition-colors duration-300 ${
+                variant === 'compact' ? 'text-xs px-2 py-1 h-8' : 'text-xs'
+              }`}
             >
               <ShoppingCart className="w-3 h-3 mr-1" />
-              Adicionar
+              <span className="hidden sm:inline">Adicionar</span>
+              <span className="sm:hidden">+</span>
             </Button>
           </div>
         )}
