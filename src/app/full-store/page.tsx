@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, ShoppingBag, Heart, Star, Truck, Shield, CreditCard, RefreshCw, Sparkles } from 'lucide-react';
+import { ArrowRight, ShoppingBag, Heart, Star, Truck, Shield, CreditCard, RefreshCw, Sparkles, Eye, ShoppingCart, Plus } from 'lucide-react';
 import CollectionSection from '@/components/CollectionSection';
 import CategoriesSection from '@/components/CategoriesSection';
 
@@ -54,72 +54,178 @@ export default function FullStorePage() {
       text: 'Além das peças incríveis, a consultoria de styling transformou meu guarda-roupa. Recomendo demais!'
     }
   ];
-
   const ProductCard = ({ product }: { product: any }) => (
-    <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
-      <div className="relative">
+    <Card className="group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95">
+      <div className="relative overflow-hidden">
         <Image
           src={product.image}
           alt={product.name}
           width={400}
           height={400}
-          className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-72 object-cover group-hover:scale-110 transition-transform duration-700"
         />
-        {product.isNew && (
-          <Badge className="absolute top-3 left-3 bg-green-500 text-white">
-            NOVO
-          </Badge>
-        )}
-        {product.isOffer && (
-          <Badge className="absolute top-3 left-3 bg-red-500 text-white">
-            OFERTA
-          </Badge>
-        )}
+        
+        {/* Badges superior esquerdo */}
+        <div className="absolute top-3 left-3 flex flex-col gap-2">
+          {product.isNew && (
+            <Badge className="bg-green-500 text-white font-semibold px-3 py-1 shadow-lg">
+              NOVO
+            </Badge>
+          )}
+          {product.isOffer && (
+            <Badge className="bg-red-500 text-white font-semibold px-3 py-1 shadow-lg">
+              OFERTA
+            </Badge>
+          )}
+          {product.discount && (
+            <Badge className="bg-primary text-white font-semibold px-3 py-1 shadow-lg">
+              -{product.discount}%
+            </Badge>
+          )}
+        </div>
+
+        {/* Botão de Like superior direito */}
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-3 right-3 bg-white/90 hover:bg-white rounded-full"
+          className="absolute top-3 right-3 bg-white/90 hover:bg-white rounded-full shadow-lg border border-white/20 hover:scale-110 transition-all duration-300"
         >
-          <Heart className="w-4 h-4" />
+          <Heart className="w-4 h-4 hover:fill-red-500 hover:text-red-500 transition-colors" />
         </Button>
-      </div>
-      <CardContent className="p-4 space-y-3">
-        <div className="flex gap-2">
-          {product.tags.map((tag: string) => (
-            <span 
-              key={tag}
-              className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full"
+
+        {/* Overlay com botões de ação - aparece no hover */}
+        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              size="icon"
+              className="bg-white/95 hover:bg-white rounded-full shadow-lg hover:scale-110 transition-all duration-300"
+              title="Visualizar produto"
             >
-              {tag}
-            </span>
-          ))}
+              <Eye className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="secondary"
+              size="icon"
+              className="bg-white/95 hover:bg-white rounded-full shadow-lg hover:scale-110 transition-all duration-300"
+              title="Adicionar ao carrinho"
+            >
+              <ShoppingCart className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
-        <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+
+        {/* Badge de estoque baixo */}
+        {product.lowStock && (
+          <div className="absolute bottom-3 left-3">
+            <Badge variant="destructive" className="bg-orange-500 text-white font-semibold">
+              Últimas unidades!
+            </Badge>
+          </div>
+        )}
+      </div>
+
+      <CardContent className="p-5 space-y-4">
+        {/* Tags do produto */}
+        {product.tags && product.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {product.tags.slice(0, 3).map((tag: string) => (
+              <span 
+                key={tag}
+                className="text-xs px-3 py-1 bg-primary/10 text-primary rounded-full font-medium hover:bg-primary/20 transition-colors"
+              >
+                {tag}
+              </span>
+            ))}
+            {product.tags.length > 3 && (
+              <span className="text-xs px-3 py-1 bg-muted text-muted-foreground rounded-full">
+                +{product.tags.length - 3}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Nome do produto */}
+        <h3 className="font-semibold text-lg leading-tight group-hover:text-primary transition-colors duration-300 line-clamp-2">
           {product.name}
         </h3>
-        <p className="text-sm text-muted-foreground">
+
+        {/* Descrição */}
+        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
           {product.description}
         </p>
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-2xl font-bold text-primary">
-              R$ {product.price.toFixed(2).replace('.', ',')}
+
+        {/* Avaliação */}
+        {product.rating && (
+          <div className="flex items-center gap-2">
+            <div className="flex">
+              {[...Array(5)].map((_, i) => (
+                <Star 
+                  key={i} 
+                  className={`w-3 h-3 ${i < Math.floor(product.rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} 
+                />
+              ))}
+            </div>
+            <span className="text-xs text-muted-foreground">
+              ({product.reviewCount || 0} avaliações)
             </span>
-            {product.originalPrice && (
-              <span className="text-sm text-muted-foreground line-through ml-2">
+          </div>
+        )}
+
+        {/* Preços */}
+        <div className="space-y-2">
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-primary">
+              R$ {product.price?.toFixed(2).replace('.', ',') || '0,00'}
+            </span>
+            {product.originalPrice && product.originalPrice > product.price && (
+              <span className="text-sm text-muted-foreground line-through">
                 R$ {product.originalPrice.toFixed(2).replace('.', ',')}
               </span>
             )}
           </div>
+          
+          {/* Parcelamento */}
+          {product.installments && (
+            <p className="text-xs text-muted-foreground">
+              ou {product.installments}x de R$ {(product.price / product.installments).toFixed(2).replace('.', ',')}
+            </p>
+          )}
         </div>
+
+        {/* Texto da oferta */}
         {product.offerText && (
-          <p className="text-sm font-medium text-red-600">
+          <p className="text-sm font-medium text-red-600 bg-red-50 px-3 py-2 rounded-lg">
             {product.offerText}
           </p>
         )}
-        <Button className="w-full">
-          Ver Detalhes
-        </Button>
+
+        {/* Botões de ação */}
+        <div className="flex gap-2 pt-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="flex-1 hover:bg-primary hover:text-white transition-colors duration-300"
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            Ver Detalhes
+          </Button>
+          <Button 
+            size="sm"
+            className="flex-1 bg-primary hover:bg-primary/90 transition-colors duration-300"
+          >
+            <ShoppingCart className="w-4 h-4 mr-2" />
+            Adicionar
+          </Button>
+        </div>
+
+        {/* Informações extras */}
+        {product.fastShipping && (
+          <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 px-3 py-2 rounded-lg">
+            <Truck className="w-3 h-3" />
+            <span>Entrega rápida disponível</span>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -146,14 +252,12 @@ export default function FullStorePage() {
               priority
             />
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10" />
-          </div>
-          
-          <div className="relative z-10 container mx-auto px-4 sm:px-6 py-8 text-center">
+          </div>          <div className="relative z-10 container mx-auto px-4 sm:px-6 py-8 text-center">
             {/* Container interno com blur menor para facilitar leitura */}
-            <div className="max-w-5xl mx-auto space-y-6 bg-background/70 backdrop-blur-[3px] p-6 sm:p-8 md:p-12 rounded-2xl shadow-xl">
+            <div className="max-w-full mx-auto space-y-6 bg-background/70 backdrop-blur-[3px] p-6 sm:p-8 md:p-12 lg:p-16 xl:p-20 rounded-2xl shadow-xl overflow-hidden">
               <div className="space-y-4"> {/* Reduced spacing from space-y-8 */}
-                <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-8xl font-headline leading-tight animate-fade-in"> {/* Increased font sizes */}
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
+                <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-headline leading-tight animate-fade-in break-words hyphens-auto text-center"> {/* Increased font sizes */}
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 flex-wrap">
                     <span className="animate-color-wave whitespace-nowrap">We don't whisper.</span>
                     <div className="flex items-center whitespace-nowrap gap-2 sm:gap-3">
                       <span className="animate-color-wave-alt">We</span>
@@ -162,7 +266,7 @@ export default function FullStorePage() {
                         alt="RÜGE Logo"
                         width={200}
                         height={80}
-                        className="w-auto h-[1em] sm:h-[1em] inline-block translate-y-0.5 sm:translate-y-1"
+                        className="w-auto h-[0.7em] sm:h-[0.8em] md:h-[0.9em] lg:h-[1em] inline-block translate-y-0.5 sm:translate-y-1"
                       />
                       <span className="animate-color-wave-alt">.</span>
                     </div>
@@ -264,12 +368,11 @@ export default function FullStorePage() {
             ))}
           </div>
         </div>
-      </section>      {/* Promotions Section - Agora usando dados reais do Supabase */}
-      <CollectionSection 
+      </section>      {/* Promotions Section - Agora usando dados reais do Supabase */}      <CollectionSection 
         collectionSlug="promocoes-especiais"
         title="Ofertas imperdíveis por tempo limitado. Não perca!"
         badgeText="Promoções Especiais"
-        badgeColor="#dc2626"
+        badgeColor="#780116"
         description="Peças em destaque com preços especiais por tempo limitado."
         maxProducts={5}
       />
