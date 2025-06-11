@@ -1,118 +1,17 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Tag, Zap, Star, Heart, ShoppingBag } from 'lucide-react';
+import { ArrowRight, Heart, ShoppingBag } from 'lucide-react';
 import { useLikes } from '@/contexts/LikesContextSupabase';
-import { LikeButton } from '@/components/ui/LikeButton';
 import { ClientOnly } from '@/components/ui/ClientOnly';
 import { createClient } from '@/lib/supabase/client';
-
-// Interface para produto do Supabase
-interface SupabaseProduct {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image_url: string;
-  type: string;
-  style: string;
-  colors: string[];
-  is_new_arrival?: boolean;
-  is_promotion?: boolean;
-  promotion_details?: string;
-}
-
-function LikedProductCard({ product }: { product: SupabaseProduct }) {
-  return (
-    <Card className="group flex flex-col h-full shadow-md hover:shadow-2xl transition-all duration-500 rounded-xl overflow-hidden bg-card border-0 hover:-translate-y-2">
-      <CardHeader className="relative p-0">
-        <div className="relative h-64 w-full overflow-hidden">
-          <Image
-            src={product.image_url || '/products/placeholder.jpg'}
-            alt={product.name}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            priority
-          />
-          
-          {/* Overlay gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
-          {/* Badges */}
-          <div className="absolute top-3 left-3 flex flex-col gap-2">
-            {product.is_new_arrival && (
-              <Badge className="bg-green-600 text-white font-bold shadow-lg">
-                <Zap className="w-3 h-3 mr-1" />
-                NOVO
-              </Badge>
-            )}
-            {product.is_promotion && (
-              <Badge className="bg-red-600 text-white font-bold shadow-lg animate-pulse">
-                <Tag className="w-3 h-3 mr-1" />
-                OFERTA
-              </Badge>
-            )}
-          </div>
-          
-          {/* Heart Icon - Always visible and filled for liked products */}
-          <LikeButton 
-            productId={product.id} 
-            className="opacity-100"
-          />
-        </div>
-      </CardHeader>
-      
-      <CardContent className="flex-grow p-4 sm:p-6 space-y-3">
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-xs capitalize">
-            {product.type}
-          </Badge>
-          <Badge variant="secondary" className="text-xs capitalize">
-            {product.style}
-          </Badge>
-        </div>
-        
-        <CardTitle className="text-lg sm:text-xl font-bold text-primary group-hover:text-primary/80 transition-colors">
-          {product.name}
-        </CardTitle>
-        
-        <CardDescription className="text-sm text-muted-foreground leading-relaxed">
-          {product.description}
-        </CardDescription>
-        
-        <div className="flex items-center justify-between">
-          <span className="text-2xl font-bold text-primary">
-            R$ {product.price.toFixed(2)}
-          </span>
-          <div className="flex items-center gap-1 text-yellow-500">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="w-4 h-4 fill-current" />
-            ))}
-          </div>
-        </div>
-      </CardContent>
-      
-      <CardFooter className="p-4 sm:p-6 pt-0">
-        <Button asChild className="w-full group/btn">
-          <Link href={`/products/${product.id}`}>
-            Ver Detalhes
-            <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
-          </Link>
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-}
+import Link from 'next/link';
+import { ProductCard, ProductData } from '@/components/ui/ProductCard';
 
 function LikedProductsContent() {
   const { getLikedProducts, isLoaded, likedCount } = useLikes();
-  const [products, setProducts] = useState<SupabaseProduct[]>([]);
+  const [products, setProducts] = useState<ProductData[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
@@ -191,11 +90,15 @@ function LikedProductsContent() {
 
       {/* Content */}
       {likedProducts.length > 0 ? (
-        <>
-          {/* Products Grid */}
+        <>          {/* Products Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
             {likedProducts.map(product => (
-              <LikedProductCard key={product.id} product={product} />
+              <ProductCard 
+                key={product.id} 
+                product={product} 
+                variant="detailed"
+                showRating={true}
+              />
             ))}
           </div>
 

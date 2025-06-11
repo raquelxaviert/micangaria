@@ -4,20 +4,18 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useMemo, useEffect, Suspense } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
 import { products as allProducts, Product, uniqueTypes, uniqueStyles, uniqueColors } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Filter, X, Tag, ListFilter, Search, ShoppingBag, Star, ArrowRight, Zap, Sparkles } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Filter, X, ListFilter, Search, Sparkles, Zap, Tag } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useSearchParams } from 'next/navigation';
-import { LikeButton } from '@/components/ui/LikeButton';
+import { ProductCard, ProductData } from '@/components/ui/ProductCard';
 
 interface Filters {
   type: string | null;
@@ -28,91 +26,21 @@ interface Filters {
   showPromotions: boolean;
 }
 
-function ProductCard({ product }: { product: Product }) {
-  return (
-    <Card id={product.id} className="group flex flex-col h-full shadow-md hover:shadow-2xl transition-all duration-500 rounded-xl overflow-hidden bg-card border-0 hover:-translate-y-2">
-      <CardHeader className="p-0 relative overflow-hidden">
-        <div className="aspect-square relative w-full overflow-hidden rounded-t-xl">
-          <Image
-            src={product.imageUrl}
-            alt={product.name}
-            fill
-            className="object-cover group-hover:scale-110 transition-transform duration-700"
-            data-ai-hint={product.imageHint}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
-          {/* Badges */}
-          <div className="absolute top-3 left-3 flex flex-col gap-2">
-            {product.isNewArrival && (
-              <Badge className="bg-accent text-accent-foreground font-bold shadow-lg">
-                <Zap className="w-3 h-3 mr-1" />
-                NOVO
-              </Badge>
-            )}            {product.isPromotion && (
-              <Badge className="bg-red-600 text-white font-bold shadow-lg animate-pulse">
-                <Tag className="w-3 h-3 mr-1" />
-                OFERTA
-              </Badge>
-            )}
-          </div>
-            {/* Heart Icon */}
-          <LikeButton productId={product.id} />
-        </div>
-      </CardHeader>
-      
-      <CardContent className="flex-grow p-4 sm:p-6 space-y-3">
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-xs capitalize">
-            {product.type}
-          </Badge>
-          <Badge variant="secondary" className="text-xs capitalize">
-            {product.style}
-          </Badge>
-        </div>
-        
-        <CardTitle className="text-lg sm:text-xl font-headline text-primary group-hover:text-primary/80 transition-colors line-clamp-2">
-          {product.name}
-        </CardTitle>
-        
-        <CardDescription className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-          {product.description}
-        </CardDescription>
-        
-        <div className="flex items-center justify-between pt-2">
-          <p className="text-xl sm:text-2xl font-bold text-primary">
-            R$ {product.price.toFixed(2)}
-          </p>
-          <div className="flex text-amber-400">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="w-4 h-4 fill-current" />
-            ))}
-          </div>
-        </div>
-          {product.isPromotion && product.promotionDetails && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
-            <p className="text-sm text-red-800 font-medium flex items-center">
-              <Tag className="w-4 h-4 mr-2" />
-              {product.promotionDetails}
-            </p>
-          </div>
-        )}
-      </CardContent>
-      
-      <CardFooter className="p-4 sm:p-6 pt-0">
-        <Button 
-          asChild 
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-3 rounded-lg transition-all duration-300 group-hover:bg-primary/80"
-        >
-          <Link href={`/products#${product.id}`}>
-            <ShoppingBag className="w-4 h-4 mr-2" />
-            Ver Detalhes
-            <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-          </Link>
-        </Button>
-      </CardFooter>
-    </Card>
-  );
+// Convert Product to ProductData format for compatibility with ProductCard
+function convertProductToProductData(product: Product): ProductData {
+  return {
+    id: product.id,
+    name: product.name,
+    description: product.description,
+    price: product.price,
+    image_url: product.imageUrl,
+    type: product.type,
+    style: product.style,
+    colors: product.colors,
+    is_new_arrival: product.isNewArrival,
+    is_promotion: product.isPromotion,
+    promotion_details: product.promotionDetails || undefined
+  };
 }
 
 function FilterControls({ filters, setFilters }: { filters: Filters, setFilters: (filters: Filters) => void}) {
@@ -412,11 +340,16 @@ function ProductsContent() {
           </aside>
           
           {/* Products Grid */}
-          <main className="flex-1">
-            {filteredProducts.length > 0 ? (
+          <main className="flex-1">            {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                 {filteredProducts.map(product => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard 
+                    key={product.id} 
+                    product={convertProductToProductData(product)}
+                    variant="detailed"
+                    showRating={true}
+                    className="hover:-translate-y-2"
+                  />
                 ))}
               </div>
             ) : (

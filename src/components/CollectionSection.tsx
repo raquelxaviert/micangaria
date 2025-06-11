@@ -9,6 +9,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, ArrowRight, ShoppingBag, Eye, ShoppingCart, Star, Truck } from 'lucide-react';
 import { LikeButton } from '@/components/ui/LikeButton';
+import { ProductCard } from '@/components/ui/ProductCard';
 
 interface CollectionSectionProps {
   collectionSlug: string;
@@ -19,106 +20,6 @@ interface CollectionSectionProps {
   showViewAllButton?: boolean;
   maxProducts?: number;
 }
-
-const ProductCard = ({ product }: { product: CollectionProduct }) => (
-  <Card className="group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95">
-    <div className="relative overflow-hidden">
-      <Image
-        src={product.imageUrl || '/products/placeholder.jpg'}
-        alt={product.name}
-        width={400}
-        height={400}
-        className="w-full h-72 object-cover group-hover:scale-110 transition-transform duration-700"
-      />
-      
-      {/* Badges superior esquerdo */}
-      <div className="absolute top-3 left-3 flex flex-col gap-2">
-        {product.isNewArrival && (
-          <Badge className="bg-green-500 text-white font-semibold px-3 py-1 shadow-lg">
-            NOVO
-          </Badge>
-        )}
-        {product.isOnSale && (
-          <Badge className="bg-red-500 text-white font-semibold px-3 py-1 shadow-lg">
-            OFERTA
-          </Badge>
-        )}
-      </div>      {/* Botão de Like superior direito */}
-      <LikeButton 
-        productId={product.id} 
-        variant="floating"
-        size="md"
-      />
-    </div>
-
-    <CardContent className="p-5 space-y-4">
-      {/* Tags/cores do produto */}
-      {product.colors && product.colors.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {product.colors.slice(0, 3).map((color: string) => (
-            <span 
-              key={color}
-              className="text-xs px-3 py-1 bg-primary/10 text-primary rounded-full font-medium hover:bg-primary/20 transition-colors"
-            >
-              {color}
-            </span>
-          ))}
-          {product.colors.length > 3 && (
-            <span className="text-xs px-3 py-1 bg-muted text-muted-foreground rounded-full">
-              +{product.colors.length - 3}
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Nome do produto */}
-      <h3 className="font-semibold text-lg leading-tight group-hover:text-primary transition-colors duration-300 line-clamp-2">
-        {product.name}
-      </h3>
-
-      {/* Descrição */}
-      <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-        {product.description}
-      </p>
-
-      {/* Preços */}
-      <div className="space-y-2">
-        <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-bold text-primary">
-            R$ {product.price.toFixed(2).replace('.', ',')}
-          </span>
-        </div>
-      </div>
-
-      {/* Badges de tipo e estilo */}
-      <div className="flex items-center gap-2">
-        <Badge variant="outline" className="text-xs capitalize">
-          {product.type}
-        </Badge>
-        <Badge variant="secondary" className="text-xs capitalize">
-          {product.style}
-        </Badge>
-      </div>      {/* Botões de ação */}
-      <div className="flex gap-2 pt-2">
-        <Button 
-          variant="outline" 
-          size="sm"
-          className="flex-1 hover:bg-primary hover:text-white transition-colors duration-300 text-xs"
-        >
-          <Eye className="w-3 h-3 mr-1" />
-          Ver Detalhes
-        </Button>
-        <Button 
-          size="sm"
-          className="flex-1 bg-primary hover:bg-primary/90 transition-colors duration-300 text-xs"
-        >
-          <ShoppingCart className="w-3 h-3 mr-1" />
-          Adicionar
-        </Button>
-      </div>
-    </CardContent>
-  </Card>
-);
 
 export default function CollectionSection({
   collectionSlug,
