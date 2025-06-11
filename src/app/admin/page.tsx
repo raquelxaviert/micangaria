@@ -881,16 +881,14 @@ function ProductForm({
             />
           </div>
         </div>
-      </div>
-
-      {/* Características do Produto */}
+      </div>      {/* Características do Produto */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold">🎨 Características</h3>
           <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
         </div>
         
-        <div className="space-y-4">
+        <div className="space-y-6">
           <MultiSelectInput
             label="Cores"
             value={formData.colors || []}

@@ -67,29 +67,29 @@ export function MultiSelectInput({
   const handleSuggestionClick = (suggestion: string) => {
     addItem(suggestion);
     inputRef.current?.focus();
-  };
-
-  return (
+  };  return (
     <div className="space-y-2">
-      {label && <label className="text-sm font-medium">{label}</label>}
+      {label && <label className="text-sm font-medium block">{label}</label>}
       
       {/* Selected items */}
-      <div className="flex flex-wrap gap-2 min-h-[2rem]">
-        {value.map((item, index) => (
-          <Badge key={index} variant="secondary" className="flex items-center gap-1">
-            {item}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
-              onClick={() => removeItem(index)}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </Badge>
-        ))}
-      </div>
+      {value.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {value.map((item, index) => (
+            <Badge key={index} variant="secondary" className="flex items-center gap-1">
+              {item}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                onClick={() => removeItem(index)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          ))}
+        </div>
+      )}
 
       {/* Input field */}
       <div className="relative">
@@ -129,9 +129,9 @@ export function MultiSelectInput({
               </button>
             ))}
           </div>
-        )}
-      </div>
+        )}      </div>
 
+      {/* Status do campo */}
       {value.length > 0 && (
         <p className="text-xs text-muted-foreground">
           {value.length}/{maxItems} itens adicionados

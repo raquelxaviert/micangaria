@@ -137,12 +137,10 @@ export function SelectInput({
   };
 
   const showAddButton = allowCustom && inputValue.trim() && 
-    !allOptions.some(option => option.toLowerCase() === inputValue.toLowerCase());
-
-  return (
+    !allOptions.some(option => option.toLowerCase() === inputValue.toLowerCase());  return (
     <div className={cn("space-y-2", className)}>
       {label && (
-        <label className="text-sm font-medium">
+        <label className="text-sm font-medium block">
           {label}
           {required && <span className="text-destructive ml-1">*</span>}
         </label>
