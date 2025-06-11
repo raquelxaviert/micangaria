@@ -17,8 +17,7 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
       <section className="relative overflow-hidden flex-1 min-h-screen flex items-center">
-        <div className="absolute inset-0">
-          {/* Desktop image */}
+        <div className="absolute inset-0">          {/* Desktop image */}
           <Image
             src="/banner/banner.png"
             alt="Banner RÜGE"

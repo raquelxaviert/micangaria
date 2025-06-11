@@ -7,7 +7,27 @@ const nextConfig: NextConfig = {
   },
   eslint: {
     ignoreDuringBuilds: true,
-  },  images: {
+  },  productionBrowserSourceMaps: false,
+  // Redirect problematic requests to 404
+  async rewrites() {
+    return {
+      beforeFiles: [],
+      afterFiles: [
+        // Catch any src/ requests and return 404
+        {
+          source: '/src/:path*',
+          destination: '/404',
+        },
+        // Catch any _next/src requests and return 404
+        {
+          source: '/_next/src/:path*',
+          destination: '/404',
+        },
+      ],
+      fallback: [],
+    };
+  },
+  images: {
     remotePatterns: [
       {
         protocol: 'https',
