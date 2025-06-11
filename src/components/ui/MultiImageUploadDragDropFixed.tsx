@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Upload, X, Image as ImageIcon, Plus, Move, GripVertical, ArrowUp, ArrowDown } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Plus, GripVertical, ArrowUp, ArrowDown } from 'lucide-react';
 import Image from 'next/image';
-import { createClient } from '@/lib/supabase/client';
 import { uploadImageToSupabase } from '@/lib/uploadUtils';
 import {
   DndContext,
@@ -190,20 +189,37 @@ export function MultiImageUpload({
   maxImages = 5,
   accept = 'image/*',
   maxSize = 5 
-}: MultiImageUploadProps) {  const [imageItems, setImageItems] = useState<ImageItem[]>(
-    images.map((url, index) => ({ id: `image-${index}-${Date.now()}`, url }))
-  );
+}: MultiImageUploadProps) {
+  const [imageItems, setImageItems] = useState<ImageItem[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const prevImagesRef = useRef<string[]>([]);
 
-  // Sincronizar quando as props images mudarem
+  // Inicializar e sincronizar com props images apenas quando mudarem
   useEffect(() => {
-    setImageItems(images.map((url, index) => ({ id: `image-${index}-${Date.now()}`, url })));
+    const currentImages = JSON.stringify(images);
+    const previousImages = JSON.stringify(prevImagesRef.current);
+    
+    if (currentImages !== previousImages) {
+      prevImagesRef.current = images;
+      setImageItems(images.map((url, index) => ({ 
+        id: `image-${index}-${Date.now()}`, 
+        url 
+      })));
+    }
   }, [images]);
-  // Função estável para atualizar o pai
-  const updateParent = useCallback((newImageItems: ImageItem[]) => {
-    const urls = newImageItems.map(item => item.url);
-    onImagesChange(urls);  }, [onImagesChange]);
+
+  // Notificar pai apenas quando imageItems mudar (sem incluir onImagesChange nas deps)
+  useEffect(() => {
+    const urls = imageItems.map(item => item.url);
+    const currentUrls = JSON.stringify(urls);
+    const previousUrls = JSON.stringify(prevImagesRef.current);
+    
+    if (currentUrls !== previousUrls) {
+      onImagesChange(urls);
+    }
+  }, [imageItems]); // Removido onImagesChange para evitar loop infinito
+
   // Configurar sensores para drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -215,6 +231,7 @@ export function MultiImageUpload({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -257,39 +274,37 @@ export function MultiImageUpload({
         file
       };
 
-      const newItems = [...imageItems, tempItem];
-      setImageItems(newItems);
+      setImageItems(prev => [...prev, tempItem]);
 
       try {
         // Upload para Supabase
         const uploadResult = await uploadImageToSupabase(file);
-          if (uploadResult.success && uploadResult.url) {
+        
+        if (uploadResult.success && uploadResult.url) {
           // Substituir item temporário pelo final
-          setImageItems(prev => {
-            return prev.map(item => 
+          setImageItems(prev => 
+            prev.map(item => 
               item.id === tempItem.id 
                 ? { ...item, url: uploadResult.url!, isUploading: false, isTemp: false }
                 : item
-            );
-          });
+            )
+          );
         } else {
           // Upload falhou, usar imagem local
           const fallbackUrl = `/products/${file.name}`;
-          setImageItems(prev => {
-            return prev.map(item => 
+          setImageItems(prev => 
+            prev.map(item => 
               item.id === tempItem.id 
                 ? { ...item, url: fallbackUrl, isUploading: false, isTemp: false }
                 : item
-            );
-          });
+            )
+          );
           alert(`Upload falhou: ${uploadResult.error}. Usando imagem local como fallback.`);
         }
       } catch (error) {
         console.error('Erro no upload:', error);
         // Remover item que falhou
-        setImageItems(prev => {
-          return prev.filter(item => item.id !== tempItem.id);
-        });
+        setImageItems(prev => prev.filter(item => item.id !== tempItem.id));
         alert(`Erro ao fazer upload de ${file.name}`);
       }
     }
@@ -310,6 +325,7 @@ export function MultiImageUpload({
     e.preventDefault();
     setIsDragging(false);
   };
+
   const removeImage = (id: string) => {
     setImageItems(prev => prev.filter(item => item.id !== id));
   };
@@ -444,7 +460,8 @@ export function MultiImageUpload({
                 imageItems.some(item => item.url === imagePath)
                   ? 'border-blue-400 ring-2 ring-blue-200' 
                   : 'border-gray-200 hover:border-blue-300'
-              }`}              onClick={() => {
+              }`}
+              onClick={() => {
                 if (imageItems.length < maxImages && !imageItems.some(item => item.url === imagePath)) {
                   const newItem: ImageItem = {
                     id: `existing-${index}-${Date.now()}`,
@@ -487,7 +504,8 @@ export function MultiImageUpload({
               • A primeira imagem será exibida como principal nos cards de produto<br />
               • Arraste as imagens pela alça <GripVertical className="inline h-3 w-3" /> para reordenar<br />
               • Use as setas para ajustes finos ou o botão "Principal" para mover para o topo<br />
-              • Upload automático para Supabase Storage com URLs permanentes            </p>
+              • Upload automático para Supabase Storage com URLs permanentes
+            </p>
           </div>
         </div>
       </div>

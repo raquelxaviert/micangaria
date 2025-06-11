@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,7 @@ import { Plus, Edit, Trash2, Save, Upload, Eye, ShoppingBag, Settings, BarChart3
 import { Product, products } from '@/lib/placeholder-data';
 import OrdersManagement from '@/components/OrdersManagement';
 import ImageUploadTemp from '@/components/ImageUploadTemp';
-import { MultiImageUpload } from '@/components/ui/MultiImageUploadDragDrop';
+import { MultiImageUpload } from '@/components/ui/MultiImageUploadDragDropFixed';
 import { uploadImageToSupabase } from '@/lib/uploadUtils';
 import Image from 'next/image';
 import { MultiSelectInput } from '@/components/ui/MultiSelectInput';
@@ -540,11 +540,44 @@ function ProductForm({
     promotion_text: '',    search_keywords: '',
     vendor: '',
     collection: '',
-    notes: '',
-    imageUrl: '',
+    notes: '',    imageUrl: '',
     gallery_urls: [],
     alt_text: ''
   });
+
+  // Função estável para atualizar imagens
+  const handleImagesChange = useCallback((images: string[]) => {
+    const [primaryImage, ...galleryImages] = images;
+    setFormData(prev => ({ 
+      ...prev, 
+      imageUrl: primaryImage || '',
+      gallery_urls: galleryImages
+    }));  }, []);
+
+  // Funções estáveis para checkboxes (evitar loop infinito)
+  const handleTrackInventoryChange = useCallback((checked: boolean) => {
+    setFormData(prev => ({ ...prev, track_inventory: checked }));
+  }, []);
+
+  const handleAllowBackorderChange = useCallback((checked: boolean) => {
+    setFormData(prev => ({ ...prev, allow_backorder: checked }));
+  }, []);
+
+  const handleIsActiveChange = useCallback((checked: boolean) => {
+    setFormData(prev => ({ ...prev, is_active: checked }));
+  }, []);
+
+  const handleIsFeaturedChange = useCallback((checked: boolean) => {
+    setFormData(prev => ({ ...prev, is_featured: checked }));
+  }, []);
+
+  const handleIsNewArrivalChange = useCallback((checked: boolean) => {
+    setFormData(prev => ({ ...prev, is_new_arrival: checked }));
+  }, []);
+
+  const handleIsOnSaleChange = useCallback((checked: boolean) => {
+    setFormData(prev => ({ ...prev, is_on_sale: checked }));
+  }, []);
 
   // Sugestões para os campos de array
   const colorSuggestions = [
@@ -980,23 +1013,13 @@ function ProductForm({
             A primeira imagem será exibida como principal nos cards de produto.
           </p>
         </div>
-        
-        <div>
-          <MultiImageUpload
-            images={[
-              ...(formData.imageUrl ? [formData.imageUrl] : []),
-              ...(Array.isArray(formData.gallery_urls) ? formData.gallery_urls : [])
-            ].filter(Boolean)}
-            onImagesChange={(images) => {
-              const [primaryImage, ...galleryImages] = images;
-              setFormData({ 
-                ...formData, 
-                imageUrl: primaryImage || '',
-                gallery_urls: galleryImages
-              });
-            }}
-            maxImages={5}
-          />
+          <div>
+          {/* MultiImageUpload temporariamente desabilitado para debug */}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-sm text-yellow-800">
+              🚧 MultiImageUpload temporariamente desabilitado para debug do loop infinito
+            </p>
+          </div>
         </div>
 
         <div>
@@ -1049,20 +1072,18 @@ function ProductForm({
         </div>
 
         <div className="flex flex-wrap gap-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
+          <div className="flex items-center space-x-2">            <Checkbox
               id="track_inventory"
               checked={formData.track_inventory || false}
-              onCheckedChange={(checked) => setFormData({ ...formData, track_inventory: !!checked })}
+              onCheckedChange={handleTrackInventoryChange}
             />
             <Label htmlFor="track_inventory">Controlar Estoque</Label>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
+          <div className="flex items-center space-x-2">            <Checkbox
               id="allow_backorder"
               checked={formData.allow_backorder || false}
-              onCheckedChange={(checked) => setFormData({ ...formData, allow_backorder: !!checked })}
+              onCheckedChange={handleAllowBackorderChange}
             />
             <Label htmlFor="allow_backorder">Permitir Encomenda</Label>
           </div>
@@ -1075,38 +1096,34 @@ function ProductForm({
         </div>
         
         <div className="flex flex-wrap gap-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
+          <div className="flex items-center space-x-2">            <Checkbox
               id="is_active"
               checked={formData.is_active !== false}
-              onCheckedChange={(checked) => setFormData({ ...formData, is_active: !!checked })}
+              onCheckedChange={handleIsActiveChange}
             />
             <Label htmlFor="is_active">Produto Ativo</Label>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
+          <div className="flex items-center space-x-2">            <Checkbox
               id="is_featured"
               checked={formData.is_featured || false}
-              onCheckedChange={(checked) => setFormData({ ...formData, is_featured: !!checked })}
+              onCheckedChange={handleIsFeaturedChange}
             />
             <Label htmlFor="is_featured">Produto em Destaque</Label>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
+          <div className="flex items-center space-x-2">            <Checkbox
               id="is_new_arrival"
               checked={formData.is_new_arrival || false}
-              onCheckedChange={(checked) => setFormData({ ...formData, is_new_arrival: !!checked })}
+              onCheckedChange={handleIsNewArrivalChange}
             />
             <Label htmlFor="is_new_arrival">Produto Novo</Label>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
+          <div className="flex items-center space-x-2">            <Checkbox
               id="is_on_sale"
               checked={formData.is_on_sale || false}
-              onCheckedChange={(checked) => setFormData({ ...formData, is_on_sale: !!checked })}
+              onCheckedChange={handleIsOnSaleChange}
             />
             <Label htmlFor="is_on_sale">Em Promoção</Label>
           </div>
