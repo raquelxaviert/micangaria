@@ -43,13 +43,12 @@ export default function HomePage() {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
                   <span className="animate-color-wave whitespace-nowrap">We don't whisper.</span>
                   <div className="flex items-center whitespace-nowrap gap-2 sm:gap-3">
-                    <span className="animate-color-wave-alt">We</span>
-                    <Image
+                    <span className="animate-color-wave-alt">We</span>                    <Image
                       src="/logo.svg"
                       alt="RÜGE Logo"
                       width={200}
                       height={80}
-                      className="w-auto h-[1em] sm:h-[1em] inline-block translate-y-0.5 sm:translate-y-1"
+                      className="w-auto h-[1em] inline-block translate-y-0.5 sm:translate-y-1"
                     />
                     <span className="animate-color-wave-alt">.</span>
                   </div>

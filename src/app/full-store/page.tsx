@@ -254,24 +254,23 @@ export default function FullStorePage() {
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10" />
           </div>          <div className="relative z-10 container mx-auto px-6 sm:px-8 py-8 text-center">
             {/* Container interno com blur menor para facilitar leitura */}            <div className="max-w-3xl sm:max-w-4xl mx-auto space-y-6 bg-background/80 backdrop-blur-[2px] p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12 rounded-2xl shadow-lg overflow-hidden">
-              <div className="space-y-2"> {/* Reduced spacing from space-y-4 */}
+              <div className="space-y-3 sm:space-y-4"> {/* More spacing for desktop */}
                 <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-headline leading-tight animate-fade-in break-words hyphens-auto text-center"> {/* Increased font sizes */}
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 flex-wrap">
                     <span className="animate-color-wave whitespace-nowrap">We don't whisper.</span>
                     <div className="flex items-center whitespace-nowrap gap-2 sm:gap-3">
-                      <span className="animate-color-wave-alt">We</span>
-                      <Image
+                      <span className="animate-color-wave-alt">We</span>                      <Image
                         src="/logo.svg"
                         alt="RÜGE Logo"
                         width={200}
                         height={80}
-                        className="w-auto h-[0.7em] sm:h-[0.8em] md:h-[0.9em] lg:h-[1em] inline-block translate-y-0.5 sm:translate-y-1"
+                        className="w-auto h-[1em] inline-block translate-y-0.5 sm:translate-y-1"
                       />
                       <span className="animate-color-wave-alt">.</span>
                     </div>
                   </div>                </h1>
                 
-                <p className="text-xs sm:text-sm text-foreground/80 hover:text-foreground transition-colors duration-200 pt-1 sm:pt-2"> {/* Reduced padding and increased font size */}
+                <p className="text-xs sm:text-sm text-foreground/80 hover:text-foreground transition-colors duration-200 pt-2 sm:pt-4"> {/* More spacing on desktop */}
                   Clique para conhecer a coleção 🐆
                 </p>
               </div>
