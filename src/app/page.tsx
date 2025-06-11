@@ -8,26 +8,50 @@ import Image from 'next/image';
 
 export default function HomePage() {
   return (
-    <>
-      {/* CSS customizado só para esta página - esconde elementos do header */}
+    <>      {/* CSS customizado só para esta página - esconde tudo do header exceto a logo */}
       <style jsx global>{`
-        /* Esconde tudo do header exceto a logo */
-        header .container > div > div:first-child > button, /* botão menu hamburger */
-        header .container > div > div form, /* barra de pesquisa */
-        header .container > div > div nav, /* navegação à direita */
-        header .container > div.md\\:hidden /* layout mobile completo */ {
+        /* Esconde TODOS os elementos do header */
+        header button,
+        header form,
+        header nav,
+        header ul,
+        header input,
+        header .flex.items-center.gap-2,
+        header .flex.items-center.gap-3,
+        header .flex.items-center.gap-4,
+        header .space-y-4 {
           display: none !important;
         }
         
-        /* Centraliza a logo no header */
-        header .container > div {
-          justify-content: center !important;
+        /* Esconde a logo padrão */
+        header a[href="/"] {
+          display: none !important;
         }
         
-        /* Garante que a logo fique visível e centralizada */
-        header .container > div > div:first-child {
+        /* Centraliza o header inteiro e limpa tudo */
+        header .container {
+          display: flex !important;
           justify-content: center !important;
-          width: 100% !important;
+          align-items: center !important;
+          position: relative !important;
+        }
+        
+        /* Remove todos os divs filhos */
+        header .container > * {
+          display: none !important;
+        }
+        
+        /* Adiciona a logo completa como conteúdo único do header */
+        header .container::before {
+          content: '';
+          display: block !important;
+          width: 180px;
+          height: 60px;
+          background-image: url('/logo_completa.svg');
+          background-size: contain;
+          background-repeat: no-repeat;
+          background-position: center;
+          margin: 0 auto;
         }
       `}</style>
       
