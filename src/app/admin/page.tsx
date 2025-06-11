@@ -191,10 +191,7 @@ export default function AdminPage() {
             <Button onClick={handleLogin} className="w-full">
               Entrar
             </Button>
-            
-            <div className="text-xs text-muted-foreground text-center mt-4">
-              💡 Esta é uma demo. Senha: <code className="bg-muted px-1 rounded">micangaria2024</code>
-            </div>
+        
           </CardContent>
         </Card>
       </div>
