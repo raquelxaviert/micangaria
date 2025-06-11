@@ -122,8 +122,10 @@ export function ProductCard({
         }`}>
           {product.name}
         </h3>        {/* Descrição */}
-        {showDescription && variant !== 'compact' && (
-          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+        {showDescription && (
+          <p className={`text-muted-foreground line-clamp-2 leading-relaxed ${
+            variant === 'compact' ? 'text-xs' : 'text-sm'
+          }`}>
             {product.description}
           </p>
         )}{/* Rating (para variantes detailed e favorites) */}
@@ -134,15 +136,15 @@ export function ProductCard({
             ))}
           </div>
         )}        {/* Preços */}
-        <div className="space-y-2">
+        <div className="space-y-1">
           <div className="flex items-baseline gap-2">
             <span className={`font-bold text-primary ${
-              variant === 'compact' ? 'text-lg sm:text-xl' : 'text-2xl'
+              variant === 'compact' ? 'text-base sm:text-lg' : 'text-2xl'
             }`}>
               R$ {product.price.toFixed(2).replace('.', ',')}
             </span>
           </div>
-        </div>        {/* Botões de ação */}
+        </div>{/* Botões de ação */}
         {showActions && (
           <div className={`flex gap-1 sm:gap-2 pt-1 sm:pt-2 ${variant === 'detailed' ? 'flex-col' : ''}`}>
             <Button 

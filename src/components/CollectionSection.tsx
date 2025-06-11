@@ -79,12 +79,11 @@ export default function CollectionSection({
 
   const displayTitle = title || collection.name;
   const displayBadgeText = badgeText || collection.name;
-  const displayDescription = description || collection.description;
-  const displayBadgeColor = badgeColor || collection.color;
+  const displayDescription = description || collection.description;  const displayBadgeColor = badgeColor || collection.color;
 
   return (
     <section className="py-16 sm:py-20 lg:py-24">
-      <div className="container mx-auto px-4 sm:px-6">
+      <div className="container mx-auto px-2 sm:px-6">
         <div className="text-center mb-12 sm:mb-16">
           <Badge 
             className="mb-4 sm:mb-6 text-white border-0"
@@ -100,10 +99,9 @@ export default function CollectionSection({
               {displayDescription}
             </p>
           )}
-        </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8 mb-12">
+        </div>          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4 lg:gap-6 mb-12">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product.id} product={product} variant="compact" />
           ))}
         </div>
         

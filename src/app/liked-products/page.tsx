@@ -68,14 +68,13 @@ function LikedProductsContent() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Carregando seus favoritos...</p>
         </div>
-      </div>
-    );
+      </div>    );
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <div className="container mx-auto px-2 sm:px-6 py-6 sm:py-12">
       {/* Header */}
-      <div className="text-center mb-8 sm:mb-12">
+      <div className="text-center mb-6 sm:mb-12">
         <div className="flex items-center justify-center gap-3 mb-4">
           <Heart className="w-8 h-8 text-red-500 fill-current" />
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-headline text-primary">
@@ -91,12 +90,12 @@ function LikedProductsContent() {
       {/* Content */}
       {likedProducts.length > 0 ? (
         <>          {/* Products Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
             {likedProducts.map(product => (
               <ProductCard 
                 key={product.id} 
                 product={product} 
-                variant="favorites"
+                variant="compact"
                 showRating={true}
               />
             ))}
