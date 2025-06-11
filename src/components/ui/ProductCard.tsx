@@ -86,13 +86,28 @@ export function ProductCard({
           productId={product.id} 
           variant="floating"
           size={variant === 'compact' ? 'sm' : 'md'}
-        />{/* Overlay gradient em detailed */}
+        />        {/* Overlay gradient em detailed */}
         {(variant === 'detailed' || variant === 'favorites') && (
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         )}
       </div>
 
-      <CardContent className={`space-y-2 sm:space-y-4 ${variant === 'compact' ? 'p-2 sm:p-3' : 'p-5'}`}>        {/* Tags/cores do produto */}
+      <CardContent className={`space-y-2 sm:space-y-4 ${variant === 'compact' ? 'p-2 sm:p-3' : 'p-5'}`}>        
+        {/* Badges de categoria logo acima do título */}
+        <div className="flex items-center gap-1.5">
+          <Badge variant="outline" className={`text-xs capitalize ${
+            variant === 'compact' ? 'px-1.5 py-0.5' : 'px-2 py-0.5'
+          }`}>
+            {product.type}
+          </Badge>
+          <Badge variant="secondary" className={`text-xs capitalize ${
+            variant === 'compact' ? 'px-1.5 py-0.5' : 'px-2 py-0.5'
+          }`}>
+            {product.style}
+          </Badge>
+        </div>
+
+        {/* Tags/cores do produto */}
         {showColors && product.colors && product.colors.length > 0 && variant !== 'compact' && (
           <div className="flex flex-wrap gap-2">
             {product.colors.slice(0, 3).map((color: string) => (
@@ -108,16 +123,6 @@ export function ProductCard({
                 +{product.colors.length - 3}
               </span>
             )}
-          </div>
-        )}        {/* Badges de tipo e estilo */}
-        {variant !== 'compact' && (
-          <div className="flex items-center gap-1.5">
-            <Badge variant="outline" className="text-xs capitalize px-2 py-0.5">
-              {product.type}
-            </Badge>
-            <Badge variant="secondary" className="text-xs capitalize px-2 py-0.5">
-              {product.style}
-            </Badge>
           </div>
         )}{/* Nome do produto */}
         <h3 className={`font-semibold leading-tight group-hover:text-primary transition-colors duration-300 line-clamp-2 ${

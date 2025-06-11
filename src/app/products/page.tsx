@@ -338,15 +338,16 @@ function ProductsContent() {
           </aside>
             {/* Products Grid */}
           <main className="flex-1">            {filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 lg:gap-6">
+              <div className="columns-2 lg:columns-3 gap-2 sm:gap-4 lg:gap-6 space-y-2 sm:space-y-4 lg:space-y-6">
                 {filteredProducts.map(product => (
-                  <ProductCard 
-                    key={product.id} 
-                    product={convertProductToProductData(product)}
-                    variant="compact"
-                    showRating={false}
-                    className="hover:-translate-y-1 sm:hover:-translate-y-2"
-                  />
+                  <div key={product.id} className="break-inside-avoid mb-2 sm:mb-4 lg:mb-6">
+                    <ProductCard 
+                      product={convertProductToProductData(product)}
+                      variant="compact"
+                      showRating={false}
+                      className="hover:-translate-y-1 sm:hover:-translate-y-2"
+                    />
+                  </div>
                 ))}
               </div>
             ) : (
