@@ -53,10 +53,25 @@ export default function HomePage() {
           background-position: center;
           margin: 0 auto;
         }
+        
+        /* Melhorias específicas para o banner mobile */
+        @media (max-width: 768px) {
+          .hero-section {
+            min-height: 100vh !important;
+          }
+          
+          .hero-section .absolute.inset-0 {
+            height: 100% !important;
+          }
+          
+          .hero-section img {
+            object-position: center center !important;
+          }
+        }
       `}</style>
       
-      <div className="min-h-screen">{/* Hero Section */}
-      <section className="relative overflow-hidden min-h-[80vh] flex items-center">
+      <div className="min-h-screen">      {/* Hero Section */}
+      <section className="hero-section relative overflow-hidden min-h-[80vh] flex items-center">
         <div className="absolute inset-0">
           {/* Banner para desktop */}
           <Image
@@ -65,13 +80,12 @@ export default function HomePage() {
             fill
             className="object-cover hidden md:block"
             priority
-          />
-          {/* Banner para mobile */}
+          />          {/* Banner para mobile */}
           <Image
             src="/banner/banner_mobile.png"
             alt="Banner de acessórios boho mobile"
             fill
-            className="object-cover block md:hidden"
+            className="object-cover object-center block md:hidden"
             priority
           />
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
