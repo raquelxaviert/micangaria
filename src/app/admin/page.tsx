@@ -514,45 +514,127 @@ function ProductForm({
     getAllStyles, 
     addCustomType, 
     addCustomStyle 
-  } = useProductMetadata();const [formData, setFormData] = useState<Partial<any>>(product || {
-    name: '',
-    description: '',
-    price: 0,
-    compare_at_price: 0,
-    cost_price: 0,
-    type: 'colar',
-    style: 'vintage',
-    colors: [],
-    materials: [],
-    sizes: [],
-    tags: [],
-    weight_grams: 0,
-    sku: '',
-    barcode: '',
-    track_inventory: false,
-    quantity: 0,
-    allow_backorder: false,
-    slug: '',
-    meta_title: '',
-    meta_description: '',
-    is_active: true,
-    is_featured: false,
-    is_new_arrival: false,
-    is_on_sale: false,
-    sale_start_date: '',
-    sale_end_date: '',
-    promotion_text: '',    search_keywords: '',
-    vendor: '',
-    collection: '',    notes: '',
-    care_instructions: '',    imageUrl: '',
-    gallery_urls: [],
-    alt_text: '',
-    
-    // Badge display configuration
-    show_colors_badge: true,
-    show_materials_badge: true,
-    show_sizes_badge: true
+  } = useProductMetadata();  const [formData, setFormData] = useState<Partial<any>>(() => {
+    const defaultData = {
+      name: '',
+      description: '',
+      price: 0,
+      compare_at_price: 0,
+      cost_price: 0,
+      type: 'colar',
+      style: 'vintage',
+      colors: [],
+      materials: [],
+      sizes: [],
+      tags: [],
+      weight_grams: 0,
+      sku: '',
+      barcode: '',
+      track_inventory: false,
+      quantity: 0,
+      allow_backorder: false,
+      slug: '',
+      meta_title: '',
+      meta_description: '',
+      is_active: true,
+      is_featured: false,
+      is_new_arrival: false,
+      is_on_sale: false,
+      sale_start_date: '',
+      sale_end_date: '',
+      promotion_text: '',
+      search_keywords: '',
+      vendor: '',
+      collection: '',
+      notes: '',
+      care_instructions: '',
+      imageUrl: '',
+      gallery_urls: [],
+      alt_text: '',
+      
+      // Badge display configuration - garantir que sempre existe
+      show_colors_badge: true,
+      show_materials_badge: true,
+      show_sizes_badge: true
+    };
+
+    // Se há um produto para edição, mesclar com os dados padrão
+    if (product) {
+      return {
+        ...defaultData,
+        ...product,
+        // Garantir que os badges sempre tenham valores boolean
+        show_colors_badge: product.show_colors_badge !== false,
+        show_materials_badge: product.show_materials_badge !== false,
+        show_sizes_badge: product.show_sizes_badge !== false,
+        // Garantir que arrays sempre existam
+        colors: product.colors || [],
+        materials: product.materials || [],
+        sizes: product.sizes || [],
+        tags: product.tags || [],
+        gallery_urls: product.gallery_urls || []
+      };
+    }    return defaultData;
   });
+
+  // Atualizar formData quando product muda (para casos de reutilização do componente)
+  useEffect(() => {
+    if (product) {
+      const defaultData = {
+        name: '',
+        description: '',
+        price: 0,
+        compare_at_price: 0,
+        cost_price: 0,
+        type: 'colar',
+        style: 'vintage',
+        colors: [],
+        materials: [],
+        sizes: [],
+        tags: [],
+        weight_grams: 0,
+        sku: '',
+        barcode: '',
+        track_inventory: false,
+        quantity: 0,
+        allow_backorder: false,
+        slug: '',
+        meta_title: '',
+        meta_description: '',
+        is_active: true,
+        is_featured: false,
+        is_new_arrival: false,
+        is_on_sale: false,
+        sale_start_date: '',
+        sale_end_date: '',
+        promotion_text: '',
+        search_keywords: '',
+        vendor: '',
+        collection: '',
+        notes: '',
+        care_instructions: '',
+        imageUrl: '',
+        gallery_urls: [],
+        alt_text: '',
+        show_colors_badge: true,
+        show_materials_badge: true,
+        show_sizes_badge: true
+      };
+
+      setFormData({
+        ...defaultData,
+        ...product,
+        show_colors_badge: product.show_colors_badge !== false,
+        show_materials_badge: product.show_materials_badge !== false,
+        show_sizes_badge: product.show_sizes_badge !== false,
+        colors: product.colors || [],
+        materials: product.materials || [],
+        sizes: product.sizes || [],
+        tags: product.tags || [],
+        gallery_urls: product.gallery_urls || []
+      });
+    }
+  }, [product?.id]); // Apenas quando o ID do produto muda
 
   // Função estável para atualizar imagens
   const handleImagesChange = useCallback((images: string[]) => {
