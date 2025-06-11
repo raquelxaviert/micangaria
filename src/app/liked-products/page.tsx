@@ -27,8 +27,7 @@ function LikedProductsContent() {
         if (error) {
           console.error('Erro ao buscar produtos:', error);
           return;
-        }        if (data) {
-          // Converter formato Supabase para formato ProductData  
+        }        if (data) {          // Converter formato Supabase para formato ProductData  
           const convertedProducts: ProductData[] = data.map(p => ({
             id: p.id,
             name: p.name,
@@ -47,6 +46,10 @@ function LikedProductsContent() {
             isOnSale: p.is_on_sale,
             promotion_details: p.promotion_text,
             promotionDetails: p.promotion_text,
+            // Badge display configuration
+            show_colors_badge: p.show_colors_badge,
+            show_materials_badge: p.show_materials_badge,
+            show_sizes_badge: p.show_sizes_badge
           }));
           
           console.log('🔍 Produtos convertidos para favoritos:', convertedProducts.slice(0, 2));

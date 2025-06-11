@@ -43,7 +43,11 @@ function convertProductToProductData(product: Product): ProductData {
     sizes: product.sizes || [],
     is_new_arrival: product.isNewArrival,
     is_promotion: product.isPromotion,
-    promotion_details: product.promotionDetails || undefined
+    promotion_details: product.promotionDetails || undefined,
+    // Badge display configuration
+    show_colors_badge: product.show_colors_badge,
+    show_materials_badge: product.show_materials_badge,
+    show_sizes_badge: product.show_sizes_badge
   };
 }
 
@@ -228,8 +232,7 @@ function ProductsContent() {
           return;
         }        if (data) {
           console.log('🔍 Dados do Supabase (primeiro produto):', data[0]);
-          
-          // Converter formato Supabase para formato Product
+            // Converter formato Supabase para formato Product
           const convertedProducts: Product[] = data.map(p => {
             // Debug dos campos materials e sizes
             console.log(`📦 Produto ${p.name}:`, {
@@ -253,6 +256,10 @@ function ProductsContent() {
               isNewArrival: p.is_new_arrival || false,
               isPromotion: p.is_on_sale || false,
               promotionDetails: p.promotion_text || undefined,
+              // Badge display configuration
+              show_colors_badge: p.show_colors_badge,
+              show_materials_badge: p.show_materials_badge,
+              show_sizes_badge: p.show_sizes_badge
             };
           });
           
@@ -353,7 +360,7 @@ function ProductsContent() {
               Nossa Coleção Completa
             </Badge>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-headline text-primary mb-4">
-              Encontre Sua Peça Perfeita
+              Encontre Sua Preciosidade
             </h1>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
               Explore nossa coleção cuidadosamente curada de acessórios únicos, cada peça conta uma história.

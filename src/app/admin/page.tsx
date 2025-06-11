@@ -1121,10 +1121,9 @@ function ProductForm({
           <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
         </div>
         
-        <div className="flex flex-wrap gap-4">
-          <div className="flex items-center space-x-2">            <Checkbox
+        <div className="flex flex-wrap gap-4">          <div className="flex items-center space-x-2">            <Checkbox
               id="is_active"
-              checked={formData.is_active !== false}
+              checked={Boolean(formData.is_active ?? true)}
               onCheckedChange={handleIsActiveChange}
             />
             <Label htmlFor="is_active">Produto Ativo</Label>
@@ -1203,11 +1202,10 @@ function ProductForm({
             Configure quais badges serão exibidos nos cards de produto nas páginas de produtos, favoritos e full-store.
           </p>
           
-          <div className="flex flex-wrap gap-4">
-            <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap gap-4">            <div className="flex items-center space-x-2">
               <Checkbox
                 id="show_colors_badge"
-                checked={formData.show_colors_badge !== false}
+                checked={Boolean(formData.show_colors_badge)}
                 onCheckedChange={handleShowColorsBadgeChange}
               />
               <Label htmlFor="show_colors_badge">Mostrar Badge de Cores</Label>
@@ -1216,7 +1214,7 @@ function ProductForm({
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="show_materials_badge"
-                checked={formData.show_materials_badge !== false}
+                checked={Boolean(formData.show_materials_badge)}
                 onCheckedChange={handleShowMaterialsBadgeChange}
               />
               <Label htmlFor="show_materials_badge">Mostrar Badge de Materiais</Label>
@@ -1225,7 +1223,7 @@ function ProductForm({
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="show_sizes_badge"
-                checked={formData.show_sizes_badge !== false}
+                checked={Boolean(formData.show_sizes_badge)}
                 onCheckedChange={handleShowSizesBadgeChange}
               />
               <Label htmlFor="show_sizes_badge">Mostrar Badge de Tamanhos</Label>
