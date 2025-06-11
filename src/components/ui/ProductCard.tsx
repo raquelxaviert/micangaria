@@ -63,17 +63,20 @@ export function ProductCard({
             variant === 'compact' ? 'h-40 sm:h-48' : 'h-72'
           }`}
         />
-        
-        {/* Badges superior esquerdo */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2">
+          {/* Badges superior esquerdo */}
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
           {isNewArrival && (
-            <Badge className="bg-green-500 text-white font-semibold px-3 py-1 shadow-lg">
+            <Badge className={`bg-green-500 text-white font-medium shadow-md ${
+              variant === 'compact' ? 'text-xs px-2 py-0.5' : 'text-xs px-2 py-1'
+            }`}>
               NOVO
             </Badge>
           )}
           {isOnSale && (
-            <Badge className="bg-red-500 text-white font-semibold px-3 py-1 shadow-lg">
-              {promotionDetails || 'OFERTA'}
+            <Badge className={`bg-red-500 text-white font-medium shadow-md ${
+              variant === 'compact' ? 'text-xs px-2 py-0.5' : 'text-xs px-2 py-1'
+            }`}>
+              {variant === 'compact' ? 'OFERTA' : (promotionDetails || 'OFERTA')}
             </Badge>
           )}
         </div>
@@ -82,8 +85,8 @@ export function ProductCard({
         <LikeButton 
           productId={product.id} 
           variant="floating"
-          size="md"
-        />        {/* Overlay gradient em detailed */}
+          size={variant === 'compact' ? 'sm' : 'md'}
+        />{/* Overlay gradient em detailed */}
         {(variant === 'detailed' || variant === 'favorites') && (
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         )}
@@ -108,15 +111,15 @@ export function ProductCard({
           </div>
         )}        {/* Badges de tipo e estilo */}
         {variant !== 'compact' && (
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs capitalize">
+          <div className="flex items-center gap-1.5">
+            <Badge variant="outline" className="text-xs capitalize px-2 py-0.5">
               {product.type}
             </Badge>
-            <Badge variant="secondary" className="text-xs capitalize">
+            <Badge variant="secondary" className="text-xs capitalize px-2 py-0.5">
               {product.style}
             </Badge>
           </div>
-        )}        {/* Nome do produto */}
+        )}{/* Nome do produto */}
         <h3 className={`font-semibold leading-tight group-hover:text-primary transition-colors duration-300 line-clamp-2 ${
           variant === 'compact' ? 'text-sm sm:text-base' : 'text-lg'
         }`}>

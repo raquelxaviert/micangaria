@@ -47,9 +47,12 @@ export function LikeButton({
         onClick={handleClick}        className={cn(
           "transition-all duration-500 ease-out group",
           variant === 'floating' && 
-          "absolute top-3 right-3 bg-white/80 hover:bg-white rounded-full shadow-md hover:shadow-lg border border-white/10 hover:border-red-200 hover:scale-110",
+          "absolute top-2 right-2 bg-white/80 hover:bg-white rounded-full shadow-md hover:shadow-lg border border-white/10 hover:border-red-200 hover:scale-110",
           liked && "text-red-500 hover:text-red-600 bg-red-50/80 border-red-200",
           !liked && "text-gray-400 hover:text-red-500 hover:bg-red-50/50",
+          size === 'sm' && "w-7 h-7",
+          size === 'md' && "w-8 h-8",
+          size === 'lg' && "w-10 h-10",
           className
         )}
         title={liked ? "Remover dos favoritos" : "Adicionar aos favoritos"}
