@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 const supabase = createClient();
@@ -117,9 +117,8 @@ export function useCollections() {
       setIsLoading(false);
     }
   };
-
   // Carregar produtos de uma coleção específica
-  const getCollectionProducts = async (slug: string): Promise<CollectionProduct[]> => {
+  const getCollectionProducts = useCallback(async (slug: string): Promise<CollectionProduct[]> => {
     try {
       const { data, error } = await supabase
         .rpc('get_collection_products', { collection_slug: slug });
@@ -145,25 +144,25 @@ export function useCollections() {
       console.error(`Erro ao carregar produtos da coleção ${slug}:`, error);
       return [];
     }
-  };
+  }, []);
 
   // Obter coleção por slug
-  const getCollectionBySlug = (slug: string): Collection | undefined => {
+  const getCollectionBySlug = useCallback((slug: string): Collection | undefined => {
     return collections.find(collection => collection.slug === slug);
-  };
+  }, [collections]);
 
   // Verificar se um produto está em uma coleção
-  const isProductInCollection = (productId: string, collectionSlug: string): boolean => {
+  const isProductInCollection = useCallback((productId: string, collectionSlug: string): boolean => {
     const collection = getCollectionBySlug(collectionSlug);
     return collection ? (collection.productIds || []).includes(productId) : false;
-  };
+  }, [getCollectionBySlug]);
 
   // Obter coleções que contêm um produto específico
-  const getProductCollections = (productId: string): Collection[] => {
+  const getProductCollections = useCallback((productId: string): Collection[] => {
     return collections.filter(collection => 
       (collection.productIds || []).includes(productId)
     );
-  };
+  }, [collections]);
 
   useEffect(() => {
     loadCollections();

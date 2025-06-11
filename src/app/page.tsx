@@ -4,6 +4,13 @@
 export const dynamic = 'force-dynamic';
 
 import Image from 'next/image';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ArrowRight, ShoppingBag, Heart, Star, Truck, Shield, CreditCard, RefreshCw, Sparkles } from 'lucide-react';
+import CollectionSection from '@/components/CollectionSection';
 
 export default function HomePage() {
   return (

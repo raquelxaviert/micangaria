@@ -1456,11 +1456,12 @@ function CollectionsManagement({ products }: { products: Product[] }) {
             console.error('🔍 Detalhes do erro:', JSON.stringify(insertProductsError, null, 2));
           } else {
             console.log('✅ Produtos inseridos com sucesso:', insertedData?.length || 0);
-          }
-        } else {
+          }        } else {
           console.log('📝 Nenhum produto selecionado para esta coleção');
         }
-      }      setHasUnsavedChanges(false);
+      }
+
+      setHasUnsavedChanges(false);
       alert('✅ Coleções salvas com sucesso no Supabase!');
       console.log('✅ Todas as coleções foram processadas');
       

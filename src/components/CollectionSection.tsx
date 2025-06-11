@@ -98,9 +98,10 @@ export default function CollectionSection({
   const [products, setProducts] = useState<CollectionProduct[]>([]);
   const [collection, setCollection] = useState<any>(null);
   const [productsLoading, setProductsLoading] = useState(true);
-
   useEffect(() => {
     const loadCollectionData = async () => {
+      if (isLoading) return;
+      
       setProductsLoading(true);
       
       // Buscar dados da coleção
@@ -114,10 +115,8 @@ export default function CollectionSection({
       setProductsLoading(false);
     };
 
-    if (!isLoading) {
-      loadCollectionData();
-    }
-  }, [collectionSlug, getCollectionBySlug, getCollectionProducts, isLoading, maxProducts]);
+    loadCollectionData();
+  }, [collectionSlug, maxProducts, isLoading]); // Removidas as funções das dependências
 
   // Não renderizar se não há produtos ou dados
   if (isLoading || productsLoading || !collection || products.length === 0) {
