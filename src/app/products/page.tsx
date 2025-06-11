@@ -4,7 +4,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useMemo, useEffect, Suspense } from 'react';
-import { products as allProducts, Product, uniqueTypes, uniqueStyles, uniqueColors } from '@/lib/placeholder-data';
+import { Product, uniqueTypes, uniqueStyles, uniqueColors } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -16,6 +16,7 @@ import { Filter, X, ListFilter, Search, Sparkles, Zap, Tag } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useSearchParams } from 'next/navigation';
 import { ProductCard, ProductData } from '@/components/ui/ProductCard';
+import { createClient } from '@/lib/supabase/client';
 
 interface Filters {
   type: string | null;
@@ -198,6 +199,8 @@ function FilterControls({ filters, setFilters }: { filters: Filters, setFilters:
 
 function ProductsContent() {
   const searchParams = useSearchParams();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<Filters>({
     type: null,
     style: null,
@@ -206,6 +209,66 @@ function ProductsContent() {
     showNew: false,
     showPromotions: false,
   });
+
+  const supabase = createClient();
+
+  // Buscar produtos do Supabase
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Erro ao buscar produtos:', error);
+          return;
+        }        if (data) {
+          console.log('🔍 Dados do Supabase (primeiro produto):', data[0]);
+          
+          // Converter formato Supabase para formato Product
+          const convertedProducts: Product[] = data.map(p => {
+            // Debug dos campos materials e sizes
+            console.log(`📦 Produto ${p.name}:`, {
+              materials: p.materials,
+              materialsType: typeof p.materials,
+              sizes: p.sizes,
+              sizesType: typeof p.sizes
+            });
+
+            return {
+              id: p.id,
+              name: p.name,
+              description: p.description,
+              price: p.price,
+              imageUrl: p.image_url || '/products/placeholder.jpg',
+              imageHint: p.name.toLowerCase(),
+              type: p.type,
+              style: p.style,
+              colors: Array.isArray(p.colors) ? p.colors : [],
+              materials: Array.isArray(p.materials) ? p.materials : [],
+              sizes: Array.isArray(p.sizes) ? p.sizes : [],
+              isNewArrival: p.is_new_arrival || false,
+              isPromotion: p.is_on_sale || false,
+              promotionDetails: p.promotion_text || undefined,
+            };
+          });
+          
+          console.log('✅ Produtos convertidos:', convertedProducts.length);
+          console.log('🔍 Primeiro produto convertido:', convertedProducts[0]);
+          setProducts(convertedProducts);
+        }
+      } catch (error) {
+        console.error('Erro ao conectar com Supabase:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [supabase]);
 
   // Set initial filters based on URL params
   useEffect(() => {
@@ -229,7 +292,7 @@ function ProductsContent() {
   }, [searchParams]);
 
   const filteredProducts = useMemo(() => {
-    return allProducts.filter(product => {
+    return products.filter(product => {
       const typeMatch = !filters.type || product.type === filters.type;
       const styleMatch = !filters.style || product.style === filters.style;
       const colorMatch = filters.colors.length === 0 || product.colors.some(color => filters.colors.includes(color));
@@ -243,7 +306,7 @@ function ProductsContent() {
       const promotionMatch = !filters.showPromotions || product.isPromotion;
       return typeMatch && styleMatch && colorMatch && searchTermMatch && newArrivalMatch && promotionMatch;
     });
-  }, [filters]);
+  }, [products, filters]);
 
   const activeFiltersCount = [
     filters.type,
@@ -261,8 +324,22 @@ function ProductsContent() {
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
       }
-    }
-  }, []);
+    }  }, []);
+  
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+        <div className="container mx-auto px-2 sm:px-6 py-4 sm:py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Carregando produtos...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
       <div className="container mx-auto px-2 sm:px-6 py-4 sm:py-8">        {/* Header */}
@@ -337,9 +414,14 @@ function ProductsContent() {
                 <FilterControls filters={filters} setFilters={setFilters} />
               </CardContent>
             </Card>
-          </aside>
-            {/* Products Grid */}
-          <main className="flex-1">            {filteredProducts.length > 0 ? (
+          </aside>          {/* Products Grid */}
+          <main className="flex-1">
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Carregando produtos...</p>
+              </div>
+            ) : filteredProducts.length > 0 ? (
               <div className="columns-2 lg:columns-3 gap-2 sm:gap-4 lg:gap-6 space-y-2 sm:space-y-4 lg:space-y-6">
                 {filteredProducts.map(product => (
                   <div key={product.id} className="break-inside-avoid mb-2 sm:mb-4 lg:mb-6">

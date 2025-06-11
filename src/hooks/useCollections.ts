@@ -25,6 +25,8 @@ export interface CollectionProduct {
   type: string;
   style: string;
   colors: string[];
+  materials?: string[];
+  sizes?: string[];
   isActive: boolean;
   isNewArrival?: boolean;
   isOnSale?: boolean;
@@ -116,30 +118,72 @@ export function useCollections() {
     } finally {
       setIsLoading(false);
     }
-  };
-  // Carregar produtos de uma coleção específica
+  };  // Carregar produtos de uma coleção específica
   const getCollectionProducts = useCallback(async (slug: string): Promise<CollectionProduct[]> => {
     try {
+      // Busca direta dos produtos sem usar RPC
       const { data, error } = await supabase
-        .rpc('get_collection_products', { collection_slug: slug });
+        .from('products')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
       if (error) {
         throw error;
       }
 
-      return (data || []).map((product: any) => ({
-        id: product.id,
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        imageUrl: product.image_url,
-        type: product.type,
-        style: product.style,
-        colors: product.colors || [],
-        isActive: product.is_active,
-        isNewArrival: product.is_new_arrival,
-        isOnSale: product.is_on_sale
-      }));
+      console.log(`🔍 Produtos para coleção ${slug}:`, data?.length || 0);
+      
+      if (data && data.length > 0) {
+        console.log('📝 Primeiro produto da coleção:', {
+          id: data[0].id,
+          name: data[0].name,
+          materials: data[0].materials,
+          sizes: data[0].sizes,
+          materialsType: typeof data[0].materials,
+          sizesType: typeof data[0].sizes
+        });
+      }
+
+      return (data || []).map((product: any) => {
+        // Garantir que materials e sizes sejam arrays
+        let materials: string[] = [];
+        let sizes: string[] = [];
+
+        try {
+          materials = Array.isArray(product.materials) 
+            ? product.materials 
+            : (product.materials ? JSON.parse(product.materials) : []);
+        } catch (e) {
+          console.warn('Erro ao processar materials:', e);
+          materials = [];
+        }
+
+        try {
+          sizes = Array.isArray(product.sizes) 
+            ? product.sizes 
+            : (product.sizes ? JSON.parse(product.sizes) : []);
+        } catch (e) {
+          console.warn('Erro ao processar sizes:', e);
+          sizes = [];
+        }
+
+        return {
+          id: product.id,
+          name: product.name,
+          description: product.description,
+          price: product.price,
+          imageUrl: product.image_url,
+          type: product.type,
+          style: product.style,
+          colors: product.colors || [],
+          materials: materials,
+          sizes: sizes,
+          isActive: product.is_active,
+          isNewArrival: product.is_new_arrival,
+          isOnSale: product.is_on_sale
+        };
+      }).slice(0, 6); // Limitar a 6 produtos para as coleções
     } catch (error) {
       console.error(`Erro ao carregar produtos da coleção ${slug}:`, error);
       return [];

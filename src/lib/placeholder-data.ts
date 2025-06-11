@@ -45,8 +45,7 @@ export interface Product {
 // da funcionalidade de criação de produtos do zero.
 // Descomente e restaure os dados se necessário.
 
-export const products: Product[] = [
-  {
+export const products: Product[] = [  {
     id: '1',
     name: 'Anel Vintage Solitário',
     description: 'Anel vintage em prata 925 com design clássico solitário. Peça atemporal que adiciona elegância a qualquer look.',
@@ -58,8 +57,7 @@ export const products: Product[] = [
     colors: ['prata', 'dourado'],
     isNewArrival: true,
     isPromotion: false,
-  },
-  {
+  },  {
     id: '2', 
     name: 'Bolsa de Couro Vintage',
     description: 'Bolsa estruturada em couro legítimo, design clássico dos anos 60. Alça removível e compartimentos organizados.',
@@ -72,8 +70,7 @@ export const products: Product[] = [
     isNewArrival: false,
     isPromotion: true,
     promotionDetails: '20% OFF - Peça Única!',
-  },
-  {
+  },  {
     id: '3',
     name: 'Brincos Argola Vintage',
     description: 'Brincos argola em metal dourado com acabamento vintage. Clássicos e versáteis para uso diário ou ocasiões especiais.',
@@ -85,8 +82,7 @@ export const products: Product[] = [
     colors: ['dourado', 'prateado', 'rose gold'],
     isNewArrival: false,
     isPromotion: false,
-  },
-  {
+  },  {
     id: '4',
     name: 'Cinto de Couro Vintage',
     description: 'Cinto em couro legítimo com fivela metálica vintage. Acessório essencial para marcar a cintura com estilo retrô.',
@@ -98,8 +94,7 @@ export const products: Product[] = [
     colors: ['marrom', 'preto', 'caramelo'],
     isNewArrival: true,
     isPromotion: false,
-  },
-  {
+  },  {
     id: '5',
     name: 'Colar Corrente Dourado',
     description: 'Colar em corrente dourada com elos delicados, comprimento médio. Peça versátil que complementa qualquer produção.',
@@ -111,8 +106,7 @@ export const products: Product[] = [
     colors: ['dourado', 'prateado', 'rose gold'],
     isNewArrival: false,
     isPromotion: false,
-  },
-  {
+  },  {
     id: '6',
     name: 'Colar Pérolas Vintage',
     description: 'Colar de pérolas cultivadas com fecho vintage em metal dourado. Elegância clássica para ocasiões especiais.',

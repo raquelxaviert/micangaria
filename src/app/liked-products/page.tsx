@@ -27,10 +27,30 @@ function LikedProductsContent() {
         if (error) {
           console.error('Erro ao buscar produtos:', error);
           return;
-        }
-
-        if (data) {
-          setProducts(data);
+        }        if (data) {
+          // Converter formato Supabase para formato ProductData  
+          const convertedProducts: ProductData[] = data.map(p => ({
+            id: p.id,
+            name: p.name,
+            description: p.description,
+            price: p.price,
+            image_url: p.image_url,
+            imageUrl: p.image_url, // Compatibilidade com ambos os formatos
+            type: p.type,
+            style: p.style,
+            colors: p.colors || [],
+            materials: p.materials || [],
+            sizes: p.sizes || [],
+            is_new_arrival: p.is_new_arrival,
+            isNewArrival: p.is_new_arrival,
+            is_promotion: p.is_on_sale,
+            isOnSale: p.is_on_sale,
+            promotion_details: p.promotion_text,
+            promotionDetails: p.promotion_text,
+          }));
+          
+          console.log('🔍 Produtos convertidos para favoritos:', convertedProducts.slice(0, 2));
+          setProducts(convertedProducts);
         }
       } catch (error) {
         console.error('Erro ao conectar com Supabase:', error);
