@@ -97,7 +97,6 @@ function LikedProductCard({ product }: { product: Product }) {
 
 function LikedProductsContent() {
   const { getLikedProducts, isLoaded, likedCount } = useLikes();
-  
   const likedProducts = useMemo(() => {
     if (!isLoaded) return [];
     const likedIds = getLikedProducts();
