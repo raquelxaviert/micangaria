@@ -11,7 +11,7 @@ import { useLikes } from '@/contexts/LikesContextSupabase';
 import { ClientOnly } from '@/components/ui/ClientOnly';
 import { cn } from '@/lib/utils';
 import { AuthModal } from '@/components/AuthModal_centered';
-import { LoginPromptModal } from '@/components/LoginPromptModal';
+import { LoginPromptModal } from '@/components/LoginPromptModal_enhanced';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function Header() {

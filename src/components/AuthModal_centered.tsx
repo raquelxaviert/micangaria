@@ -106,7 +106,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
   if (!isOpen) return null;
 
   return (
-    <>      {/* Overlay */}
+    <>      {/* Overlay com animação suave */}
       <div
         style={{
           position: 'fixed',
@@ -124,7 +124,8 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
           justifyContent: 'center',
           padding: '20px',
           margin: 0,
-          overflow: 'hidden'
+          overflow: 'hidden',
+          animation: 'fadeIn 0.3s ease-out'
         }}
         onClick={(e) => {
           if (e.target === e.currentTarget) {
@@ -132,7 +133,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
           }
         }}
       >
-        {/* Modal Container */}
+        {/* Modal Container com entrada suave */}
         <div
           style={{
             backgroundColor: 'white',
@@ -143,7 +144,9 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
             maxHeight: '90vh',
             overflowY: 'auto',
             position: 'relative',
-            margin: 'auto'
+            margin: 'auto',
+            animation: 'slideInUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            transform: 'translateY(0)'
           }}
           onClick={(e) => e.stopPropagation()}
         >

@@ -20,12 +20,11 @@ export function LoginPromptModal({ isOpen, onClose, onLogin }: LoginPromptModalP
       onClose();
     }
   }, [user, isOpen, onClose]);
-
   if (!isOpen || user) return null;
 
   return (
     <>
-      {/* Overlay - Copiado exatamente do AuthModal_centered */}
+      {/* Overlay com transição suave */}
       <div
         style={{
           position: 'fixed',
@@ -43,7 +42,8 @@ export function LoginPromptModal({ isOpen, onClose, onLogin }: LoginPromptModalP
           justifyContent: 'center',
           padding: '20px',
           margin: 0,
-          overflow: 'hidden'
+          overflow: 'hidden',
+          animation: 'fadeIn 0.3s ease-out'
         }}
         onClick={(e) => {
           if (e.target === e.currentTarget) {
@@ -51,7 +51,7 @@ export function LoginPromptModal({ isOpen, onClose, onLogin }: LoginPromptModalP
           }
         }}
       >
-        {/* Modal Container - Copiado exatamente do AuthModal_centered */}
+        {/* Modal Container com animação de entrada */}
         <div
           style={{
             backgroundColor: 'white',
@@ -62,7 +62,9 @@ export function LoginPromptModal({ isOpen, onClose, onLogin }: LoginPromptModalP
             maxHeight: '90vh',
             overflowY: 'auto',
             position: 'relative',
-            margin: 'auto'
+            margin: 'auto',
+            animation: 'slideInUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            transform: 'translateY(0)'
           }}
           onClick={(e) => e.stopPropagation()}
         >

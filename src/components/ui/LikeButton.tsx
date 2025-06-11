@@ -22,10 +22,20 @@ export function LikeButton({
   const { toggleLike, isLiked, isLoaded } = useLikes();
   
   const liked = isLiked(productId);
-
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Adicionar efeito de pulso no coração
+    const target = e.currentTarget as HTMLElement;
+    const heart = target.querySelector('svg');
+    if (heart) {
+      heart.style.animation = 'heartPulse 0.6s ease-out';
+      setTimeout(() => {
+        heart.style.animation = '';
+      }, 600);
+    }
+    
     toggleLike(productId);
   };
 
@@ -35,23 +45,22 @@ export function LikeButton({
         variant="ghost" 
         size="icon"
         onClick={handleClick}        className={cn(
-          "transition-all duration-300 group",
+          "transition-all duration-500 ease-out group",
           variant === 'floating' && 
-          "absolute top-3 right-3 bg-white/90 hover:bg-white rounded-full shadow-lg border border-white/20 hover:scale-110",
-          liked && "text-red-500 hover:text-red-600",
-          !liked && "text-gray-500 hover:text-red-500",
+          "absolute top-3 right-3 bg-white/80 hover:bg-white rounded-full shadow-md hover:shadow-lg border border-white/10 hover:border-red-200 hover:scale-110",
+          liked && "text-red-500 hover:text-red-600 bg-red-50/80 border-red-200",
+          !liked && "text-gray-400 hover:text-red-500 hover:bg-red-50/50",
           className
         )}
         title={liked ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-      >
-        <Heart 
+      >        <Heart 
           className={cn(
-            "transition-all duration-300",
+            "transition-all duration-500 ease-out",
             size === 'sm' && "w-3 h-3",
             size === 'md' && "w-4 h-4", 
             size === 'lg' && "w-5 h-5",
-            liked && "fill-current scale-110",
-            !liked && "scale-100 group-hover:stroke-red-500 group-hover:stroke-2"
+            liked && "fill-current scale-110 drop-shadow-sm",
+            !liked && "scale-100 group-hover:stroke-red-500 group-hover:stroke-2 group-hover:scale-105"
           )} 
         />
       </Button>
