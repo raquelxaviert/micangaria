@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Upload, X, Image as ImageIcon, Plus, Move, GripVertical, ArrowUp, ArrowDown } from 'lucide-react';
@@ -190,13 +190,17 @@ export function MultiImageUpload({
   maxImages = 5,
   accept = 'image/*',
   maxSize = 5 
-}: MultiImageUploadProps) {
-  const [imageItems, setImageItems] = useState<ImageItem[]>(
+}: MultiImageUploadProps) {  const [imageItems, setImageItems] = useState<ImageItem[]>(
     images.map((url, index) => ({ id: `image-${index}-${Date.now()}`, url }))
   );
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Sincronizar mudanças com o componente pai
+  useEffect(() => {
+    const urls = imageItems.map(item => item.url);
+    onImagesChange(urls);
+  }, [imageItems, onImagesChange]);
   // Configurar sensores para drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -208,12 +212,6 @@ export function MultiImageUpload({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
-  const updateParent = (items: ImageItem[]) => {
-    const urls = items.map(item => item.url);
-    onImagesChange(urls);
-  };
-
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -222,9 +220,7 @@ export function MultiImageUpload({
         const oldIndex = items.findIndex(item => item.id === active.id);
         const newIndex = items.findIndex(item => item.id === over?.id);
         
-        const newItems = arrayMove(items, oldIndex, newIndex);
-        updateParent(newItems);
-        return newItems;
+        return arrayMove(items, oldIndex, newIndex);
       });
     }
   };
@@ -264,29 +260,24 @@ export function MultiImageUpload({
       try {
         // Upload para Supabase
         const uploadResult = await uploadImageToSupabase(file);
-        
-        if (uploadResult.success && uploadResult.url) {
+          if (uploadResult.success && uploadResult.url) {
           // Substituir item temporário pelo final
           setImageItems(prev => {
-            const updated = prev.map(item => 
+            return prev.map(item => 
               item.id === tempItem.id 
                 ? { ...item, url: uploadResult.url!, isUploading: false, isTemp: false }
                 : item
             );
-            updateParent(updated);
-            return updated;
           });
         } else {
           // Upload falhou, usar imagem local
           const fallbackUrl = `/products/${file.name}`;
           setImageItems(prev => {
-            const updated = prev.map(item => 
+            return prev.map(item => 
               item.id === tempItem.id 
                 ? { ...item, url: fallbackUrl, isUploading: false, isTemp: false }
                 : item
             );
-            updateParent(updated);
-            return updated;
           });
           alert(`Upload falhou: ${uploadResult.error}. Usando imagem local como fallback.`);
         }
@@ -294,9 +285,7 @@ export function MultiImageUpload({
         console.error('Erro no upload:', error);
         // Remover item que falhou
         setImageItems(prev => {
-          const filtered = prev.filter(item => item.id !== tempItem.id);
-          updateParent(filtered);
-          return filtered;
+          return prev.filter(item => item.id !== tempItem.id);
         });
         alert(`Erro ao fazer upload de ${file.name}`);
       }
@@ -318,11 +307,8 @@ export function MultiImageUpload({
     e.preventDefault();
     setIsDragging(false);
   };
-
   const removeImage = (id: string) => {
-    const newItems = imageItems.filter(item => item.id !== id);
-    setImageItems(newItems);
-    updateParent(newItems);
+    setImageItems(prev => prev.filter(item => item.id !== id));
   };
 
   const moveImage = (fromIndex: number, toIndex: number) => {
@@ -330,7 +316,6 @@ export function MultiImageUpload({
     
     const newItems = arrayMove(imageItems, fromIndex, toIndex);
     setImageItems(newItems);
-    updateParent(newItems);
   };
 
   const makeImagePrimary = (index: number) => {
@@ -456,16 +441,13 @@ export function MultiImageUpload({
                 imageItems.some(item => item.url === imagePath)
                   ? 'border-blue-400 ring-2 ring-blue-200' 
                   : 'border-gray-200 hover:border-blue-300'
-              }`}
-              onClick={() => {
+              }`}              onClick={() => {
                 if (imageItems.length < maxImages && !imageItems.some(item => item.url === imagePath)) {
                   const newItem: ImageItem = {
                     id: `existing-${index}-${Date.now()}`,
                     url: imagePath
                   };
-                  const newItems = [...imageItems, newItem];
-                  setImageItems(newItems);
-                  updateParent(newItems);
+                  setImageItems(prev => [...prev, newItem]);
                 }
               }}
               disabled={imageItems.length >= maxImages}
@@ -509,5 +491,3 @@ export function MultiImageUpload({
     </div>
   );
 }
-
-export { MultiImageUploadDragDrop as MultiImageUpload };

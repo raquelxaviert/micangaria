@@ -537,15 +537,13 @@ function ProductForm({
     is_on_sale: false,
     sale_start_date: '',
     sale_end_date: '',
-    promotion_text: '',
-    search_keywords: '',
+    promotion_text: '',    search_keywords: '',
     vendor: '',
     collection: '',
     notes: '',
     imageUrl: '',
     gallery_urls: [],
-    alt_text: '',
-    gallery_urls: []
+    alt_text: ''
   });
 
   // Sugestões para os campos de array
