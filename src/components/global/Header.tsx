@@ -90,35 +90,25 @@ export function Header() {
                 <div className="h-4 bg-muted rounded flex-1 animate-pulse"></div>
                 <div className="w-6 h-3 bg-muted rounded animate-pulse"></div>
               </div>
-            ))
-          ) : (
-            categories.map((category) => (
-              <SheetClose key={category.type} asChild>
-                <Link 
-                  href={category.href} 
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors group"
-                >
-                  <span className="text-base group-hover:scale-110 transition-transform">
-                    {category.icon}
-                  </span>
-                  <span className="flex-1">{category.name}</span>
-                  <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
-                    {category.count}
-                  </span>
-                </Link>
-              </SheetClose>
-            ))
+            ))          ) : (
+            categories.map((category) => {
+              const IconComponent = category.icon;
+              return (
+                <SheetClose key={category.type} asChild>
+                  <Link 
+                    href={category.href} 
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors group"
+                  >
+                    <IconComponent size={18} className="group-hover:scale-110 transition-transform" />
+                    <span className="flex-1">{category.name}</span>
+                    <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+                      {category.count}
+                    </span>
+                  </Link>
+                </SheetClose>
+              );
+            })
           )}
-          {/* Link para ver todas as categorias */}
-          <SheetClose asChild>
-            <Link 
-              href="/products" 
-              className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent/50 transition-colors text-sm text-muted-foreground border-t pt-3 mt-3"
-            >
-              <span>🔍</span>
-              <span>Ver todos os produtos</span>
-            </Link>
-          </SheetClose>
         </div>
       </div>
 
