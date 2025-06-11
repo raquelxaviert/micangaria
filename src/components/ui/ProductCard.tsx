@@ -23,11 +23,15 @@ export interface ProductData {
   materials?: string[]; // Materiais do produto
   sizes?: string[]; // Tamanhos disponíveis
   isNewArrival?: boolean;
-  is_new_arrival?: boolean; // Supabase format
-  isOnSale?: boolean;
+  is_new_arrival?: boolean; // Supabase format  isOnSale?: boolean;
   is_promotion?: boolean; // Supabase format
   promotionDetails?: string;
   promotion_details?: string; // Supabase format
+  
+  // Badge display configuration
+  show_colors_badge?: boolean;
+  show_materials_badge?: boolean;
+  show_sizes_badge?: boolean;
 }
 
 interface ProductCardProps {
@@ -121,43 +125,45 @@ export function ProductCard({
       </div>
 
       <CardContent className={`space-y-2 sm:space-y-4 ${variant === 'compact' ? 'p-2 sm:p-3' : 'p-5'}`}>
-        <Link href={`/products/${product.id}`} className="block cursor-pointer">
-          {/* Badges de materiais e tamanhos logo acima do título */}
+        <Link href={`/products/${product.id}`} className="block cursor-pointer">          {/* Badges de materiais e tamanhos logo acima do título */}
           <div className="flex items-center gap-1 flex-wrap">
-            {/* Badge de Material (primeiro material) */}
-            {product.materials && product.materials.length > 0 && (
-              <Badge variant="outline" className={`capitalize text-xs leading-none ${
-                variant === 'compact' ? 'px-1.5 py-0.5' : 'px-2 py-1'
+            {/* Badge de Material (primeiro material) - apenas se configurado para mostrar */}
+            {product.show_materials_badge === true && product.materials && product.materials.length > 0 && (              <Badge variant="outline" className={`capitalize text-xs leading-none ${
+                variant === 'compact' ? 'px-1.5 py-0.5 h-5' : 'px-2 py-1 h-6'
               }`}>
                 {product.materials[0]}
               </Badge>
             )}
             
-            {/* Badge de Tamanho (primeiro tamanho) */}
-            {product.sizes && product.sizes.length > 0 && (
-              <Badge variant="outline" className={`uppercase text-xs leading-none ${
-                variant === 'compact' ? 'px-1.5 py-0.5' : 'px-2 py-1'
+            {/* Badge de Tamanho (primeiro tamanho) - apenas se configurado para mostrar */}
+            {product.show_sizes_badge === true && product.sizes && product.sizes.length > 0 && (              <Badge variant="outline" className={`uppercase text-xs leading-none ${
+                variant === 'compact' ? 'px-1.5 py-0.5 h-5' : 'px-2 py-1 h-6'
               }`}>
                 {product.sizes[0]}
               </Badge>
             )}
-          </div>
-
-          {/* Cores */}
-          {showColors && product.colors && product.colors.length > 0 && (
-            <div className="flex items-center gap-1 flex-wrap">
+          </div>          {/* Cores - apenas se configurado para mostrar */}
+          {showColors && product.show_colors_badge === true && product.colors && product.colors.length > 0 && (            <div className="flex items-center gap-1 flex-wrap">
               {product.colors.slice(0, 3).map((color, index) => (
-                <span
+                <Badge
                   key={index}
-                  className="text-xs px-3 py-1 bg-primary/10 text-primary rounded-full font-medium hover:bg-primary/20 transition-colors"
+                  variant="outline"
+                  className={`text-xs leading-none capitalize ${
+                    variant === 'compact' ? 'px-1.5 py-0.5 h-5' : 'px-2 py-1 h-6'
+                  }`}
                 >
                   {color}
-                </span>
+                </Badge>
               ))}
               {product.colors.length > 3 && (
-                <span className="text-xs px-3 py-1 bg-muted text-muted-foreground rounded-full">
+                <Badge 
+                  variant="outline" 
+                  className={`text-xs leading-none ${
+                    variant === 'compact' ? 'px-1.5 py-0.5 h-5' : 'px-2 py-1 h-6'
+                  }`}
+                >
                   +{product.colors.length - 3}
-                </span>
+                </Badge>
               )}
             </div>
           )}

@@ -33,10 +33,14 @@ export interface Product {
   sale_start_date?: string;
   sale_end_date?: string;  search_keywords?: string[];
   vendor?: string;
-  collection?: string;
-  notes?: string;
+  collection?: string;  notes?: string;
   care_instructions?: string;
   gallery_urls?: string[];
+  
+  // Badge display configuration
+  show_colors_badge?: boolean;
+  show_materials_badge?: boolean;
+  show_sizes_badge?: boolean;
 }
 
 // ======================================================

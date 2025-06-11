@@ -88,7 +88,11 @@ export default function AdminPage() {
           collection: p.collection,
           notes: p.notes,
           care_instructions: p.care_instructions,
-          gallery_urls: p.gallery_urls || []
+          gallery_urls: p.gallery_urls || [],
+            // Badge display configuration
+          show_colors_badge: p.show_colors_badge,
+          show_materials_badge: p.show_materials_badge,
+          show_sizes_badge: p.show_sizes_badge
         }));
         
         console.log('✅ Produtos carregados do Supabase:', convertedProducts.length);
@@ -539,11 +543,15 @@ function ProductForm({
     sale_end_date: '',
     promotion_text: '',    search_keywords: '',
     vendor: '',
-    collection: '',
-    notes: '',
+    collection: '',    notes: '',
     care_instructions: '',    imageUrl: '',
     gallery_urls: [],
-    alt_text: ''
+    alt_text: '',
+    
+    // Badge display configuration
+    show_colors_badge: true,
+    show_materials_badge: true,
+    show_sizes_badge: true
   });
 
   // Função estável para atualizar imagens
@@ -575,9 +583,21 @@ function ProductForm({
   const handleIsNewArrivalChange = useCallback((checked: boolean) => {
     setFormData(prev => ({ ...prev, is_new_arrival: checked }));
   }, []);
-
   const handleIsOnSaleChange = useCallback((checked: boolean) => {
     setFormData(prev => ({ ...prev, is_on_sale: checked }));
+  }, []);
+
+  // Badge configuration checkboxes
+  const handleShowColorsBadgeChange = useCallback((checked: boolean) => {
+    setFormData(prev => ({ ...prev, show_colors_badge: checked }));
+  }, []);
+
+  const handleShowMaterialsBadgeChange = useCallback((checked: boolean) => {
+    setFormData(prev => ({ ...prev, show_materials_badge: checked }));
+  }, []);
+
+  const handleShowSizesBadgeChange = useCallback((checked: boolean) => {
+    setFormData(prev => ({ ...prev, show_sizes_badge: checked }));
   }, []);
 
   // Sugestões para os campos de array
@@ -699,7 +719,12 @@ function ProductForm({
             notes: formData.notes || null,
             care_instructions: formData.care_instructions || null,
             image_url: finalImageUrl,
-            gallery_urls: formData.gallery_urls || []
+            gallery_urls: formData.gallery_urls || [],
+            
+            // Badge display configuration
+            show_colors_badge: formData.show_colors_badge !== false,
+            show_materials_badge: formData.show_materials_badge !== false,
+            show_sizes_badge: formData.show_sizes_badge !== false
             // SKU será gerado automaticamente (#20xx)
           };
           
@@ -1013,14 +1038,14 @@ function ProductForm({
             <strong>✨ Novo:</strong> Agora você pode adicionar até 5 imagens por produto! 
             A primeira imagem será exibida como principal nos cards de produto.
           </p>
-        </div>
-          <div>
-          {/* MultiImageUpload temporariamente desabilitado para debug */}
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-sm text-yellow-800">
-              🚧 MultiImageUpload temporariamente desabilitado para debug do loop infinito
-            </p>
-          </div>
+        </div>        <div>
+          <MultiImageUpload 
+            images={formData.gallery_urls || []}
+            onImagesChange={(newImages) => {
+              setFormData({ ...formData, gallery_urls: newImages });
+            }}
+            maxImages={5}
+          />
         </div>
 
         <div>
@@ -1163,8 +1188,55 @@ function ProductForm({
                 />
               </div>
             </div>
+          </div>        )}
+      </div>
+
+      {/* Configuração de Badges - Seção nova */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">🏷️ Configuração de Badges</h3>
+          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Controla a exibição</span>
+        </div>
+        
+        <div className="p-4 bg-blue-50/50 rounded-lg space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Configure quais badges serão exibidos nos cards de produto nas páginas de produtos, favoritos e full-store.
+          </p>
+          
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="show_colors_badge"
+                checked={formData.show_colors_badge !== false}
+                onCheckedChange={handleShowColorsBadgeChange}
+              />
+              <Label htmlFor="show_colors_badge">Mostrar Badge de Cores</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="show_materials_badge"
+                checked={formData.show_materials_badge !== false}
+                onCheckedChange={handleShowMaterialsBadgeChange}
+              />
+              <Label htmlFor="show_materials_badge">Mostrar Badge de Materiais</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="show_sizes_badge"
+                checked={formData.show_sizes_badge !== false}
+                onCheckedChange={handleShowSizesBadgeChange}
+              />
+              <Label htmlFor="show_sizes_badge">Mostrar Badge de Tamanhos</Label>
+            </div>
           </div>
-        )}
+          
+          <div className="text-xs text-muted-foreground mt-2">
+            💡 <strong>Dica:</strong> Os badges ajudam os clientes a identificar rapidamente as características dos produtos. 
+            Desmarque para produtos onde essas informações não são relevantes.
+          </div>
+        </div>
       </div>      {/* SEO - Seção opcional */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
