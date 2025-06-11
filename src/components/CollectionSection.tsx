@@ -8,6 +8,7 @@ import useCollections, { CollectionProduct } from '@/hooks/useCollections';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, ArrowRight, ShoppingBag, Eye, ShoppingCart, Star, Truck } from 'lucide-react';
+import { LikeButton } from '@/components/ui/LikeButton';
 
 interface CollectionSectionProps {
   collectionSlug: string;
@@ -43,13 +44,11 @@ const ProductCard = ({ product }: { product: CollectionProduct }) => (
           </Badge>
         )}
       </div>      {/* Botão de Like superior direito */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute top-3 right-3 bg-white/90 hover:bg-white rounded-full shadow-lg border border-white/20 hover:scale-110 transition-all duration-300"
-      >
-        <Heart className="w-4 h-4 hover:fill-red-500 hover:text-red-500 transition-colors" />
-      </Button>
+      <LikeButton 
+        productId={product.id} 
+        variant="floating"
+        size="md"
+      />
     </div>
 
     <CardContent className="p-5 space-y-4">
