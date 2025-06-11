@@ -58,7 +58,7 @@ export default function CollectionSection({
   if (isLoading || productsLoading || !collection || products.length === 0) {
     return (
       <section className="py-16 sm:py-20 lg:py-24">
-        <div className="container mx-auto px-4 sm:px-6">
+        <div className="container mx-auto px-2 sm:px-6">
           <div className="text-center mb-12 sm:mb-16">
             {isLoading || productsLoading ? (
               <div className="space-y-4">

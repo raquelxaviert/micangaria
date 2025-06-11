@@ -3,8 +3,7 @@ import './globals.css';
 import { Header } from '@/components/global/Header';
 import { Footer } from '@/components/global/Footer';
 import { Toaster } from "@/components/ui/toaster";
-import { LikesProvider } from '@/contexts/LikesContextSupabase';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { ClientProviders } from '@/components/providers/ClientProviders';
 import { headers } from 'next/headers';
 
 export const metadata: Metadata = {
@@ -40,18 +39,15 @@ export default async function RootLayout({
             {children}
             <Footer />
             <Toaster />
-          </>
-        ) : (
+          </>        ) : (
           // Layout completo para outras páginas
-          <AuthProvider>
-            <LikesProvider>
-              <Header />
-              <main className="flex-grow container mx-auto px-4 py-8">
-                {children}
-              </main>
-              <Footer />
-            </LikesProvider>
-          </AuthProvider>
+          <ClientProviders>
+            <Header />
+            <main className="flex-grow container mx-auto px-4 py-8">
+              {children}
+            </main>
+            <Footer />
+          </ClientProviders>
         )}
         <Toaster />
       </body>
