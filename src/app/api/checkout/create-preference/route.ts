@@ -14,18 +14,36 @@ import { supabaseAdmin } from '@/lib/supabase';
  */
 
 // Configuração do Mercado Pago
-const client = new MercadoPagoConfig({
-  accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN!,
+const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
+
+if (!accessToken) {
+  console.error('❌ MERCADO_PAGO_ACCESS_TOKEN not configured');
+}
+
+const client = accessToken ? new MercadoPagoConfig({
+  accessToken: accessToken,
   options: {
     timeout: 5000,
     idempotencyKey: 'abc'
   }
-});
+}) : null;
 
-const preference = new Preference(client);
+const preference = client ? new Preference(client) : null;
 
 export async function POST(request: NextRequest) {
   try {
+    // Verificar se estamos em ambiente de build
+    if (process.env.NODE_ENV === 'development' && !process.env.VERCEL) {
+      // Ambiente local, prosseguir normalmente
+    } else if (!process.env.MERCADO_PAGO_ACCESS_TOKEN) {
+      // Em produção, verificar se as variáveis essenciais existem
+      console.warn('⚠️ Environment variables not configured for production build');
+      return NextResponse.json(
+        { success: false, error: 'Service temporarily unavailable' },
+        { status: 503 }
+      );
+    }
+
     const body = await request.json();
     
     const {
@@ -138,27 +156,36 @@ export async function POST(request: NextRequest) {
           weight: item.weight || 0.3,
           dimensions: item.dimensions || { width: 20, height: 5, length: 30 }
         }))
-      }
-    };
+      }    };
 
-    const response = await preference.create({ body: preferenceData });
+    // Verificar se o Mercado Pago está configurado
+    if (!preference) {
+      return NextResponse.json(
+        { success: false, error: 'Payment service not configured' },
+        { status: 503 }
+      );
+    }
 
-    console.log('✅ Preferência criada:', response.id);
+    const response = await preference.create({ body: preferenceData });console.log('✅ Preferência criada:', response.id);
 
     // Persistir pedido no Supabase
-    await supabaseAdmin.from('orders').insert({
-      user_id: customerInfo.id || null,
-      preference_id: response.id,
-      init_point: response.init_point,
-      sandbox_init_point: response.sandbox_init_point,
-      total: total,
-      breakdown: { subtotal, shipping: shippingCost, total },
-      items: items,
-      shipping_option: shippingOption,
-      status: 'pending'
-    });
+    if (supabaseAdmin) {
+      await supabaseAdmin.from('orders').insert({
+        user_id: customerInfo.id || null,
+        preference_id: response.id,
+        init_point: response.init_point,
+        sandbox_init_point: response.sandbox_init_point,
+        total: total,
+        breakdown: { subtotal, shipping: shippingCost, total },
+        items: items,
+        shipping_option: shippingOption,
+        status: 'pending'
+      });
 
-    console.log('💾 Pedido salvo no Supabase:', response.id);
+      console.log('💾 Pedido salvo no Supabase:', response.id);
+    } else {
+      console.warn('⚠️ Supabase não configurado - pedido não foi salvo no banco');
+    }
 
     return NextResponse.json({
       success: true,

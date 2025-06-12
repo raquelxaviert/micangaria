@@ -23,9 +23,7 @@ export async function POST(request: NextRequest) {
     if (status === 'created') {
       console.log('[Webhook MelhorEnvio] Gerando etiqueta para shipment', shipmentId);
       labelData = await generateLabel(shipmentId);
-    }
-
-    // Atualizar pedido no Supabase pelo preference_id ou shipment_id
+    }    // Atualizar pedido no Supabase pelo preference_id ou shipment_id
     const updateFields: any = { shipping_status: status };
     if (labelData) {
       updateFields.shipment_id = shipmentId;
@@ -33,10 +31,14 @@ export async function POST(request: NextRequest) {
       updateFields.tracking_code = labelData.tracking_code;
     }
 
-    await supabaseAdmin
-      .from('orders')
-      .update(updateFields)
-      .eq('shipment_id', shipmentId);
+    if (supabaseAdmin) {
+      await supabaseAdmin
+        .from('orders')
+        .update(updateFields)
+        .eq('shipment_id', shipmentId);
+    } else {
+      console.warn('⚠️ Supabase não configurado - não foi possível atualizar pedido');
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
