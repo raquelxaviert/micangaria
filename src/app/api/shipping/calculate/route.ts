@@ -5,12 +5,10 @@ export async function POST(request: NextRequest) {
   
   try {
     body = await request.json();
-    
-    // Configuração do Melhor Envio
+      // Configuração do Melhor Envio
+    // TEMPORÁRIO: Usando sandbox em todos os ambientes até integração completa
     const melhorEnvioConfig = {
-      apiUrl: process.env.NODE_ENV === 'production' 
-        ? 'https://melhorenvio.com.br/api/v2'
-        : 'https://sandbox.melhorenvio.com.br/api/v2',
+      apiUrl: 'https://sandbox.melhorenvio.com.br/api/v2', // Forçando sandbox
       token: process.env.MELHOR_ENVIO_TOKEN
     };
 
