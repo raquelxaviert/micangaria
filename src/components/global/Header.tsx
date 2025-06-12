@@ -2,11 +2,11 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Sparkles, Info, ShoppingBag, Search, Menu, X, Heart, User, LogOut } from 'lucide-react'; 
+import { Sparkles, Info, ShoppingBag, Search, Menu, X, Heart, User, LogOut, ShoppingCart } from 'lucide-react'; 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLikes } from '@/contexts/LikesContextSupabase';
 import { ClientOnly } from '@/components/ui/ClientOnly';
 import { cn } from '@/lib/utils';
@@ -14,14 +14,31 @@ import { AuthModal } from '@/components/AuthModal_centered';
 import { LoginPromptModal } from '@/components/LoginPromptModal_enhanced';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCategories } from '@/hooks/useCategories';
+import { CartManager } from '@/lib/ecommerce';
 
 export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   const { likedCount, isLoaded, showLoginPrompt, setShowLoginPrompt } = useLikes();
   const { user, signOut } = useAuth();
   const { categories, isLoading: categoriesLoading } = useCategories();
+
+  // Atualizar contador do carrinho
+  useEffect(() => {
+    const updateCartCount = () => {
+      setCartCount(CartManager.getItemCount());
+    };
+    
+    // Inicializar
+    updateCartCount();
+    
+    // Escutar mudanças no carrinho
+    window.addEventListener('cartChanged', updateCartCount);
+    
+    return () => window.removeEventListener('cartChanged', updateCartCount);
+  }, []);
   
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,14 +206,27 @@ export function Header() {
               </Button>
             </div>
           </form>
-          
-          {/* Navegação rápida à direita */}
+            {/* Navegação rápida à direita */}
           <nav>
             <ul className="flex items-center space-x-6">
               <li>
                 <Link href="/products" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap">
                   <ShoppingBag size={20} />
                   <span>Produtos</span>
+                </Link>
+              </li>
+
+              <li>
+                <Link href="/cart" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap relative">
+                  <ShoppingCart size={20} />
+                  <span>Carrinho</span>
+                  <ClientOnly fallback={null}>
+                    {cartCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                        {cartCount > 99 ? '99+' : cartCount}
+                      </span>
+                    )}
+                  </ClientOnly>
                 </Link>
               </li>
               
@@ -262,8 +292,7 @@ export function Header() {
                 className="h-8 w-auto"
               />
             </Link>
-            
-            {/* Ações do mobile: Usuário, Favoritos e Busca */}
+              {/* Ações do mobile: Usuário, Carrinho, Favoritos e Busca */}
             <div className="flex items-center gap-2">
               {/* Botão de Usuário no Mobile - apenas mostrar se logado */}
               {user && (
@@ -277,6 +306,20 @@ export function Header() {
                   <LogOut size={20} />
                 </Button>
               )}
+
+              {/* Botão de Carrinho no Mobile */}
+              <Link href="/cart" className="relative">
+                <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+                  <ShoppingCart size={20} />
+                  <ClientOnly fallback={null}>
+                    {cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium">
+                        {cartCount > 9 ? '9+' : cartCount}
+                      </span>
+                    )}
+                  </ClientOnly>
+                </Button>
+              </Link>
 
               {/* Botão de Favoritos no Mobile */}
               <Link href="/liked-products" className="relative">

@@ -1,9 +1,4 @@
-// Stripe Payment Integration
-import { loadStripe } from '@stripe/stripe-js';
-
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
-
+// E-commerce functionality without Stripe
 export interface CartItem {
   productId: string;
   name: string;
@@ -94,35 +89,5 @@ export class CartManager {
   }
 }
 
-// Payment Processing
-export async function createCheckoutSession(items: CartItem[], customerInfo: any) {
-  const response = await fetch('/api/create-checkout-session', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      items,
-      customerInfo,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error('Erro ao processar pagamento');
-  }
-
-  return response.json();
-}
-
-export async function redirectToCheckout(sessionId: string) {
-  const stripe = await stripePromise;
-  if (!stripe) throw new Error('Stripe não carregou');
-
-  const { error } = await stripe.redirectToCheckout({
-    sessionId,
-  });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-}
+// Payment Processing - Now using Mercado Pago
+// These functions are handled by the new checkout flow

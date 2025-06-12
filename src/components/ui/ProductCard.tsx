@@ -7,6 +7,7 @@ import { LikeButton } from '@/components/ui/LikeButton';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Eye, ShoppingCart, Star } from 'lucide-react';
+import { CartManager } from '@/lib/ecommerce';
 
 // Interface genérica para produto - suporta tanto Supabase quanto mock
 export interface ProductData {
@@ -202,16 +203,25 @@ export function ProductCard({
             }`}>
               R$ {product.price.toFixed(2).replace('.', ',')}
             </span>
-          </div>
-          
-          {showActions && (
+          </div>          {showActions && (
             <Button 
               size="sm"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                // Aqui você pode adicionar a lógica de adicionar ao carrinho
-                console.log('Produto adicionado ao carrinho:', product.id);
+                
+                try {
+                  CartManager.addItem({
+                    productId: product.id,
+                    name: product.name,
+                    price: product.price,
+                    imageUrl: imageUrl
+                  });
+                  
+                  console.log('✅ Produto adicionado ao carrinho:', product.name);
+                } catch (error) {
+                  console.error('❌ Erro ao adicionar ao carrinho:', error);
+                }
               }}
               className={`w-full bg-black hover:bg-black/90 transition-colors duration-300 ${
                 variant === 'compact' ? 'text-xs px-2 py-1 h-8' : 'text-xs px-3 py-2'

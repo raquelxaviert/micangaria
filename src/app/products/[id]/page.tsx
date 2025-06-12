@@ -28,6 +28,7 @@ import { LikeButton } from '@/components/ui/LikeButton';
 import { ProductCard, ProductData } from '@/components/ui/ProductCard';
 import { ImageCarousel } from '@/components/ui/ImageCarousel';
 import ShippingCalculator from '@/components/ShippingCalculator';
+import { CartManager } from '@/lib/ecommerce';
 
 interface Product {
   id: string;
@@ -121,34 +122,28 @@ export default function ProductPage() {
     };
 
     fetchProduct();
-  }, [params.id, supabase, router]);
-  const handleAddToCart = () => {
+  }, [params.id, supabase, router]);  const handleAddToCart = () => {
     if (!product) return;
-      // Aqui você adicionaria a lógica do carrinho
-    const cartItem = {
-      productId: product.id,
-      productName: product.name,
-      productPrice: product.price,
-      quantity,
-      selectedSize,
-      shippingCost,
-      selectedShipping: selectedShipping ? {
-        name: selectedShipping.name,
-        company: selectedShipping.company?.name,
-        deliveryTime: selectedShipping.delivery_time,
-        price: selectedShipping.custom_price || selectedShipping.price
-      } : null,
-      total: product.price * quantity + shippingCost
-    };
     
-    console.log('Adicionado ao carrinho:', cartItem);
-    
-    // Feedback visual melhorado
-    const message = selectedShipping 
-      ? `Produto adicionado ao carrinho!\nFrete: ${selectedShipping.name} - R$ ${(shippingCost).toFixed(2).replace('.', ',')}\nTotal: R$ ${cartItem.total.toFixed(2).replace('.', ',')}`
-      : 'Produto adicionado ao carrinho! Calcule o frete para ver o total.';
-    
-    alert(message);
+    try {
+      // Adicionar ao carrinho usando CartManager
+      for (let i = 0; i < quantity; i++) {
+        CartManager.addItem({
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          imageUrl: product.image_url
+        });
+      }
+      
+      console.log('✅ Produto adicionado ao carrinho:', product.name, 'Quantidade:', quantity);
+      
+      // Feedback visual
+      alert(`${product.name} foi adicionado ao carrinho!${quantity > 1 ? ` (${quantity}x)` : ''}`);
+    } catch (error) {
+      console.error('❌ Erro ao adicionar ao carrinho:', error);
+      alert('Erro ao adicionar produto ao carrinho. Tente novamente.');
+    }
   };
 
   const handleShippingSelect = (shippingOption: any) => {

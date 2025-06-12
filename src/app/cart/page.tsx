@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Trash2, Plus, Minus, ShoppingCart, CreditCard, Truck } from 'lucide-react';
-import { CartManager, CartItem, createCheckoutSession, redirectToCheckout } from '@/lib/ecommerce';
+import { CartManager, CartItem } from '@/lib/ecommerce';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 
@@ -47,7 +47,6 @@ export default function CartPage() {
       description: "Item removido do carrinho com sucesso.",
     });
   };
-
   const handleCheckout = async () => {
     if (!customerInfo.name || !customerInfo.email) {
       toast({
@@ -67,20 +66,17 @@ export default function CartPage() {
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const { sessionId } = await createCheckoutSession(cartItems, customerInfo);
-      await redirectToCheckout(sessionId);
-    } catch (error) {
-      console.error('Checkout error:', error);
-      toast({
-        title: "Erro no checkout",
-        description: "Ocorreu um erro ao processar seu pedido. Tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Redirecionar para checkout com frete
+    const cartData = {
+      items: cartItems,
+      customerInfo
+    };
+    
+    // Salvar dados temporariamente no localStorage para o checkout
+    localStorage.setItem('checkout_data', JSON.stringify(cartData));
+    
+    // Redirecionar para página de checkout com frete
+    window.location.href = '/checkout-with-shipping';
   };
 
   const total = CartManager.getTotal();
