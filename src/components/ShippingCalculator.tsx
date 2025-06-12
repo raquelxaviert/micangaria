@@ -87,10 +87,16 @@ export default function ShippingCalculator({ products, onShippingSelect }: Shipp
           length: 30,
           weight: 0.3
         }))
-      };
-
-      const options = await calculateShipping(shippingData);
-      setShippingOptions(options);
+      };      const options = await calculateShipping(shippingData);
+      
+      // Ordenar por preço (mais barato primeiro)
+      const sortedOptions = options.sort((a, b) => {
+        const priceA = parseFloat(a.custom_price || a.price || '999999');
+        const priceB = parseFloat(b.custom_price || b.price || '999999');
+        return priceA - priceB;
+      });
+      
+      setShippingOptions(sortedOptions);
     } catch (err) {
       console.error('Erro ao calcular frete:', err);
       setError('Erro ao calcular opções de frete');
@@ -119,11 +125,10 @@ export default function ShippingCalculator({ products, onShippingSelect }: Shipp
   return (
     <div className="space-y-6">
       {/* Calculadora de CEP */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Card>        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
             <Calculator className="w-5 h-5" />
-            Calcular Frete
+            Simular frete
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -137,16 +142,16 @@ export default function ShippingCalculator({ products, onShippingSelect }: Shipp
                 placeholder="00000-000"
                 maxLength={9}
                 className="flex-1"
-              />
-              <Button 
+              />              <Button 
                 onClick={() => handleValidateZipCode(zipCode)}
                 disabled={loading || zipCode.length < 9}
                 size="sm"
+                className="text-sm"
               >
                 {loading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  'Calcular'
+                  'Simular'
                 )}
               </Button>
             </div>
@@ -181,59 +186,59 @@ export default function ShippingCalculator({ products, onShippingSelect }: Shipp
               <Truck className="w-5 h-5" />
               Opções de Entrega
             </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+          </CardHeader>          <CardContent className="space-y-3">
             {shippingOptions.map((option) => (
               <div
                 key={option.id}
-                className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                className={`border rounded-lg p-3 md:p-4 cursor-pointer transition-all ${
                   selectedOption?.id === option.id
                     ? 'border-primary bg-primary/5'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
                 onClick={() => handleSelectShipping(option)}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <img
                         src={option.company.picture}
                         alt={option.company.name}
-                        className="w-8 h-8 object-contain"
+                        className="w-6 h-6 md:w-8 md:h-8 object-contain"
                       />
                       <div>
-                        <h4 className="font-medium">{option.name}</h4>
-                        <p className="text-sm text-muted-foreground">
+                        <h4 className="font-medium text-sm md:text-base">{option.name}</h4>
+                        <p className="text-xs md:text-sm text-muted-foreground">
                           {option.company.name}
                         </p>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-4 text-sm">
+                    <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm">
                       <div className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         <span>{formatDeliveryTime(option.delivery_time)}</span>
                       </div>
                       
                       {option.discount && parseFloat(option.discount) > 0 && (
-                        <Badge variant="secondary" className="bg-green-100 text-green-700">
+                        <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
                           {parseFloat(option.discount).toFixed(0)}% OFF
                         </Badge>
                       )}
                       
                       <div className="flex items-center gap-1">
                         <Package className="w-3 h-3" />
-                        <span>Rastreamento incluído</span>
+                        <span className="hidden sm:inline">Rastreamento incluído</span>
+                        <span className="sm:hidden">Rastreamento</span>
                       </div>
                     </div>
                   </div>
                   
                   <div className="text-right">
-                    <div className="text-lg font-bold text-primary">
+                    <div className="text-lg md:text-xl font-bold text-primary">
                       {formatPrice(option.custom_price || option.price)}
                     </div>
                     {option.discount && parseFloat(option.discount) > 0 && (
-                      <div className="text-sm text-muted-foreground line-through">
+                      <div className="text-xs md:text-sm text-muted-foreground line-through">
                         {formatPrice(option.price)}
                       </div>
                     )}
@@ -241,27 +246,8 @@ export default function ShippingCalculator({ products, onShippingSelect }: Shipp
                 </div>
               </div>
             ))}
-          </CardContent>
-        </Card>
-      )}                {/* Informações sobre Frete */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <Truck className="w-5 h-5 text-blue-600 mt-0.5" />
-            <div className="text-sm text-blue-800">
-              <p className="font-medium mb-1">Informações sobre entrega:</p>
-              <ul className="space-y-1 text-blue-700">
-                <li>• 🎉 <strong>Frete GRÁTIS</strong> para São Paulo (Mini Envios)</li>
-                <li>• 📦 Frete grátis em compras acima de R$ 299</li>
-                <li>• 🚚 Entrega expressa Jadlog em 2-3 dias</li>
-                <li>• 📍 Todas as entregas incluem rastreamento</li>
-                <li>• ⏰ Prazo conta apenas dias úteis</li>
-                <li>• 💎 Produtos embalados com cuidado especial</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>        </Card>
+      )}
     </div>
   );
 }

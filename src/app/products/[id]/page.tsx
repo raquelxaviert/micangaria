@@ -27,6 +27,7 @@ import { createClient } from '@/lib/supabase/client';
 import { LikeButton } from '@/components/ui/LikeButton';
 import { ProductCard, ProductData } from '@/components/ui/ProductCard';
 import { ImageCarousel } from '@/components/ui/ImageCarousel';
+import ShippingCalculator from '@/components/ShippingCalculator';
 
 interface Product {
   id: string;
@@ -50,13 +51,14 @@ interface Product {
 
 export default function ProductPage() {
   const params = useParams();
-  const router = useRouter();
-  const [product, setProduct] = useState<Product | null>(null);
+  const router = useRouter();  const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<ProductData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'materials' | 'care'>('description');
+  const [selectedShipping, setSelectedShipping] = useState<any>(null);
+  const [shippingCost, setShippingCost] = useState(0);
   
   const supabase = createClient();
 
@@ -120,19 +122,38 @@ export default function ProductPage() {
 
     fetchProduct();
   }, [params.id, supabase, router]);
-
   const handleAddToCart = () => {
     if (!product) return;
-    
-    // Aqui você adicionaria a lógica do carrinho
-    console.log('Adicionado ao carrinho:', {
+      // Aqui você adicionaria a lógica do carrinho
+    const cartItem = {
       productId: product.id,
+      productName: product.name,
+      productPrice: product.price,
       quantity,
-      selectedSize
-    });
+      selectedSize,
+      shippingCost,
+      selectedShipping: selectedShipping ? {
+        name: selectedShipping.name,
+        company: selectedShipping.company?.name,
+        deliveryTime: selectedShipping.delivery_time,
+        price: selectedShipping.custom_price || selectedShipping.price
+      } : null,
+      total: product.price * quantity + shippingCost
+    };
     
-    // Feedback visual
-    alert('Produto adicionado ao carrinho!');
+    console.log('Adicionado ao carrinho:', cartItem);
+    
+    // Feedback visual melhorado
+    const message = selectedShipping 
+      ? `Produto adicionado ao carrinho!\nFrete: ${selectedShipping.name} - R$ ${(shippingCost).toFixed(2).replace('.', ',')}\nTotal: R$ ${cartItem.total.toFixed(2).replace('.', ',')}`
+      : 'Produto adicionado ao carrinho! Calcule o frete para ver o total.';
+    
+    alert(message);
+  };
+
+  const handleShippingSelect = (shippingOption: any) => {
+    setSelectedShipping(shippingOption);
+    setShippingCost(parseFloat(shippingOption.custom_price || shippingOption.price || '0'));
   };
 
   const handleShare = async () => {
@@ -289,38 +310,45 @@ export default function ProductPage() {
               
               <h1 className="text-3xl lg:text-4xl font-headline text-foreground mb-4">
                 {product.name}
-              </h1>
-
-              <div className="text-4xl font-bold text-primary mb-2">
+              </h1>              <div className="text-4xl font-bold text-primary mb-2">
                 R$ {product.price.toFixed(2).replace('.', ',')}
               </div>
-                <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 ou 3x de R$ {(product.price / 3).toFixed(2).replace('.', ',')} sem juros
               </p>
-            </div>
-
-            {/* Calculadora de Frete - Desktop */}
-            <div className="hidden md:block">
-              <div className="border rounded-lg p-4 bg-muted/20">
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <Truck className="h-4 w-4" />
-                  Calcular Frete
-                </h3>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Digite seu CEP"
-                    className="flex-1 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                    maxLength={9}
-                  />
-                  <Button size="sm" variant="outline">
-                    Calcular
-                  </Button>
+              
+              {/* Frete Selecionado */}
+              {selectedShipping && (
+                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-green-700 mb-1">
+                    <Truck className="w-4 h-4" />
+                    <span className="font-medium text-sm">Frete Selecionado:</span>
+                  </div>
+                  <p className="text-sm text-green-600">
+                    {selectedShipping.name} - {selectedShipping.company?.name}
+                  </p>
+                  <p className="text-sm text-green-600">
+                    R$ {shippingCost.toFixed(2).replace('.', ',')} • {selectedShipping.delivery_time} dias úteis
+                  </p>
+                  <div className="mt-2 pt-2 border-t border-green-200">
+                    <p className="text-sm font-medium text-green-700">
+                      Total: R$ {(product.price * quantity + shippingCost).toFixed(2).replace('.', ',')}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Frete grátis para compras acima de R$ 150
-                </p>
-              </div>
+              )}
+            </div>{/* Calculadora de Frete - Melhor Envio */}
+            <div>
+              <ShippingCalculator
+                products={[{
+                  id: product.id,
+                  name: product.name,
+                  type: product.type,
+                  price: product.price,
+                  quantity: quantity
+                }]}
+                onShippingSelect={handleShippingSelect}
+              />
             </div>
 
             {/* Botões de Ação */}
@@ -332,7 +360,9 @@ export default function ProductPage() {
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 Adicionar ao Carrinho
-              </Button>              <Button 
+              </Button>
+
+              <Button 
                 variant="outline" 
                 size="lg" 
                 className="w-full text-base h-12 hidden md:flex md:items-center md:justify-center"
@@ -340,30 +370,6 @@ export default function ProductPage() {
                 <MessageCircle className="mr-2 h-5 w-5" />
                 Dúvidas? Fale Conosco
               </Button>
-
-              {/* Calculadora de Frete - Mobile */}
-              <div className="md:hidden pt-4">
-                <div className="border rounded-lg p-4 bg-muted/20">
-                  <h3 className="font-semibold mb-3 flex items-center gap-2">
-                    <Truck className="h-4 w-4" />
-                    Calcular Frete
-                  </h3>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Digite seu CEP"
-                      className="flex-1 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                      maxLength={9}
-                    />
-                    <Button size="sm" variant="outline">
-                      Calcular
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Frete grátis para compras acima de R$ 150
-                  </p>
-                </div>
-              </div>
             </div>
 
             {/* Informações Detalhadas */}
