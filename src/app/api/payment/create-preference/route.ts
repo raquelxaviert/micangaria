@@ -1,19 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Instalar: npm install mercadopago
-import mercadopago from 'mercadopago';
+import { MercadoPagoConfig, Preference } from 'mercadopago';
 
 // Configurar Mercado Pago
-mercadopago.configure({
-  access_token: process.env.MERCADO_PAGO_ACCESS_TOKEN!,
-  sandbox: process.env.NODE_ENV !== 'production'
+const client = new MercadoPagoConfig({
+  accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN || '',
+  options: {
+    timeout: 5000,
+  }
 });
+
+const preference = new Preference(client);
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const preference = {
+    const preferenceData = {
       items: body.items,
       payer: body.payer,
       back_urls: body.back_urls,
@@ -27,12 +31,12 @@ export async function POST(request: NextRequest) {
       expiration_date_to: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 horas
     };
 
-    const response = await mercadopago.preferences.create(preference);
+    const response = await preference.create({ body: preferenceData });
 
     return NextResponse.json({
-      id: response.body.id,
-      init_point: response.body.init_point,
-      sandbox_init_point: response.body.sandbox_init_point
+      id: response.id,
+      init_point: response.init_point,
+      sandbox_init_point: response.sandbox_init_point
     });
 
   } catch (error) {

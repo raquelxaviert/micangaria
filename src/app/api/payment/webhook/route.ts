@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import mercadopago from 'mercadopago';
+import { MercadoPagoConfig, Payment } from 'mercadopago';
 
 // Configurar Mercado Pago
-mercadopago.configure({
-  access_token: process.env.MERCADO_PAGO_ACCESS_TOKEN!,
-  sandbox: process.env.NODE_ENV !== 'production'
+const client = new MercadoPagoConfig({
+  accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN || '',
+  options: {
+    timeout: 5000,
+  }
 });
+
+const payment = new Payment(client);
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,34 +20,33 @@ export async function POST(request: NextRequest) {
     // Verificar se é uma notificação de pagamento
     if (body.type === 'payment') {
       const paymentId = body.data.id;
+        // Buscar dados completos do pagamento
+      const paymentData = await payment.get({ id: paymentId });
       
-      // Buscar dados completos do pagamento
-      const payment = await mercadopago.payment.findById(paymentId);
-      
-      console.log('Status do pagamento:', payment.body.status);
+      console.log('Status do pagamento:', paymentData.status);
       
       // Processar baseado no status
-      switch (payment.body.status) {
+      switch (paymentData.status) {
         case 'approved':
-          await handlePaymentApproved(payment.body);
+          await handlePaymentApproved(paymentData);
           break;
         case 'pending':
-          await handlePaymentPending(payment.body);
+          await handlePaymentPending(paymentData);
           break;
         case 'in_process':
-          await handlePaymentInProcess(payment.body);
+          await handlePaymentInProcess(paymentData);
           break;
         case 'rejected':
-          await handlePaymentRejected(payment.body);
+          await handlePaymentRejected(paymentData);
           break;
         case 'cancelled':
-          await handlePaymentCancelled(payment.body);
+          await handlePaymentCancelled(paymentData);
           break;
         case 'refunded':
-          await handlePaymentRefunded(payment.body);
+          await handlePaymentRefunded(paymentData);
           break;
         default:
-          console.log('Status não tratado:', payment.body.status);
+          console.log('Status não tratado:', paymentData.status);
       }
     }
 

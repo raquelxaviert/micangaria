@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
+  let body: any;
+  
   try {
-    const body = await request.json();
+    body = await request.json();
     
     // Configuração do Melhor Envio
     const melhorEnvioConfig = {
@@ -97,15 +99,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       data: formattedResults
     });
-
   } catch (error) {
     console.error('Erro ao calcular frete:', error);
     
     // Fallback: retornar opções básicas de frete
     const fallbackOptions = await calculateBasicShipping(
-      request.body?.from || { postal_code: '01310100' },
-      request.body?.to || { postal_code: '00000000' },
-      request.body?.products || []
+      body?.from || { postal_code: '01310100' },
+      body?.to || { postal_code: '00000000' },
+      body?.products || []
     );
     
     return NextResponse.json({
