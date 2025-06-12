@@ -29,7 +29,7 @@ function CheckoutSuccessContent() {
 
   useEffect(() => {
     if (sessionId) {
-      // Simular dados da sessão (em produção, buscar do Stripe)
+      // Simular dados da sessão (em produção, buscar do Mercado Pago)
       setTimeout(() => {
         const mockSessionData: SessionData = {
           id: sessionId,

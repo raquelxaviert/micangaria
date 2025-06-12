@@ -105,9 +105,8 @@ export default function CheckoutCancelled() {
                 <div className="bg-white border rounded-lg px-3 py-2 text-sm font-medium">
                   💳 Elo
                 </div>
-              </div>
-              <p className="text-sm text-gray-600 mt-4">
-                Todos os pagamentos são processados com segurança através do Stripe.
+              </div>              <p className="text-sm text-gray-600 mt-4">
+                Todos os pagamentos são processados com segurança através do Mercado Pago.
               </p>
             </CardContent>
           </Card>

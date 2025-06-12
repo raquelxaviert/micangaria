@@ -8,11 +8,8 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  productionBrowserSourceMaps: false,
-  // Evitar que API routes sejam executadas durante o build
-  experimental: {
-    serverComponentsExternalPackages: ['@supabase/supabase-js'],
-  },
+  productionBrowserSourceMaps: false,  // Evitar que API routes sejam executadas durante o build
+  serverExternalPackages: ['@supabase/supabase-js'],
   // Redirect problematic requests to 404
   async rewrites() {
     return {

@@ -266,9 +266,8 @@ export default function CartPage() {
                     </>
                   )}
                 </Button>
-                
-                <p className="text-xs text-muted-foreground text-center">
-                  🔒 Pagamento 100% seguro via Stripe
+                  <p className="text-xs text-muted-foreground text-center">
+                  🔒 Pagamento 100% seguro via Mercado Pago
                 </p>
               </CardContent>
             </Card>
