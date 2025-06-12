@@ -46,9 +46,12 @@ export async function POST(request: NextRequest) {
     if (!metadata) {
       console.error('[WEBHOOK] Sem metadados no pagamento');
       return NextResponse.json({ error: 'Sem metadados' }, { status: 400 });
+    }    const pedidoId = paymentData.external_reference;
+    if (!pedidoId) {
+      console.error('[WEBHOOK] Sem external_reference no pagamento');
+      return NextResponse.json({ error: 'Sem referência do pedido' }, { status: 400 });
     }
 
-    const pedidoId = paymentData.external_reference;
     const produtos = JSON.parse(metadata.produtos as string);
     const frete = JSON.parse(metadata.frete as string);
     const enderecoEntrega = JSON.parse(metadata.enderecoEntrega as string);
@@ -203,10 +206,10 @@ async function gerarEtiquetaAutomatica(produtos: any[], frete: any, enderecoEntr
       valor: etiqueta.price,
       servico: frete.nome
     };
-
   } catch (error) {
     console.error('[ETIQUETA] Erro:', error);
-    return { success: false, error: error.message };
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    return { success: false, error: errorMessage };
   }
 }
 

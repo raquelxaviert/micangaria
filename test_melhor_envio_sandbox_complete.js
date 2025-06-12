@@ -4,6 +4,8 @@
  * Execute: node test_melhor_envio_sandbox_complete.js
  */
 
+require('dotenv').config({ path: '.env.local' });
+
 // Configuração do ambiente
 const isSandbox = process.env.NODE_ENV === 'development' || process.env.MELHOR_ENVIO_SANDBOX === 'true';
 

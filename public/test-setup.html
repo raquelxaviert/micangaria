@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurar Dados de Teste</title>
+</head>
+<body>
+    <h1>Configurar Dados de Teste para Checkout</h1>
+    <button onclick="setupTestData()">Adicionar Itens de Teste ao Carrinho</button>
+    <div id="result"></div>
+
+    <script>
+        function setupTestData() {
+            // Dados de teste para o carrinho
+            const testCartData = {
+                items: [
+                    {
+                        productId: '1',
+                        name: 'Vestido Vintage Anos 70',
+                        price: 189.90,
+                        quantity: 1,
+                        imageUrl: '/images/vintage-dress.jpg'
+                    },
+                    {
+                        productId: '2',
+                        name: 'Casaco de Lã Retrô',
+                        price: 259.90,
+                        quantity: 1,
+                        imageUrl: '/images/vintage-coat.jpg'
+                    }
+                ],
+                customerInfo: {
+                    name: 'Maria Silva',
+                    email: 'maria@teste.com',
+                    phone: '(11) 99999-9999'
+                }
+            };
+
+            // Salvar no localStorage
+            localStorage.setItem('checkout_data', JSON.stringify(testCartData));
+
+            document.getElementById('result').innerHTML = `
+                <p style="color: green;">✅ Dados de teste adicionados ao carrinho!</p>
+                <p>Você pode agora testar em: <a href="/checkout-with-shipping">http://localhost:9002/checkout-with-shipping</a></p>
+            `;
+        }
+    </script>
+</body>
+</html>

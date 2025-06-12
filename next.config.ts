@@ -28,8 +28,7 @@ const nextConfig: NextConfig = {
       ],
       fallback: [],
     };
-  },
-  images: {
+  },  images: {
     remotePatterns: [
       {
         protocol: 'https',
@@ -42,6 +41,24 @@ const nextConfig: NextConfig = {
         hostname: 'koduoglrfzronbcgqrjc.supabase.co',
         port: '',
         pathname: '/storage/v1/object/public/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'sandbox.melhorenvio.com.br',
+        port: '',
+        pathname: '/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'static.melhorenvio.com.br',
+        port: '',
+        pathname: '/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'melhorenvio.com.br',
+        port: '',
+        pathname: '/images/**',
       },
     ],
   },

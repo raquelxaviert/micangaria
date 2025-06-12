@@ -102,12 +102,14 @@ export async function POST(request: NextRequest) {
         currency_id: 'BRL',
         unit_price: shippingCost
       }
-    ];
-
-    // Dados do comprador
+    ];    // Dados do comprador
+    // Em ambiente de desenvolvimento/sandbox, usar email de teste
+    const isProduction = process.env.NODE_ENV === 'production';
+    const testEmail = 'test_user_297518619@testuser.com'; // Email de teste válido para sandbox
+    
     const payer = {
       name: customerInfo.name,
-      email: customerInfo.email,
+      email: isProduction ? customerInfo.email : testEmail,
       phone: {
         area_code: customerInfo.phone?.substring(0, 2) || '11',
         number: customerInfo.phone?.substring(2) || '999999999'
@@ -123,6 +125,12 @@ export async function POST(request: NextRequest) {
       }
     };
 
+    console.log('👤 Dados do pagador configurados:', { 
+      name: payer.name, 
+      email: payer.email, 
+      isProduction 
+    });
+
     // Criar preferência
     const preferenceData = {
       items: mercadoPagoItems,
@@ -135,15 +143,14 @@ export async function POST(request: NextRequest) {
       shipments: {
         cost: shippingCost,
         mode: 'not_specified'
-      },
-      back_urls: {
-        success: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success`,
-        failure: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/failure`,
-        pending: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/pending`
+      },      back_urls: {
+        success: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002'}/checkout/success`,
+        failure: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002'}/checkout/failure`,
+        pending: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002'}/checkout/pending`
       },
       auto_return: 'approved',
       external_reference: `RUGE-${Date.now()}`, // ID único do pedido
-      notification_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/mercadopago`,
+      notification_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002'}/api/webhooks/mercadopago`,
       metadata: {
         // Dados para gerar etiqueta depois do pagamento
         shipping_option: shippingOption,
@@ -185,12 +192,11 @@ export async function POST(request: NextRequest) {
       console.log('💾 Pedido salvo no Supabase:', response.id);
     } else {
       console.warn('⚠️ Supabase não configurado - pedido não foi salvo no banco');
-    }
-
-    return NextResponse.json({
+    }    return NextResponse.json({
       success: true,
       preference_id: response.id,
-      init_point: response.init_point, 
+      // Em desenvolvimento/sandbox, usar sandbox_init_point
+      init_point: isProduction ? response.init_point : response.sandbox_init_point, 
       sandbox_init_point: response.sandbox_init_point,
       total: total,
       breakdown: {

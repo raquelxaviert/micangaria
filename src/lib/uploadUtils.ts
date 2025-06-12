@@ -25,12 +25,12 @@ export async function uploadImageToSupabase(file: File): Promise<ImageUploadResu
         cacheControl: '3600',
         upsert: false
       });
-      
-    if (error) {
+        if (error) {
       console.error('❌ Erro no upload Supabase:', error);
+      const errorMessage = error instanceof Error ? error.message : (error as any)?.message || 'Erro no upload';
       return {
         success: false,
-        error: error.message || 'Erro no upload'
+        error: errorMessage
       };
     }
     

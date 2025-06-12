@@ -57,11 +57,11 @@ export async function POST(request: NextRequest) {
       init_point: preferenceData.init_point, // Link para pagamento
       sandbox_init_point: preferenceData.sandbox_init_point
     });
-
   } catch (error) {
     console.error('❌ Erro ao criar preferência:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
     return NextResponse.json(
-      { message: 'Erro ao criar pagamento', error: error.message },
+      { message: 'Erro ao criar pagamento', error: errorMessage },
       { status: 500 }
     );
   }

@@ -128,9 +128,9 @@ export default function CheckoutWithShipping() {
         from: ORIGEM,
         to: address,
         products: products
-      };
-
-      // Chamar API de cálculo de frete
+      };      // Chamar API de cálculo de frete
+      console.log('🚚 Enviando dados para API:', shippingData);
+      
       const response = await fetch('/api/shipping/calculate', {
         method: 'POST',
         headers: {
@@ -139,17 +139,24 @@ export default function CheckoutWithShipping() {
         body: JSON.stringify(shippingData),
       });
 
-      if (!response.ok) {
-        throw new Error('Erro ao calcular frete');
-      }
+      console.log('📡 Status da resposta:', response.status);
 
-      const shippingResult = await response.json();
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Erro da API:', errorText);
+        throw new Error('Erro ao calcular frete');
+      }      const shippingResult = await response.json();
+      console.log('📦 Resposta da API:', shippingResult);
       
-      if (shippingResult.length > 0) {
-        setShippingOptions(shippingResult);
+      // A API retorna { data: [...] }, então precisamos acessar o campo data
+      const shippingOptions = shippingResult.data || shippingResult;
+      console.log('🎯 Opções processadas:', shippingOptions);
+      
+      if (shippingOptions.length > 0) {
+        setShippingOptions(shippingOptions);
         toast({
           title: "Frete calculado",
-          description: `Encontradas ${shippingResult.length} opções de entrega.`,
+          description: `Encontradas ${shippingOptions.length} opções de entrega.`,
         });
       } else {
         throw new Error('Nenhuma opção de frete disponível');
@@ -201,16 +208,27 @@ export default function CheckoutWithShipping() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(paymentData),
-      });
-
-      if (!response.ok) {
+      });      if (!response.ok) {
         throw new Error('Erro ao processar pagamento');
+      }      const data = await response.json();
+      console.log('🔗 Resposta do Mercado Pago:', data);
+      
+      // Use sandbox_init_point em desenvolvimento ou init_point em produção
+      // Como estamos em sandbox, preferir sandbox_init_point
+      const paymentUrl = data.sandbox_init_point || data.init_point;
+      
+      if (!paymentUrl) {
+        console.error('❌ URLs disponíveis:', { 
+          sandbox_init_point: data.sandbox_init_point, 
+          init_point: data.init_point 
+        });
+        throw new Error('URL de pagamento não recebida');
       }
-
-      const { init_point } = await response.json();
+      
+      console.log('🔗 Redirecionando para:', paymentUrl);
       
       // Redirecionar para o Mercado Pago
-      window.location.href = init_point;
+      window.location.href = paymentUrl;
     } catch (error: any) {
       console.error('Erro no pagamento:', error);
       toast({
@@ -321,14 +339,15 @@ export default function CheckoutWithShipping() {
                           key={option.id}
                           className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/50"
                           onClick={() => selectShipping(option)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Image
-                              src={option.company.picture}
+                        >                          <div className="flex items-center gap-3">                            <Image
+                              src={option.company.picture || '/images/default-shipping.svg'}
                               alt={option.company.name}
                               width={40}
                               height={40}
                               className="rounded"
+                              onError={(e) => {
+                                e.currentTarget.src = '/images/default-shipping.svg';
+                              }}
                             />
                             <div>
                               <p className="font-medium">{option.name}</p>
@@ -336,9 +355,13 @@ export default function CheckoutWithShipping() {
                                 {option.delivery_time} dias úteis
                               </p>
                             </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold">R$ {parseFloat(option.custom_price || option.price).toFixed(2)}</p>
+                          </div>                          <div className="text-right">
+                            <p className="font-bold">
+                              {(() => {
+                                const price = parseFloat(option.custom_price || option.price || '0');
+                                return isNaN(price) || price === 0 ? 'Grátis' : `R$ ${price.toFixed(2)}`;
+                              })()}
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -360,14 +383,16 @@ export default function CheckoutWithShipping() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      <div className="bg-muted/50 p-4 rounded-lg">
-                        <div className="flex items-center gap-3 mb-2">
+                      <div className="bg-muted/50 p-4 rounded-lg">                        <div className="flex items-center gap-3 mb-2">
                           <Image
-                            src={selectedShipping.company.picture}
+                            src={selectedShipping.company.picture || '/images/default-shipping.png'}
                             alt={selectedShipping.company.name}
                             width={32}
                             height={32}
                             className="rounded"
+                            onError={(e) => {
+                              e.currentTarget.src = '/images/default-shipping.png';
+                            }}
                           />
                           <div>
                             <p className="font-medium">{selectedShipping.name}</p>

@@ -87,36 +87,60 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         data: await calculateBasicShipping(body.from, body.to, body.products, isSandbox)
       });
-    }
+    }    const data = await response.json();
+      // Filtrar e formatar os resultados
+    let formattedResults = Object.values(data).map((option: any) => {
+      // Tratar preços que podem ser null, undefined, 0 ou string vazia
+      const rawPrice = option.price || option.custom_price || 0;
+      const rawCustomPrice = option.custom_price || option.price || 0;
+      
+      // Converter para número e verificar se é válido
+      const price = parseFloat(rawPrice.toString()) || 0;
+      const customPrice = parseFloat(rawCustomPrice.toString()) || 0;
+      
+      // Verificar se é gratuito
+      const isFree = price === 0;
+      
+      console.log(`[SHIPPING] ${option.name}: price=${price}, custom_price=${customPrice}, isFree=${isFree}`);
+      
+      return {
+        id: option.id,
+        name: option.name,
+        company: {
+          id: option.company?.id || 0,
+          name: option.company?.name || 'Transportadora',
+          picture: option.company?.picture || '/images/default-shipping.svg'
+        },
+        price: price.toFixed(2),
+        custom_price: customPrice.toFixed(2),
+        discount: option.discount || '0',
+        currency: option.currency || 'BRL',
+        delivery_time: option.delivery_time || 5,
+        delivery_range: option.delivery_range || { min: 3, max: 7 },
+        custom_delivery_time: option.custom_delivery_time || option.delivery_time,
+        custom_delivery_range: option.custom_delivery_range || option.delivery_range,
+        packages: option.packages || [],
+        additional_services: {
+          receipt: false,
+          own_hand: false,
+          collect: false
+        },
+        isFree: isFree
+      };
+    });    // Ordenar por preço (mais barato primeiro)
+    formattedResults.sort((a, b) => {
+      const priceA = parseFloat(a.custom_price || a.price || '0');
+      const priceB = parseFloat(b.custom_price || b.price || '0');
+      
+      // Se um dos preços é NaN, colocar no final
+      if (isNaN(priceA)) return 1;
+      if (isNaN(priceB)) return -1;
+      
+      return priceA - priceB;
+    });
 
-    const data = await response.json();
-    
-    // Filtrar e formatar os resultados
-    const formattedResults = Object.values(data).map((option: any) => ({
-      id: option.id,
-      name: option.name,
-      company: {
-        id: option.company?.id || 0,
-        name: option.company?.name || 'Transportadora',
-        picture: option.company?.picture || '/default-shipping.png'
-      },
-      price: option.price,
-      custom_price: option.custom_price || option.price,
-      discount: option.discount || '0',
-      currency: option.currency || 'BRL',
-      delivery_time: option.delivery_time || 5,
-      delivery_range: option.delivery_range || { min: 3, max: 7 },
-      custom_delivery_time: option.custom_delivery_time || option.delivery_time,
-      custom_delivery_range: option.custom_delivery_range || option.delivery_range,
-      packages: option.packages || [],
-      additional_services: {
-        receipt: false,
-        own_hand: false,
-        collect: false
-      }
-    }));
-
-    console.log(`[MELHOR ENVIO] ${formattedResults.length} opções de frete encontradas`);
+    console.log(`[MELHOR ENVIO] ${formattedResults.length} opções de frete encontradas e ordenadas por preço`);
+    console.log('[PREÇOS]', formattedResults.map(r => ({ name: r.name, price: r.price, custom_price: r.custom_price })));
 
     return NextResponse.json({
       data: formattedResults
