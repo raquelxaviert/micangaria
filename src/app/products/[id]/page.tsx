@@ -243,9 +243,7 @@ export default function ProductPage() {
                     {product.promotion_text || 'OFERTA'}
                   </Badge>
                 )}
-              </div>
-
-              {/* Botões de ação */}
+              </div>              {/* Botões de ação */}
               <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
                 <LikeButton 
                   productId={product.id} 
@@ -256,54 +254,37 @@ export default function ProductPage() {
                   size="icon"
                   variant="secondary"
                   onClick={handleShare}
-                  className="bg-white/90 backdrop-blur-sm hover:bg-white"
+                  className="bg-white/90 backdrop-blur-sm hover:bg-white text-foreground"
                 >
                   <Share2 className="h-4 w-4" />
                 </Button>
-              </div>
-            </div>{/* Trust Badges - Desktop */}
-            <div className="grid grid-cols-3 gap-4 pt-4 hidden md:grid">
-              <div className="flex flex-col items-center text-center space-y-2">
-                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                  <Shield className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs font-medium">Produto Autêntico</p>
-                  <p className="text-xs text-muted-foreground">Peça única</p>
-                </div>
-              </div>
-              <div className="flex flex-col items-center text-center space-y-2">
-                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                  <Truck className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs font-medium">Frete Grátis</p>
-                  <p className="text-xs text-muted-foreground">Acima de R$ 150</p>
-                </div>
-              </div>
-              <div className="flex flex-col items-center text-center space-y-2">
-                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                  <RotateCcw className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs font-medium">Troca Fácil</p>
-                  <p className="text-xs text-muted-foreground">7 dias</p>
-                </div>
-              </div>
-            </div>
+              </div></div>
           </div>
 
           {/* Informações do Produto */}
-          <div className="space-y-6">
-            {/* Título e Preço */}
-            <div>
-              <div className="flex items-center gap-2 mb-2">
+          <div className="space-y-6">            {/* Título e Preço */}
+            <div>              <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <Badge variant="outline" className="text-xs">
                   {product.type}
                 </Badge>
                 <Badge variant="outline" className="text-xs">
                   {product.style}
                 </Badge>
+                {product.colors && product.colors.length > 0 && product.colors.map((color, index) => (
+                  <Badge key={`color-${index}`} variant="outline" className="text-xs">
+                    {color}
+                  </Badge>
+                ))}
+                {product.materials && product.materials.length > 0 && product.materials.map((material, index) => (
+                  <Badge key={`material-${index}`} variant="outline" className="text-xs bg-muted/50">
+                    {material}
+                  </Badge>
+                ))}
+                {product.sizes && product.sizes.length > 0 && product.sizes.map((size, index) => (
+                  <Badge key={`size-${index}`} variant="outline" className="text-xs">
+                    Tam. {size}
+                  </Badge>
+                ))}
               </div>
               
               <h1 className="text-3xl lg:text-4xl font-headline text-foreground mb-4">
@@ -313,120 +294,74 @@ export default function ProductPage() {
               <div className="text-4xl font-bold text-primary mb-2">
                 R$ {product.price.toFixed(2).replace('.', ',')}
               </div>
-              
-              <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                 ou 3x de R$ {(product.price / 3).toFixed(2).replace('.', ',')} sem juros
               </p>
             </div>
 
-            {/* Cores */}
-            {product.colors && product.colors.length > 0 && (
-              <div>
-                <h3 className="font-semibold mb-3">Cores Disponíveis</h3>
-                <div className="flex flex-wrap gap-2">
-                  {product.colors.map((color, index) => (
-                    <Badge key={index} variant="outline" className="text-sm">
-                      {color}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Tamanhos */}
-            {product.sizes && product.sizes.length > 0 && (
-              <div>
-                <h3 className="font-semibold mb-3">Tamanhos</h3>
-                <div className="flex flex-wrap gap-2">
-                  {product.sizes.map((size, index) => (
-                    <Button
-                      key={index}
-                      variant={selectedSize === size ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedSize(size)}
-                      className="min-w-[3rem]"
-                    >
-                      {size}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}            {/* Quantidade - Escondido no mobile */}
+            {/* Calculadora de Frete - Desktop */}
             <div className="hidden md:block">
-              <h3 className="font-semibold mb-3">Quantidade</h3>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center border rounded-lg">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={quantity <= 1}
-                    className="h-10 w-10"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <span className="px-4 py-2 font-medium">{quantity}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="h-10 w-10"
-                  >
-                    <Plus className="h-4 w-4" />
+              <div className="border rounded-lg p-4 bg-muted/20">
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <Truck className="h-4 w-4" />
+                  Calcular Frete
+                </h3>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Digite seu CEP"
+                    className="flex-1 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    maxLength={9}
+                  />
+                  <Button size="sm" variant="outline">
+                    Calcular
                   </Button>
                 </div>
-                <span className="text-sm text-muted-foreground">
-                  (apenas 1 unidade disponível)
-                </span>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Frete grátis para compras acima de R$ 150
+                </p>
               </div>
-            </div>{/* Botões de Ação */}
+            </div>
+
+            {/* Botões de Ação */}
             <div className="space-y-3">
               <Button 
                 size="lg" 
-                className="w-full text-base font-semibold h-12 hidden md:block"
+                className="w-full text-base font-semibold h-12 hidden md:flex md:items-center md:justify-center"
                 onClick={handleAddToCart}
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 Adicionar ao Carrinho
-              </Button>
-              
-              <Button 
+              </Button>              <Button 
                 variant="outline" 
                 size="lg" 
-                className="w-full text-base h-12"
+                className="w-full text-base h-12 hidden md:flex md:items-center md:justify-center"
               >
                 <MessageCircle className="mr-2 h-5 w-5" />
                 Dúvidas? Fale Conosco
               </Button>
 
-              {/* Trust Badges - Mobile */}
-              <div className="grid grid-cols-3 gap-4 pt-4 md:hidden">
-                <div className="flex flex-col items-center text-center space-y-2">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                    <Shield className="h-5 w-5 text-primary" />
+              {/* Calculadora de Frete - Mobile */}
+              <div className="md:hidden pt-4">
+                <div className="border rounded-lg p-4 bg-muted/20">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <Truck className="h-4 w-4" />
+                    Calcular Frete
+                  </h3>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Digite seu CEP"
+                      className="flex-1 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      maxLength={9}
+                    />
+                    <Button size="sm" variant="outline">
+                      Calcular
+                    </Button>
                   </div>
-                  <div>
-                    <p className="text-xs font-medium">Produto Autêntico</p>
-                    <p className="text-xs text-muted-foreground">Peça única</p>
-                  </div>
-                </div>
-                <div className="flex flex-col items-center text-center space-y-2">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                    <Truck className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium">Frete Grátis</p>
-                    <p className="text-xs text-muted-foreground">Acima de R$ 150</p>
-                  </div>
-                </div>
-                <div className="flex flex-col items-center text-center space-y-2">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                    <RotateCcw className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium">Troca Fácil</p>
-                    <p className="text-xs text-muted-foreground">7 dias</p>
-                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Frete grátis para compras acima de R$ 150
+                  </p>
                 </div>
               </div>
             </div>
@@ -463,12 +398,11 @@ export default function ProductPage() {
                       </p>
                     </div>
                   )}
-                  
-                  {activeTab === 'materials' && (
+                    {activeTab === 'materials' && (
                     <div>
                       {product.materials && product.materials.length > 0 ? (
                         <div>
-                          <h4 className="font-semibold mb-2">Materiais:</h4>
+                          <h4 className="font-semibold mb-2">Composição:</h4>
                           <ul className="space-y-1">
                             {product.materials.map((material, index) => (
                               <li key={index} className="text-sm text-muted-foreground">
@@ -476,6 +410,9 @@ export default function ProductPage() {
                               </li>
                             ))}
                           </ul>
+                          <p className="text-xs text-muted-foreground mt-3">
+                            * Peça única, características podem variar ligeiramente
+                          </p>
                         </div>
                       ) : (
                         <p className="text-sm text-muted-foreground">
@@ -508,10 +445,21 @@ export default function ProductPage() {
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
+                  )}                </div>
               </CardContent>
             </Card>
+
+            {/* Botão Fale Conosco - Mobile */}
+            <div className="md:hidden">
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="w-full text-base h-12"
+              >
+                <MessageCircle className="mr-2 h-5 w-5" />
+                Dúvidas? Fale Conosco
+              </Button>
+            </div>
           </div>
         </div>
 
