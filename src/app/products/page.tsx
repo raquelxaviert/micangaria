@@ -336,8 +336,7 @@ function ProductsContent() {
         element.scrollIntoView({ behavior: 'smooth' });
       }
     }  }, []);
-  
-  // Loading state
+    // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
@@ -353,7 +352,7 @@ function ProductsContent() {
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
-      <div className="container mx-auto px-2 sm:px-6 py-4 sm:py-8">        {/* Header */}
+      <div className="container mx-auto px-2 sm:px-6 py-4 sm:py-8 max-w-full overflow-hidden">        {/* Header */}
         <div className="mb-6 sm:mb-12">
           <div className="text-center mb-4 sm:mb-8">
             <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">
@@ -431,11 +430,10 @@ function ProductsContent() {
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
                 <p className="text-muted-foreground">Carregando produtos...</p>
-              </div>
-            ) : filteredProducts.length > 0 ? (
-              <div className="columns-2 lg:columns-3 gap-2 sm:gap-4 lg:gap-6 space-y-2 sm:space-y-4 lg:space-y-6">
+              </div>            ) : filteredProducts.length > 0 ? (
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 lg:gap-6">
                 {filteredProducts.map(product => (
-                  <div key={product.id} className="break-inside-avoid mb-2 sm:mb-4 lg:mb-6">
+                  <div key={product.id}>
                     <ProductCard 
                       product={convertProductToProductData(product)}
                       variant="compact"

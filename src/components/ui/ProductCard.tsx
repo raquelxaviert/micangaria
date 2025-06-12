@@ -61,9 +61,8 @@ export function ProductCard({
   
   // Get total number of images for indicator
   const totalImages = 1 + (Array.isArray(product.gallery_urls) ? product.gallery_urls.length : 0);
-
   return (
-    <Card className={`group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95 ${className}`}>
+    <Card className={`group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95 w-full ${className}`}>
       <div className="relative">
         <Link href={`/products/${product.id}`} className="block cursor-pointer">
           <div className="relative overflow-hidden">
