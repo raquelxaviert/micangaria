@@ -105,18 +105,22 @@ export async function POST(request: NextRequest) {
     ];    // Dados do comprador
     // Em ambiente de desenvolvimento/sandbox, usar email de teste
     const isProduction = process.env.NODE_ENV === 'production';
+    const isSandbox = process.env.MERCADO_PAGO_SANDBOX === 'true' || !isProduction;
+    
+    // Para sandbox, usar um email de teste válido do Mercado Pago
+    // Este email precisa ser de um usuário de teste criado no Mercado Pago
     const testEmail = 'test_user_297518619@testuser.com'; // Email de teste válido para sandbox
     
     const payer = {
       name: customerInfo.name,
-      email: isProduction ? customerInfo.email : testEmail,
+      email: isSandbox ? testEmail : customerInfo.email,
       phone: {
         area_code: customerInfo.phone?.substring(0, 2) || '11',
         number: customerInfo.phone?.substring(2) || '999999999'
       },
       identification: {
         type: 'CPF',
-        number: customerInfo.document || '12345678901'
+        number: isSandbox ? '12345678901' : (customerInfo.document || '12345678901')
       },
       address: {
         street_name: shippingAddress.address,
@@ -128,7 +132,17 @@ export async function POST(request: NextRequest) {
     console.log('👤 Dados do pagador configurados:', { 
       name: payer.name, 
       email: payer.email, 
-      isProduction 
+      isProduction,
+      isSandbox 
+    });// Definir URLs base
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
+    
+    console.log('🔗 URLs configuradas:', {
+      baseUrl,
+      success: `${baseUrl}/checkout/success`,
+      failure: `${baseUrl}/checkout/failure`,
+      pending: `${baseUrl}/checkout/pending`,
+      notification: `${baseUrl}/api/webhooks/mercadopago`
     });
 
     // Criar preferência
@@ -144,13 +158,12 @@ export async function POST(request: NextRequest) {
         cost: shippingCost,
         mode: 'not_specified'
       },      back_urls: {
-        success: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002'}/checkout/success`,
-        failure: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002'}/checkout/failure`,
-        pending: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002'}/checkout/pending`
+        success: `${baseUrl}/checkout/success`,
+        failure: `${baseUrl}/checkout/failure`,
+        pending: `${baseUrl}/checkout/pending`
       },
-      auto_return: 'approved',
       external_reference: `RUGE-${Date.now()}`, // ID único do pedido
-      notification_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002'}/api/webhooks/mercadopago`,
+      notification_url: `${baseUrl}/api/webhooks/mercadopago`,
       metadata: {
         // Dados para gerar etiqueta depois do pagamento
         shipping_option: shippingOption,
@@ -163,7 +176,8 @@ export async function POST(request: NextRequest) {
           weight: item.weight || 0.3,
           dimensions: item.dimensions || { width: 20, height: 5, length: 30 }
         }))
-      }    };
+      }
+    };
 
     // Verificar se o Mercado Pago está configurado
     if (!preference) {
