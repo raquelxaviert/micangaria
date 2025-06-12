@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
     
     // Para sandbox, usar um email de teste válido do Mercado Pago
     // Este email precisa ser de um usuário de teste criado no Mercado Pago
-    const testEmail = 'test_user_297518619@testuser.com'; // Email de teste válido para sandbox
+    const testEmail = 'test_user_285481368@testuser.com'; // Email de teste válido para sandbox
     
     const payer = {
       name: customerInfo.name,
