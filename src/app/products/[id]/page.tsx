@@ -383,7 +383,7 @@ export default function ProductPage() {
             <div className="space-y-3">
               <Button 
                 size="lg" 
-                className="w-full text-base font-semibold h-12"
+                className="w-full text-base font-semibold h-12 hidden md:block"
                 onClick={handleAddToCart}
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
