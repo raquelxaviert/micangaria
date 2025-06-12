@@ -91,8 +91,28 @@ export default function ShippingCalculator({ products, onShippingSelect }: Shipp
       
       // Ordenar por preço (mais barato primeiro)
       const sortedOptions = options.sort((a, b) => {
-        const priceA = parseFloat(a.custom_price || a.price || '999999');
-        const priceB = parseFloat(b.custom_price || b.price || '999999');
+        // Tratar os preços corretamente, considerando custom_price ou price
+        let priceA = 0;
+        let priceB = 0;
+        
+        // Para o preço A
+        if (a.custom_price && a.custom_price !== '0') {
+          priceA = parseFloat(a.custom_price);
+        } else if (a.price) {
+          priceA = parseFloat(a.price);
+        }
+        
+        // Para o preço B
+        if (b.custom_price && b.custom_price !== '0') {
+          priceB = parseFloat(b.custom_price);
+        } else if (b.price) {
+          priceB = parseFloat(b.price);
+        }
+        
+        // Garantir que não são NaN
+        if (isNaN(priceA)) priceA = 999999;
+        if (isNaN(priceB)) priceB = 999999;
+        
         return priceA - priceB;
       });
       
