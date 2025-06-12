@@ -129,9 +129,8 @@ export function Header() {
         </div>
       </div>
     </div>
-  );
-  return (
-    <header className="fixed top-0 left-0 right-0 z-40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 text-foreground shadow-md border-b border-border">
+  );  return (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 text-foreground shadow-md border-b border-border" style={{ transform: 'translate3d(0, 0, 0)', willChange: 'auto', backfaceVisibility: 'hidden' }}>
       <div className="container mx-auto px-4 py-4">
         {/* Layout desktop */}
         <div className="hidden md:flex items-center justify-between gap-4">

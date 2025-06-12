@@ -104,6 +104,16 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline;
   }
+  
+  /* Fix for mobile header positioning */
+  @media (max-width: 768px) {
+    header[class*="fixed"] {
+      position: fixed !important;
+      transform: translate3d(0, 0, 0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+  }
 }
 
 @layer utilities {
@@ -198,6 +208,32 @@ html {
 .focus-visible:focus {
   outline: 2px solid hsl(var(--primary));
   outline-offset: 2px;
+}
+
+/* Mobile-specific fixes for fixed positioning */
+@media (max-width: 768px) {
+  .fixed {
+    position: fixed !important;
+    transform: translate3d(0, 0, 0) !important;
+    -webkit-transform: translate3d(0, 0, 0) !important;
+    will-change: auto !important;
+    backface-visibility: hidden !important;
+    -webkit-backface-visibility: hidden !important;
+  }
+  
+  /* Prevent rubber band scrolling from affecting fixed elements */
+  body {
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Force hardware acceleration for better performance */
+  header[class*="fixed"] {
+    transform: translate3d(0, 0, 0) !important;
+    -webkit-transform: translate3d(0, 0, 0) !important;
+    will-change: auto !important;
+    position: fixed !important;
+  }
 }
 
 /* Animações personalizadas para flutuação orgânica entre cores */
