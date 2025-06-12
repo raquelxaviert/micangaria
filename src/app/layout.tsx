@@ -17,10 +17,11 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const headersList = await headers();
-  const pathname = headersList.get('x-pathname') || '';
-  const isCheckoutPage = pathname.startsWith('/checkout');
+  const pathname = headersList.get('x-pathname') || '';  const isCheckoutPage = pathname.startsWith('/checkout');
+  
   return (
-    <html lang="pt-BR">      <head>
+    <html lang="pt-BR">
+      <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />

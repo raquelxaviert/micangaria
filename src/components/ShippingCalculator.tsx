@@ -101,9 +101,10 @@ export default function ShippingCalculator({ products, onShippingSelect }: Shipp
     setSelectedOption(option);
     onShippingSelect?.(option);
   };
-
-  const formatPrice = (price: string | number) => {
+  const formatPrice = (price: string | number | undefined) => {
+    if (!price && price !== 0) return 'R$ 0,00';
     const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    if (isNaN(numPrice)) return 'R$ 0,00';
     return numPrice.toLocaleString('pt-BR', {
       style: 'currency',
       currency: 'BRL'
@@ -242,9 +243,7 @@ export default function ShippingCalculator({ products, onShippingSelect }: Shipp
             ))}
           </CardContent>
         </Card>
-      )}
-
-      {/* Informações sobre Frete */}
+      )}                {/* Informações sobre Frete */}
       <Card className="bg-blue-50 border-blue-200">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
@@ -252,10 +251,12 @@ export default function ShippingCalculator({ products, onShippingSelect }: Shipp
             <div className="text-sm text-blue-800">
               <p className="font-medium mb-1">Informações sobre entrega:</p>
               <ul className="space-y-1 text-blue-700">
-                <li>• Frete grátis em compras acima de R$ 299</li>
-                <li>• Todas as entregas incluem rastreamento</li>
-                <li>• Prazo conta apenas dias úteis</li>
-                <li>• Produtos são embalados com cuidado especial</li>
+                <li>• 🎉 <strong>Frete GRÁTIS</strong> para São Paulo (Mini Envios)</li>
+                <li>• 📦 Frete grátis em compras acima de R$ 299</li>
+                <li>• 🚚 Entrega expressa Jadlog em 2-3 dias</li>
+                <li>• 📍 Todas as entregas incluem rastreamento</li>
+                <li>• ⏰ Prazo conta apenas dias úteis</li>
+                <li>• 💎 Produtos embalados com cuidado especial</li>
               </ul>
             </div>
           </div>
