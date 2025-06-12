@@ -19,11 +19,12 @@ export interface ProductData {
   gallery_urls?: string[]; // Supabase multiple images
   type: string;
   style: string;
-  colors?: string[];
-  materials?: string[]; // Materiais do produto
+  colors?: string[];  materials?: string[]; // Materiais do produto
   sizes?: string[]; // Tamanhos disponíveis
   isNewArrival?: boolean;
-  is_new_arrival?: boolean; // Supabase format  isOnSale?: boolean;
+  is_new_arrival?: boolean; // Supabase format
+  isOnSale?: boolean;
+  is_on_sale?: boolean; // Supabase format
   is_promotion?: boolean; // Supabase format
   promotionDetails?: string;
   promotion_details?: string; // Supabase format
@@ -55,7 +56,7 @@ export function ProductCard({
 }: ProductCardProps) {  // Normalize product data to handle both formats
   const imageUrl = product.imageUrl || product.image_url || '/products/placeholder.jpg';
   const isNewArrival = product.isNewArrival || product.is_new_arrival || false;
-  const isOnSale = product.isOnSale || product.is_promotion || false;
+  const isOnSale = product.isOnSale || product.is_on_sale || product.is_promotion || false;
   const promotionDetails = product.promotionDetails || product.promotion_details;
   
   // Get total number of images for indicator
@@ -194,12 +195,10 @@ export function ProductCard({
               ))}
             </div>
           )}
-        </Link>
-
-        {/* Preços e botão de adicionar */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex-1">
-            <span className={`font-bold text-primary ${
+        </Link>        {/* Preços */}
+        <div className="space-y-2">
+          <div>
+            <span className={`font-bold text-black ${
               variant === 'compact' ? 'text-base sm:text-lg' : 'text-2xl'
             }`}>
               R$ {product.price.toFixed(2).replace('.', ',')}
@@ -215,11 +214,12 @@ export function ProductCard({
                 // Aqui você pode adicionar a lógica de adicionar ao carrinho
                 console.log('Produto adicionado ao carrinho:', product.id);
               }}
-              className={`bg-primary hover:bg-primary/90 transition-colors duration-300 ${
+              className={`w-full bg-black hover:bg-black/90 transition-colors duration-300 ${
                 variant === 'compact' ? 'text-xs px-2 py-1 h-8' : 'text-xs px-3 py-2'
               }`}
+              style={{ color: '#F5F0EB' }}
             >
-              <ShoppingCart className="w-3 h-3 mr-1" />
+              <ShoppingCart className="w-3 h-3 mr-1" style={{ color: '#F5F0EB' }} />
               <span className="hidden sm:inline">Adicionar</span>
               <span className="sm:hidden">+</span>
             </Button>

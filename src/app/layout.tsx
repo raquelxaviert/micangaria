@@ -39,11 +39,10 @@ export default async function RootLayout({
             {children}
             <Footer />
             <Toaster />
-          </>        ) : (
-          // Layout completo para outras páginas
+          </>        ) : (          // Layout completo para outras páginas
           <ClientProviders>
             <Header />
-            <main className="flex-grow container mx-auto px-4 py-8">
+            <main className="flex-grow container mx-auto px-4 py-8 pt-20">
               {children}
             </main>
             <Footer />

@@ -397,8 +397,7 @@ export default function ProductPage() {
                         {product.description}
                       </p>
                     </div>
-                  )}
-                    {activeTab === 'materials' && (
+                  )}                  {activeTab === 'materials' && (
                     <div>
                       {product.materials && product.materials.length > 0 ? (
                         <div>
@@ -410,9 +409,6 @@ export default function ProductPage() {
                               </li>
                             ))}
                           </ul>
-                          <p className="text-xs text-muted-foreground mt-3">
-                            * Peça única, características podem variar ligeiramente
-                          </p>
                         </div>
                       ) : (
                         <p className="text-sm text-muted-foreground">

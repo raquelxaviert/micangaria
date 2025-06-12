@@ -130,9 +130,8 @@ export function Header() {
       </div>
     </div>
   );
-
   return (
-    <header className="sticky top-0 z-40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 text-foreground shadow-md border-b border-border">
+    <header className="fixed top-0 left-0 right-0 z-40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 text-foreground shadow-md border-b border-border">
       <div className="container mx-auto px-4 py-4">
         {/* Layout desktop */}
         <div className="hidden md:flex items-center justify-between gap-4">
