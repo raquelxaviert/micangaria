@@ -206,7 +206,7 @@ export default function ProductPage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 lg:py-8">
+      <div className="container mx-auto px-4 py-6 lg:py-8 pb-24 md:pb-8">
         {/* Botão Voltar */}
         <Button 
           variant="ghost" 
@@ -543,7 +543,32 @@ export default function ProductPage() {
             </div>
           </div>
         )}
+      </div>      {/* Sticky Add to Cart - Mobile */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border shadow-lg md:hidden">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center gap-4">            {/* Botão de Like - à esquerda */}
+            <LikeButton 
+              productId={product.id} 
+              variant="default"
+              size="lg"
+              className="h-12 w-12 shrink-0"
+            />
+
+            {/* Botão Adicionar ao Carrinho - à direita */}
+            <Button 
+              size="lg" 
+              className="flex-1 font-semibold h-12"
+              onClick={handleAddToCart}
+            >
+              <ShoppingCart className="mr-2 h-5 w-5" />
+              Adicionar ao Carrinho
+            </Button>
+          </div>
+        </div>
       </div>
+
+      {/* Spacer para compensar o sticky bar no mobile */}
+      <div className="h-20 md:hidden" />
     </div>
   );
 }

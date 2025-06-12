@@ -48,6 +48,8 @@ export function LikeButton({
           "transition-all duration-500 ease-out group",
           variant === 'floating' && 
           "absolute top-2 right-2 bg-white/80 hover:bg-white rounded-full shadow-md hover:shadow-lg border border-white/10 hover:border-red-200 hover:scale-110",
+          variant === 'default' && 
+          "relative bg-white hover:bg-white rounded-full shadow-md hover:shadow-lg border border-gray-200 hover:border-red-200 hover:scale-105",
           liked && "text-red-500 hover:text-red-600 bg-red-50/80 border-red-200",
           !liked && "text-gray-400 hover:text-red-500 hover:bg-red-50/50",
           size === 'sm' && "w-7 h-7",
