@@ -351,10 +351,8 @@ export default function ProductPage() {
                   ))}
                 </div>
               </div>
-            )}
-
-            {/* Quantidade */}
-            <div>
+            )}            {/* Quantidade - Escondido no mobile */}
+            <div className="hidden md:block">
               <h3 className="font-semibold mb-3">Quantidade</h3>
               <div className="flex items-center gap-3">
                 <div className="flex items-center border rounded-lg">
@@ -381,7 +379,7 @@ export default function ProductPage() {
                   (apenas 1 unidade disponível)
                 </span>
               </div>
-            </div>            {/* Botões de Ação */}
+            </div>{/* Botões de Ação */}
             <div className="space-y-3">
               <Button 
                 size="lg" 
