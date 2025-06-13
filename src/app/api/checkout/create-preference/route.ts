@@ -220,6 +220,7 @@ export async function POST(request: NextRequest) {
       const orderData = {
         user_id: null, // Manter null por enquanto (tabela espera UUID)
         preference_id: response.id,
+        external_reference: preferenceData.external_reference, // Salvar external_reference para uso no webhook
         init_point: response.init_point,
         sandbox_init_point: response.sandbox_init_point,
         total: total,
