@@ -208,12 +208,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = await preference.create({ body: preferenceData });console.log('✅ Preferência criada:', response.id);
-
-    // Persistir pedido no Supabase
+    const response = await preference.create({ body: preferenceData });console.log('✅ Preferência criada:', response.id);    // Persistir pedido no Supabase
     if (supabaseAdmin) {
-      await supabaseAdmin.from('orders').insert({
-        user_id: customerInfo.id || null,
+      const orderData = {
+        user_id: customerInfo.id || customerInfo.email || null, // Usar email como fallback
         preference_id: response.id,
         init_point: response.init_point,
         sandbox_init_point: response.sandbox_init_point,
@@ -221,13 +219,28 @@ export async function POST(request: NextRequest) {
         breakdown: { subtotal, shipping: shippingCost, total },
         items: items,
         shipping_option: shippingOption,
-        status: 'pending'
-      });
+        status: 'pending',
+        customer_info: {
+          name: customerInfo.name,
+          email: customerInfo.email,
+          phone: customerInfo.phone,
+          document: customerInfo.document
+        },
+        shipping_address: shippingAddress
+      };
 
-      console.log('💾 Pedido salvo no Supabase:', response.id);
+      console.log('💾 Salvando pedido no Supabase:', orderData.preference_id);
+      
+      const { data, error } = await supabaseAdmin.from('orders').insert(orderData);
+      
+      if (error) {
+        console.error('❌ Erro ao salvar no Supabase:', error);
+      } else {
+        console.log('✅ Pedido salvo no Supabase:', response.id);
+      }
     } else {
       console.warn('⚠️ Supabase não configurado - pedido não foi salvo no banco');
-    }    return NextResponse.json({
+    }return NextResponse.json({
       success: true,
       preference_id: response.id,
       // Em desenvolvimento/sandbox, usar sandbox_init_point
