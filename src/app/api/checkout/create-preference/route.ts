@@ -101,26 +101,20 @@ export async function POST(request: NextRequest) {
         quantity: 1,
         currency_id: 'BRL',
         unit_price: shippingCost
-      }
-    ];    // Dados do comprador
-    // Em ambiente de desenvolvimento/sandbox, usar email de teste
+      }    ];    // Dados do comprador (usar os dados enviados pelo frontend)
     const isProduction = process.env.NODE_ENV === 'production';
     const isSandbox = process.env.MERCADO_PAGO_SANDBOX === 'true' || !isProduction;
     
-    // Para sandbox, usar um email de teste válido do Mercado Pago
-    // Este email precisa ser de um usuário de teste criado no Mercado Pago
-    const testEmail = 'test_user_285481368@testuser.com'; // Email de teste correto para sua conta
-    
     const payer = {
       name: customerInfo.name,
-      email: isSandbox ? testEmail : customerInfo.email,
+      email: customerInfo.email,
       phone: {
         area_code: customerInfo.phone?.substring(0, 2) || '11',
         number: customerInfo.phone?.substring(2) || '999999999'
       },
       identification: {
         type: 'CPF',
-        number: isSandbox ? '12345678901' : (customerInfo.document || '12345678901')
+        number: customerInfo.document || '12345678909'
       },
       address: {
         street_name: shippingAddress.address,

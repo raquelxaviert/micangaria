@@ -17,13 +17,23 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
+    console.log('🛒 API /api/payment/create-preference chamada');
+    
+    // Verificar se temos dados do pagador para evitar "pagar para si mesmo"
+    if (body.payer) {
+      console.log('👤 Dados do pagador:', { 
+        email: body.payer.email, 
+        name: body.payer.first_name + ' ' + (body.payer.last_name || '') 
+      });
+    }
+
     const preferenceData = {
       items: body.items,
       payer: body.payer,
       back_urls: body.back_urls,
       auto_return: body.auto_return,
       payment_methods: body.payment_methods,
-      notification_url: body.notification_url,
+      notification_url: body.notification_url || `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/mercadopago`,
       statement_descriptor: 'RUGE VINTAGE',
       external_reference: `RUGE-${Date.now()}`,
       expires: true,
@@ -33,6 +43,8 @@ export async function POST(request: NextRequest) {
 
     const response = await preference.create({ body: preferenceData });
 
+    console.log('✅ Preferência criada:', response.id);
+
     return NextResponse.json({
       id: response.id,
       init_point: response.init_point,
@@ -40,7 +52,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Erro ao criar preferência:', error);
+    console.error('❌ Erro ao criar preferência:', error);
     
     return NextResponse.json(
       { error: 'Erro interno do servidor' },

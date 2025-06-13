@@ -15,6 +15,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
+    console.log('🛒 API /api/pagamento/criar-preferencia chamada');
+    
     // Configurar Mercado Pago
     const client = new MercadoPagoConfig({
       accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN!,
@@ -30,6 +32,11 @@ export async function POST(request: NextRequest) {
       cliente,
       enderecoEntrega
     } = body;
+    
+    console.log('👤 Dados do cliente:', { 
+      email: cliente.email, 
+      nome: cliente.nome 
+    });
 
     // Calcular totais
     const subtotalProdutos = produtos.reduce((sum: number, p: any) => 

@@ -146,8 +146,8 @@ NODE_ENV=production
 - O pagamento será simulado
 
 #### **Usuário de Teste:**
-- **Email**: test_user_123@testuser.com
-- **CPF**: 12345678909
+- **Email da Loja**: test_user_285481368@testuser.com
+- **Para testar pagamento**: Use um email de usuário COMPRADOR diferente
 
 ### **2. Testando Frete**
 ```javascript

@@ -218,21 +218,40 @@ async function gerarEtiquetaAutomatica(produtos: any[], frete: any, enderecoEntr
  */
 async function salvarPedidoNoBanco(dadosPedido: any) {
   try {
-    console.log('[BANCO] Salvando pedido...');
+    console.log('[BANCO] Salvando pedido no Supabase...');
     
-    // Aqui você salvaria no Supabase
-    // Por enquanto só logamos
-    console.log('[BANCO] Dados do pedido:', {
-      id: dadosPedido.pedido_id,
-      status: dadosPedido.status,
-      total: dadosPedido.valor_total,
-      etiqueta_gerada: dadosPedido.etiqueta?.success
-    });
+    const { createClient } = await import('@supabase/supabase-js');
+    
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-    return { success: true };
+    // Atualizar o pedido existente com dados do pagamento
+    const { data, error } = await supabase
+      .from('orders')
+      .update({
+        status: 'paid',
+        payment_id: dadosPedido.pagamento_id,
+        shipping_status: dadosPedido.etiqueta?.success ? 'label_generated' : 'pending',
+        label_id: dadosPedido.etiqueta?.etiqueta_id,
+        updated_at: new Date().toISOString()
+      })
+      .eq('preference_id', dadosPedido.pedido_id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[BANCO] Erro ao atualizar pedido:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('[BANCO] ✅ Pedido atualizado com sucesso:', data?.id);
+    return { success: true, data };
     
   } catch (error) {
     console.error('[BANCO] Erro ao salvar:', error);
-    return { success: false, error };
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    return { success: false, error: errorMessage };
   }
 }
