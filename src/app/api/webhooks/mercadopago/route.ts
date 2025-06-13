@@ -13,14 +13,28 @@ import { MercadoPagoConfig, Payment } from 'mercadopago';
  */
 
 export async function POST(request: NextRequest) {
+  let body: any = null;
+  
   try {
-    const body = await request.json();
+    body = await request.json();
     
-    console.log('[WEBHOOK] Recebido do Mercado Pago:', body.type);
+    console.log('[WEBHOOK] Recebido do Mercado Pago:', {
+      type: body.type,
+      action: body.action,
+      id: body.id,
+      data: body.data
+    });
 
-    // Só processar pagamentos
-    if (body.type !== 'payment') {
-      return NextResponse.json({ received: true });
+    // Processar diferentes tipos de evento
+    if (body.type === 'payment') {
+      console.log('[WEBHOOK] Processando evento de pagamento...');
+      // Processar pagamento (código existente)
+    } else if (body.type === 'topic_merchant_order_wh') {
+      console.log('[WEBHOOK] Evento de merchant order recebido - ignorando por enquanto');
+      return NextResponse.json({ received: true, message: 'Merchant order event received' });
+    } else {
+      console.log('[WEBHOOK] Tipo de evento não processado:', body.type);
+      return NextResponse.json({ received: true, message: `Event type ${body.type} not processed` });
     }
 
     // Configurar Mercado Pago
@@ -84,10 +98,19 @@ export async function POST(request: NextRequest) {
       pedido_id: pedidoId,
       etiqueta_gerada: etiquetaResult?.success || false
     });
-
   } catch (error) {
-    console.error('[WEBHOOK] Erro:', error);
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+    console.error('[WEBHOOK] Erro crítico:', {
+      error: error instanceof Error ? error.message : 'Erro desconhecido',
+      stack: error instanceof Error ? error.stack : undefined,
+      body: body || 'Corpo não disponível'
+    });
+    
+    // Retornar 200 para evitar reenvios do MP, mas com log do erro
+    return NextResponse.json({ 
+      received: true, 
+      error: 'Erro processado internamente',
+      timestamp: new Date().toISOString()
+    });
   }
 }
 
