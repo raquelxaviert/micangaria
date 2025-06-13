@@ -176,7 +176,9 @@ export async function POST(request: NextRequest) {
       notification: webhookUrl
     });
 
-    // Criar preferência
+    // Criar preferência    // Gerar external_reference único
+    const external_reference = `RUGE${Date.now()}`;
+
     const preferenceData = {
       items: mercadoPagoItems,
       payer,
@@ -188,11 +190,14 @@ export async function POST(request: NextRequest) {
       shipments: {
         cost: shippingCost,
         mode: 'not_specified'
-      },      back_urls: {
-        success: `${baseUrl}/checkout/success`,
-        failure: `${baseUrl}/checkout/failure`,
-        pending: `${baseUrl}/checkout/pending`
-      },      external_reference: `RUGE${Date.now()}`, // ID único simples
+      },
+      back_urls: {
+        success: `${baseUrl}/checkout/success?external_ref=${external_reference}`,
+        failure: `${baseUrl}/checkout/failure?external_ref=${external_reference}`,
+        pending: `${baseUrl}/checkout/pending?external_ref=${external_reference}`
+      },
+      auto_return: 'approved', // Redirecionar automaticamente para success quando aprovado
+      external_reference: external_reference, // ID único simples
       notification_url: webhookUrl, // Usar URL fixa do webhook
       metadata: {
         // Simplificar metadata para evitar erros
