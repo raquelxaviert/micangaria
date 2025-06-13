@@ -39,22 +39,24 @@ export async function POST(request: NextRequest) {
     if (paymentData.status !== 'approved') {
       console.log('[WEBHOOK] Pagamento não aprovado, ignorando...');
       return NextResponse.json({ received: true });
-    }
-
-    // Extrair metadados do pedido
+    }    // Extrair metadados do pedido
     const metadata = paymentData.metadata;
     if (!metadata) {
       console.error('[WEBHOOK] Sem metadados no pagamento');
       return NextResponse.json({ error: 'Sem metadados' }, { status: 400 });
-    }    const pedidoId = paymentData.external_reference;
+    }
+
+    const pedidoId = paymentData.external_reference;
     if (!pedidoId) {
       console.error('[WEBHOOK] Sem external_reference no pagamento');
       return NextResponse.json({ error: 'Sem referência do pedido' }, { status: 400 });
     }
 
-    const produtos = JSON.parse(metadata.produtos as string);
-    const frete = JSON.parse(metadata.frete as string);
-    const enderecoEntrega = JSON.parse(metadata.enderecoEntrega as string);
+    // Parse dos metadados que agora vêm como JSON strings
+    const produtos = JSON.parse(metadata.items as string);
+    const frete = JSON.parse(metadata.shipping_option as string);
+    const enderecoEntrega = JSON.parse(metadata.shipping_address as string);
+    const dadosCliente = JSON.parse(metadata.customer_info as string);
 
     console.log(`[WEBHOOK] Processando pedido ${pedidoId}`);
     console.log(`[WEBHOOK] Valor pago: R$ ${paymentData.transaction_amount}`);

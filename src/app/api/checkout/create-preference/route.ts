@@ -51,7 +51,30 @@ export async function POST(request: NextRequest) {
       shippingOption, // Opção de frete escolhida
       customerInfo, // Dados do cliente
       shippingAddress // Endereço de entrega
-    } = body;
+    } = body;    // Validar dados obrigatórios
+    if (!customerInfo?.email || !customerInfo?.name) {
+      console.error('❌ Dados do cliente incompletos:', customerInfo);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Dados do cliente são obrigatórios (nome e email)'
+        },
+        { status: 400 }
+      );
+    }
+
+    // Verificar se não está tentando "pagar para si mesmo"
+    const storeTestEmail = process.env.MP_STORE_TEST_EMAIL;
+    if (customerInfo.email === storeTestEmail) {
+      console.error('❌ Cliente usando mesmo e-mail da loja:', customerInfo.email);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Use um e-mail diferente do e-mail da loja para testar'
+        },
+        { status: 400 }
+      );
+    }
 
     // Validação defensiva para preço do frete
     if (!shippingOption || isNaN(parseFloat(shippingOption.price))) {
@@ -104,31 +127,43 @@ export async function POST(request: NextRequest) {
       }    ];    // Dados do comprador (usar os dados enviados pelo frontend)
     const isProduction = process.env.NODE_ENV === 'production';
     const isSandbox = process.env.MERCADO_PAGO_SANDBOX === 'true' || !isProduction;
-    
+      // Preparar dados do pagador com validação rigorosa
     const payer = {
-      name: customerInfo.name,
-      email: customerInfo.email,
+      name: customerInfo.name.trim(),
+      email: customerInfo.email.toLowerCase().trim(),
       phone: {
-        area_code: customerInfo.phone?.substring(0, 2) || '11',
-        number: customerInfo.phone?.substring(2) || '999999999'
+        area_code: String(customerInfo.phone?.substring(0, 2) || '11'),
+        number: String(customerInfo.phone?.substring(2) || '999999999')
       },
       identification: {
         type: 'CPF',
-        number: customerInfo.document || '12345678909'
+        number: String(customerInfo.document || '12345678909').replace(/\D/g, '') // Remove caracteres não numéricos
       },
       address: {
-        street_name: shippingAddress.address,
-        street_number: String(shippingAddress.number || 1),
-        zip_code: shippingAddress.postal_code
+        street_name: String(shippingAddress.address || 'Rua Teste'),
+        street_number: String(shippingAddress.number || '123'),
+        zip_code: String(shippingAddress.postal_code || '01310100').replace(/\D/g, '') // Remove caracteres não numéricos
       }
-    };
-
-    console.log('👤 Dados do pagador configurados:', { 
+    };    console.log('👤 Dados do pagador validados:', { 
       name: payer.name, 
-      email: payer.email, 
+      email: payer.email,
+      phone: `${payer.phone.area_code}${payer.phone.number}`,
+      cpf: payer.identification.number,
       isProduction,
       isSandbox 
-    });// Definir URLs base
+    });
+
+    // Validar se dados do pagador estão corretos
+    if (!payer.email.includes('@') || payer.name.length < 2) {
+      console.error('❌ Dados do pagador inválidos');
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Dados do pagador inválidos'
+        },
+        { status: 400 }
+      );
+    }// Definir URLs base
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
     
     console.log('🔗 URLs configuradas:', {
@@ -155,21 +190,13 @@ export async function POST(request: NextRequest) {
         success: `${baseUrl}/checkout/success`,
         failure: `${baseUrl}/checkout/failure`,
         pending: `${baseUrl}/checkout/pending`
-      },
-      external_reference: `RUGE-${Date.now()}`, // ID único do pedido
-      notification_url: `${baseUrl}/api/webhooks/mercadopago`,
-      metadata: {
-        // Dados para gerar etiqueta depois do pagamento
-        shipping_option: shippingOption,
-        shipping_address: shippingAddress,
-        customer_info: customerInfo,
-        items: items.map((item: any) => ({
-          id: item.id,
-          name: item.title,
-          quantity: item.quantity,
-          weight: item.weight || 0.3,
-          dimensions: item.dimensions || { width: 20, height: 5, length: 30 }
-        }))
+      },      external_reference: `RUGE${Date.now()}`, // ID único simples
+      notification_url: `${baseUrl}/api/webhooks/mercadopago`,      metadata: {
+        // Simplificar metadata para evitar erros
+        order_id: `RUGE${Date.now()}`,
+        total_amount: total,
+        shipping_service: shippingOption.name,
+        customer_email: customerInfo.email
       }
     };
 
