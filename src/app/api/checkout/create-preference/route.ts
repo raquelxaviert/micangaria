@@ -209,9 +209,16 @@ export async function POST(request: NextRequest) {
     }
 
     const response = await preference.create({ body: preferenceData });console.log('✅ Preferência criada:', response.id);    // Persistir pedido no Supabase
+    console.log('🔍 [DEBUG] Verificando Supabase:', {
+      hasSupabaseAdmin: !!supabaseAdmin,
+      environment: process.env.NODE_ENV,
+      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'MISSING'
+    });
+    
     if (supabaseAdmin) {
       const orderData = {
-        user_id: customerInfo.id || customerInfo.email || null, // Usar email como fallback
+        user_id: null, // Manter null por enquanto (tabela espera UUID)
         preference_id: response.id,
         init_point: response.init_point,
         sandbox_init_point: response.sandbox_init_point,
@@ -223,23 +230,39 @@ export async function POST(request: NextRequest) {
         customer_info: {
           name: customerInfo.name,
           email: customerInfo.email,
-          phone: customerInfo.phone,
-          document: customerInfo.document
+          phone: customerInfo.phone || null,
+          document: customerInfo.document || null
         },
         shipping_address: shippingAddress
       };
 
-      console.log('💾 Salvando pedido no Supabase:', orderData.preference_id);
+      console.log('💾 [PROD] Salvando pedido no Supabase...', {
+        preference_id: orderData.preference_id,
+        customer_email: orderData.customer_info.email,
+        total: orderData.total,
+        environment: process.env.NODE_ENV
+      });
       
       const { data, error } = await supabaseAdmin.from('orders').insert(orderData);
       
       if (error) {
-        console.error('❌ Erro ao salvar no Supabase:', error);
+        console.error('❌ [PROD] Erro ao salvar no Supabase:', {
+          error: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
+        console.error('❌ [PROD] Service Key length:', process.env.SUPABASE_SERVICE_ROLE_KEY?.length || 'MISSING');
       } else {
-        console.log('✅ Pedido salvo no Supabase:', response.id);
+        console.log('✅ [PROD] Pedido salvo no Supabase com sucesso:', response.id);
+        console.log('✅ [PROD] Dados salvos:', data);
       }
     } else {
-      console.warn('⚠️ Supabase não configurado - pedido não foi salvo no banco');
+      console.error('⚠️ [PROD] Supabase não configurado - variáveis de ambiente:', {
+        hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+        environment: process.env.NODE_ENV
+      });
     }return NextResponse.json({
       success: true,
       preference_id: response.id,
