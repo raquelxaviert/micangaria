@@ -269,9 +269,8 @@ export async function POST(request: NextRequest) {
       });
     }return NextResponse.json({
       success: true,
-      preference_id: response.id,
-      // Em desenvolvimento/sandbox, usar sandbox_init_point
-      init_point: isProduction ? response.init_point : response.sandbox_init_point, 
+      preference_id: response.id,      // Usar sandbox_init_point apenas se MERCADO_PAGO_SANDBOX=true
+      init_point: isSandbox ? response.sandbox_init_point : response.init_point,
       sandbox_init_point: response.sandbox_init_point,
       total: total,
       breakdown: {
