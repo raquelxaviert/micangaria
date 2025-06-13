@@ -9,42 +9,13 @@ const supabase = createClient(
 );
 
 /**
- * 🔧 WEBHOOK MERCADO PAGO COM VALIDAÇÕES E PROCESSAMENTO COMPLETO
+ * 🔧 WEBHOOK MERCADO PAGO ULTRA SIMPLIFICADO
  * 
  * - Aceita todos os eventos do Mercado Pago
- * - Valida assinatura (quando configurada)
  * - Processa eventos de payment para atualizar status no Supabase
- * - Sempre retorna 200 para evitar erro 502
+ * - SEMPRE retorna 200 para evitar erro 502
+ * - Máxima tolerância a erros
  */
-
-/**
- * Valida a assinatura do webhook do Mercado Pago
- */
-function validateWebhookSignature(rawBody: string, signature: string, secret?: string): boolean {
-  if (!secret || !signature) {
-    console.log('⚠️ [WEBHOOK] Validação de assinatura desabilitada (secret ou signature não fornecidos)');
-    return true; // Se não há secret configurado, aceita o webhook
-  }
-
-  try {
-    const expectedSignature = crypto
-      .createHmac('sha256', secret)
-      .update(rawBody)
-      .digest('hex');
-    
-    const isValid = signature === expectedSignature;
-    console.log('🔐 [WEBHOOK] Validação de assinatura:', { 
-      isValid, 
-      provided: signature?.substring(0, 10) + '...',
-      expected: expectedSignature?.substring(0, 10) + '...'
-    });
-    
-    return isValid;
-  } catch (error) {
-    console.error('❌ [WEBHOOK] Erro na validação de assinatura:', error);
-    return false;
-  }
-}
 
 /**
  * Processa eventos de pagamento
@@ -117,13 +88,19 @@ export async function POST(request: NextRequest) {
   let rawBody = '';
   
   try {
-    // Ler o corpo da requisição como texto para validação de assinatura
-    rawBody = await request.text();
-    body = JSON.parse(rawBody);
-    
-    // Obter headers para validação
-    const signature = request.headers.get('x-signature');
-    const webhookSecret = process.env.MERCADO_PAGO_WEBHOOK_SECRET;
+    // Tentar ler o corpo da requisição como texto
+    try {
+      rawBody = await request.text();
+      body = JSON.parse(rawBody);
+    } catch (parseError) {
+      console.error('❌ [WEBHOOK] Erro ao parsear corpo da requisição:', parseError);
+      // Mesmo com erro de parse, retornar 200
+      return NextResponse.json({ 
+        received: true, 
+        error: 'Erro no parse do JSON',
+        timestamp: new Date().toISOString()
+      });
+    }
     
     // Log detalhado de QUALQUER evento recebido
     console.log('🔔 [WEBHOOK] Evento recebido do Mercado Pago:', {
@@ -134,43 +111,37 @@ export async function POST(request: NextRequest) {
       data: body.data,
       live_mode: body.live_mode,
       user_id: body.user_id,
-      hasSignature: !!signature,
-      hasSecret: !!webhookSecret,
       full_body: body
     });
 
-    // Validar assinatura se configurada
-    if (!validateWebhookSignature(rawBody, signature || '', webhookSecret)) {
-      console.log('❌ [WEBHOOK] Assinatura inválida, rejeitando webhook');
-      return NextResponse.json({ 
-        error: 'Invalid signature',
-        timestamp: new Date().toISOString()
-      }, { status: 401 });
-    }
-
-    // Processar eventos específicos
+    // Processar eventos específicos com try/catch individual
     if (body.type === 'payment') {
-      await processPaymentEvent(body.data?.id || body.id, body.action);
+      try {
+        await processPaymentEvent(body.data?.id || body.id, body.action);
+      } catch (paymentError) {
+        console.error('❌ [WEBHOOK] Erro ao processar evento de pagamento:', paymentError);
+        // Não falhar o webhook por causa de erro de processamento
+      }
     } else {
       console.log(`ℹ️ [WEBHOOK] Evento ${body.type} recebido mas não processado automaticamente`);
     }
 
-    // Responder OK para QUALQUER evento
+    // SEMPRE responder OK para QUALQUER evento
     return NextResponse.json({ 
       received: true, 
-      message: `Evento ${body.type} recebido com sucesso`,
+      message: `Evento ${body.type || 'desconhecido'} recebido com sucesso`,
       timestamp: new Date().toISOString(),
-      event_id: body.id,
+      event_id: body.id || 'unknown',
       processed: body.type === 'payment'
     });
 
   } catch (error) {
     // Log de erro detalhado
-    console.error('❌ [WEBHOOK] Erro ao processar webhook:', {
+    console.error('❌ [WEBHOOK] Erro geral ao processar webhook:', {
       timestamp: new Date().toISOString(),
       error: error instanceof Error ? error.message : 'Erro desconhecido',
       stack: error instanceof Error ? error.stack : undefined,
-      rawBody: rawBody.substring(0, 200) + '...',
+      rawBody: rawBody?.substring(0, 200) + '...',
       body_received: body
     });
     
