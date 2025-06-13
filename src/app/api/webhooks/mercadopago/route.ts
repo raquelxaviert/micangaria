@@ -40,9 +40,38 @@ async function handleWebhookEvent(payload: any) {
       if (eventType === 'payment') {
       const paymentId = resourceId;
       console.log(`[WebhookLogic] Processing 'payment' event. Payment ID: ${paymentId}`);      try {
-        // Fetch payment details from Mercado Pago
+        // Fetch payment details from Mercado Pago with retry logic
         console.log(`[WebhookLogic] Fetching payment details from Mercado Pago for ID: ${paymentId}`);
-        const paymentDetails = await paymentService.get({ id: paymentId });
+        
+        let paymentDetails;
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        while (retryCount < maxRetries) {
+          try {
+            paymentDetails = await paymentService.get({ id: paymentId });
+            console.log(`[WebhookLogic] Successfully fetched payment on attempt ${retryCount + 1}`);
+            break; // Success, exit retry loop
+          } catch (mpError: any) {
+            console.log(`[WebhookLogic] Attempt ${retryCount + 1}/${maxRetries} failed:`, mpError.message);
+            
+            if (mpError.message?.includes('Payment not found') && retryCount < maxRetries - 1) {
+              console.log(`[WebhookLogic] Payment not found, waiting 3 seconds before retry...`);
+              await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds
+              retryCount++;
+              continue;
+            } else {
+              console.error('[WebhookLogic] Final error or max retries reached:', mpError);
+              throw mpError; // Re-throw if not a 404 or max retries reached
+            }
+          }
+        }
+        
+        if (!paymentDetails) {
+          console.error('[WebhookLogic] Failed to fetch payment details after all retries');
+          return;
+        }
+        
         console.log('[WebhookLogic] Fetched payment details:', {
           id: paymentDetails.id,
           status: paymentDetails.status,
