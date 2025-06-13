@@ -163,15 +163,17 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 }
       );
-    }// Definir URLs base
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
+    }    // Definir URLs base - FORÇAR URL CORRETA
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.rugebrecho.com';
+    const webhookUrl = 'https://www.rugebrecho.com/api/webhooks/mercadopago'; // URL fixa para webhook
     
     console.log('🔗 URLs configuradas:', {
       baseUrl,
+      webhookUrl,
       success: `${baseUrl}/checkout/success`,
       failure: `${baseUrl}/checkout/failure`,
       pending: `${baseUrl}/checkout/pending`,
-      notification: `${baseUrl}/api/webhooks/mercadopago`
+      notification: webhookUrl
     });
 
     // Criar preferência
@@ -191,7 +193,8 @@ export async function POST(request: NextRequest) {
         failure: `${baseUrl}/checkout/failure`,
         pending: `${baseUrl}/checkout/pending`
       },      external_reference: `RUGE${Date.now()}`, // ID único simples
-      notification_url: `${baseUrl}/api/webhooks/mercadopago`,      metadata: {
+      notification_url: webhookUrl, // Usar URL fixa do webhook
+      metadata: {
         // Simplificar metadata para evitar erros
         order_id: `RUGE${Date.now()}`,
         total_amount: total,

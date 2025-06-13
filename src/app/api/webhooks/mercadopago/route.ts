@@ -140,6 +140,9 @@ async function handleWebhookEvent(payload: any) {
 
 export async function POST(request: NextRequest) {
   console.log('🔔 WEBHOOK MP: Request received.');
+  console.log('🔗 WEBHOOK MP: Request URL:', request.url);
+  console.log('📧 WEBHOOK MP: Request headers:', JSON.stringify(Object.fromEntries(request.headers.entries()), null, 2));
+  
   let payload;
 
   try {
@@ -225,9 +228,17 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   console.log('ℹ️ WEBHOOK MP: GET request received (status check).');
+  
+  // Log da URL para debug
+  const url = request.url;
+  console.log('🔗 WEBHOOK MP: Request URL:', url);
+  
   return NextResponse.json({
     status: 'Mercado Pago Webhook Endpoint is Online',
     timestamp: new Date().toISOString(),
-    message: 'To test, send a POST request with a valid Mercado Pago webhook payload and signature.'
+    message: 'To test, send a POST request with a valid Mercado Pago webhook payload and signature.',
+    url: url,
+    server: 'Vercel',
+    environment: process.env.NODE_ENV || 'unknown'
   });
 }
