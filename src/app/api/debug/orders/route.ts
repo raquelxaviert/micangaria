@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
-// Função para converter UTC para horário brasileiro (UTC-3)
-function convertToBrazilianTime(utcTimestamp: string): string {
-  const date = new Date(utcTimestamp);
-  // Converter para UTC-3 (horário de Brasília)
-  const brazilTime = new Date(date.getTime() - 3 * 60 * 60 * 1000);
-  return brazilTime.toISOString().replace('T', ' ').substring(0, 19) + ' (BR)';
-}
-
 export async function GET(request: NextRequest) {
   const externalRef = request.nextUrl.searchParams.get('external_ref');
   const preferenceId = request.nextUrl.searchParams.get('preference_id');
@@ -36,24 +28,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         error: 'Failed to fetch orders',
         details: error.message
-      }, { status: 500 });
-    }
-      // Converter horários para fuso brasileiro
-    const ordersWithBrazilianTime = orders?.map(order => ({
-      ...order,
-      created_at_utc: order.created_at,
-      updated_at_utc: order.updated_at,
-      created_at: convertToBrazilianTime(order.created_at),
-      updated_at: order.updated_at ? convertToBrazilianTime(order.updated_at) : null
-    }));
-      return NextResponse.json({
+      }, { status: 500 });    }
+    
+    return NextResponse.json({
       success: true,
-      total: ordersWithBrazilianTime?.length || 0,
-      orders: ordersWithBrazilianTime || [],
-      timezone_info: {
-        display: 'Brazilian Time (UTC-3)',
-        note: 'Original UTC timestamps available as *_utc fields'
-      },
+      total: orders?.length || 0,
+      orders: orders || [],
+      timezone_info: 'All timestamps in UTC (best practice)',
       query_params: {
         external_ref: externalRef,
         preference_id: preferenceId
