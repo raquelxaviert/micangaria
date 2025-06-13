@@ -2,7 +2,7 @@ import { MercadoPagoConfig, Payment, MerchantOrder } from 'mercadopago';
 
 // Configure Mercado Pago SDK with new version
 const client = new MercadoPagoConfig({
-  accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN!,
+  accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN!, // Usar a variável que você já tem configurada
   options: {
     timeout: 5000,
     idempotencyKey: 'abc'

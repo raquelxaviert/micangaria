@@ -196,12 +196,10 @@ export async function POST(request: NextRequest) {
     console.log(`[SignatureValidation] Received v1: "${v1}"`);
     console.log(`[SignatureValidation] Signatures match: ${calculatedSignature === v1}`);    if (calculatedSignature !== v1) {
       console.error('❌ WEBHOOK MP: Invalid signature. Calculated signature does not match v1 from header.');
-      // TEMPORÁRIO: Vamos processar mesmo com assinatura inválida para testar
-      console.warn('⚠️ WEBHOOK MP: Processing anyway for testing purposes...');
-      // return NextResponse.json({ success: false, message: "Invalid signature" }, { status: 200 });
-    } else {
-      console.log('✅ WEBHOOK MP: Signature validated successfully.');
+      return NextResponse.json({ success: false, message: "Invalid signature" }, { status: 200 });
     }
+    
+    console.log('✅ WEBHOOK MP: Signature validated successfully.');
     // --- END SIGNATURE VALIDATION ---
 
     payload = await request.json();
