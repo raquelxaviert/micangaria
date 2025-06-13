@@ -39,10 +39,9 @@ async function handleWebhookEvent(payload: any) {
     const supabase = await createClient();
       if (eventType === 'payment') {
       const paymentId = resourceId;
-      console.log(`[WebhookLogic] Processing 'payment' event. Payment ID: ${paymentId}`);
-
-      try {
+      console.log(`[WebhookLogic] Processing 'payment' event. Payment ID: ${paymentId}`);      try {
         // Fetch payment details from Mercado Pago
+        console.log(`[WebhookLogic] Fetching payment details from Mercado Pago for ID: ${paymentId}`);
         const paymentDetails = await paymentService.get({ id: paymentId });
         console.log('[WebhookLogic] Fetched payment details:', {
           id: paymentDetails.id,
@@ -53,9 +52,25 @@ async function handleWebhookEvent(payload: any) {
         const externalReference = paymentDetails.external_reference;
         const paymentStatus = paymentDetails.status;
         
+        console.log(`[WebhookLogic] Extracted data - External Reference: "${externalReference}", Payment Status: "${paymentStatus}"`);
+        
         if (externalReference && paymentStatus) {
           const mappedOrderStatus = mapMercadoPagoStatusToYourStatus(paymentStatus);
           console.log(`[WebhookLogic] Updating order by external_reference: ${externalReference} to status: ${mappedOrderStatus}`);
+          
+          // Primeiro, vamos verificar se o pedido existe
+          const { data: existingOrder, error: fetchError } = await supabase
+            .from('orders')
+            .select('id, status, external_reference')
+            .eq('external_reference', externalReference)
+            .single();
+
+          if (fetchError) {
+            console.error('[WebhookLogic] Error fetching existing order:', fetchError);
+            console.error('[WebhookLogic] Tried to find external_reference:', externalReference);
+          } else {
+            console.log('[WebhookLogic] Found existing order:', existingOrder);
+          }
           
           const { data, error } = await supabase
             .from('orders')
@@ -70,12 +85,14 @@ async function handleWebhookEvent(payload: any) {
             console.error('[WebhookLogic] Supabase update error for payment:', error);
           } else {
             console.log('[WebhookLogic] Supabase update success for payment, external_reference:', externalReference);
+            console.log('[WebhookLogic] Update result:', data);
           }
         } else {
           console.warn('[WebhookLogic] Missing data for Supabase update (payment):', { externalReference, paymentStatus });
         }
       } catch (mpError: any) {
         console.error('[WebhookLogic] Error fetching payment from Mercado Pago:', mpError.message);
+        console.error('[WebhookLogic] Full MP error:', mpError);
       }
 
     } else if (eventType === 'topic_merchant_order_wh') {
