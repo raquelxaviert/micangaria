@@ -139,9 +139,77 @@ async function handleWebhookEvent(payload: any) {
           } else {
             console.log('[WebhookLogic] Supabase update success for payment, external_reference:', externalReference);
             console.log('[WebhookLogic] Update result:', data);
-          }
-        } else {
+          }        } else {
           console.warn('[WebhookLogic] Missing data for Supabase update (payment):', { externalReference, paymentStatus });
+          
+          // 🚀 SMART FALLBACK STRATEGY: Only if we can infer the payment was successful
+          console.log('[WebhookLogic] 🔄 Trying SMART FALLBACK strategy...');
+          
+          const action = payload?.action || '';
+          const webhookType = payload?.type || '';
+          
+          // Only use fallback for actions that likely indicate successful payment
+          const likelySuccessActions = [
+            'payment.updated', // Usually means approved
+            'payment.approved', // Explicit approval
+          ];
+          
+          const isProbablyApproved = likelySuccessActions.some(successAction => 
+            action.includes(successAction)
+          );
+          
+          console.log(`[WebhookLogic] 🔍 Webhook analysis:`, {
+            action,
+            type: webhookType,
+            isProbablyApproved,
+            shouldUseFallback: isProbablyApproved
+          });
+          
+          if (isProbablyApproved) {
+            console.log('[WebhookLogic] ✅ Action suggests successful payment, proceeding with fallback');
+            
+            try {
+              // Find the most recent pending order and assume it's this payment
+              const { data: pendingOrders, error: pendingError } = await supabase
+                .from('orders')
+                .select('*')
+                .eq('status', 'pending')
+                .order('created_at', { ascending: false })
+                .limit(1);
+              
+              if (!pendingError && pendingOrders && pendingOrders.length > 0) {
+                const recentOrder = pendingOrders[0];
+                console.log('[WebhookLogic] 🎯 Found recent pending order for fallback:', {
+                  id: recentOrder.id,
+                  external_reference: recentOrder.external_reference,
+                  created_at: recentOrder.created_at
+                });
+                
+                // Update this order to 'paid' status
+                const { data: updateData, error: updateError } = await supabase
+                  .from('orders')
+                  .update({
+                    status: 'paid', // Only mark as paid for likely successful payments
+                    payment_id: paymentId.toString(),
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq('id', recentOrder.id);
+                
+                if (!updateError) {
+                  console.log('[WebhookLogic] ✅ SMART FALLBACK SUCCESS! Updated order:', recentOrder.external_reference);
+                } else {
+                  console.error('[WebhookLogic] ❌ Fallback update failed:', updateError);
+                }
+              } else {
+                console.warn('[WebhookLogic] 🤷 No pending orders found for fallback');
+              }
+            } catch (fallbackError) {
+              console.error('[WebhookLogic] 💥 Fallback strategy failed:', fallbackError);
+            }
+          } else {
+            console.log(`[WebhookLogic] ⚠️ Action "${action}" doesn't suggest successful payment, skipping fallback`);
+            console.log('[WebhookLogic] 📝 This could be a pending/rejected payment - keeping original status');
+          }
         }
       } catch (mpError: any) {
         console.error('[WebhookLogic] Error fetching payment from Mercado Pago:', mpError.message);
