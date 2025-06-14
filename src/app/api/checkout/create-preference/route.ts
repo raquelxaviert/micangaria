@@ -177,14 +177,23 @@ export async function POST(request: NextRequest) {
     });
 
     // Criar preferência    // Gerar external_reference único
-    const external_reference = `RUGE${Date.now()}`;
-
-    const preferenceData = {
+    const external_reference = `RUGE${Date.now()}`;    const preferenceData = {
       items: mercadoPagoItems,
       payer,
       payment_methods: {
+        // Garantir que Pix e Nubank estejam sempre disponíveis
         excluded_payment_methods: [],
         excluded_payment_types: [],
+        // Incluir explicitamente os métodos que queremos disponíveis
+        included_payment_methods: [
+          { id: 'pix' },          // Pix
+          { id: 'nubank' },       // Nubank
+          { id: 'visa' },         // Visa
+          { id: 'master' },       // Mastercard
+          { id: 'amex' },         // American Express
+          { id: 'elo' },          // Elo
+          { id: 'hipercard' }     // Hipercard
+        ],
         installments: 12
       },
       shipments: {
