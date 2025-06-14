@@ -179,33 +179,23 @@ export async function POST(request: NextRequest) {
     // Criar preferência    // Gerar external_reference único
     const external_reference = `RUGE${Date.now()}`;    const preferenceData = {
       items: mercadoPagoItems,
-      payer,
-      payment_methods: {
-        // Garantir que Pix e Nubank estejam sempre disponíveis
+      payer,      payment_methods: {
+        // NÃO excluir nenhum método - deixar todos disponíveis
         excluded_payment_methods: [],
         excluded_payment_types: [],
-        // Incluir explicitamente os métodos que queremos disponíveis
-        included_payment_methods: [
-          { id: 'pix' },          // Pix
-          { id: 'nubank' },       // Nubank
-          { id: 'visa' },         // Visa
-          { id: 'master' },       // Mastercard
-          { id: 'amex' },         // American Express
-          { id: 'elo' },          // Elo
-          { id: 'hipercard' }     // Hipercard
-        ],
+        // Configurar parcelas
         installments: 12
       },
       shipments: {
         cost: shippingCost,
         mode: 'not_specified'
-      },
-      back_urls: {
+      },      back_urls: {
         success: `${baseUrl}/checkout/success?external_ref=${external_reference}`,
         failure: `${baseUrl}/checkout/failure?external_ref=${external_reference}`,
         pending: `${baseUrl}/checkout/pending?external_ref=${external_reference}`
       },
-      auto_return: 'approved', // Redirecionar automaticamente para success quando aprovado
+      // Só usar auto_return em produção, não com localhost
+      ...(baseUrl.includes('localhost') ? {} : { auto_return: 'approved' }),
       external_reference: external_reference, // ID único simples
       notification_url: webhookUrl, // Usar URL fixa do webhook
       metadata: {
@@ -215,15 +205,16 @@ export async function POST(request: NextRequest) {
         shipping_service: shippingOption.name,
         customer_email: customerInfo.email
       }
-    };
-
-    // Verificar se o Mercado Pago está configurado
+    };    // Verificar se o Mercado Pago está configurado
     if (!preference) {
       return NextResponse.json(
         { success: false, error: 'Payment service not configured' },
         { status: 503 }
       );
     }
+
+    // Log dos dados que serão enviados para o Mercado Pago
+    console.log('🔍 Dados da preferência a ser criada:', JSON.stringify(preferenceData, null, 2));
 
     const response = await preference.create({ body: preferenceData });console.log('✅ Preferência criada:', response.id);    // Persistir pedido no Supabase
     console.log('🔍 [DEBUG] Verificando Supabase:', {
