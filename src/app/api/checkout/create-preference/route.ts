@@ -180,9 +180,18 @@ export async function POST(request: NextRequest) {
     const external_reference = `RUGE${Date.now()}`;    const preferenceData = {
       items: mercadoPagoItems,
       payer,      payment_methods: {
-        // NÃO excluir nenhum método - deixar todos disponíveis
+        // Excluir apenas alguns métodos específicos, mas manter Pix e cartões principais
         excluded_payment_methods: [],
         excluded_payment_types: [],
+        // Força garantir que todos os tipos principais estejam disponíveis
+        included_payment_methods: [
+          { id: 'pix' },
+          { id: 'visa' },
+          { id: 'master' },
+          { id: 'elo' },
+          { id: 'hipercard' },
+          { id: 'amex' }
+        ],
         // Configurar parcelas
         installments: 12
       },

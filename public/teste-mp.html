@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Rápido - Mercado Pago</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #00d4aa;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #00b894;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🧪 Teste Mercado Pago - Pix</h1>
+        <p>Este é um teste rápido para verificar se o Pix está funcionando.</p>
+        
+        <button onclick="testarPreferencia()">🔍 Testar Criação de Preferência</button>
+        <button onclick="testarMetodos()">💳 Verificar Métodos Disponíveis</button>
+        
+        <div id="resultado" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        async function testarPreferencia() {
+            mostrarCarregando();
+            
+            try {
+                const response = await fetch('/api/test/create-preference');
+                const data = await response.json();
+                
+                mostrarResultado('✅ PREFERÊNCIA CRIADA:\n' + JSON.stringify(data, null, 2));
+                
+                if (data.sandbox_init_point) {
+                    setTimeout(() => {
+                        if (confirm('Deseja abrir o checkout do Mercado Pago para testar?')) {
+                            window.open(data.sandbox_init_point, '_blank');
+                        }
+                    }, 1000);
+                }
+            } catch (error) {
+                mostrarResultado('❌ ERRO:\n' + error.message);
+            }
+        }
+        
+        async function testarMetodos() {
+            mostrarCarregando();
+            
+            try {
+                const response = await fetch('/api/test/payment-methods');
+                const data = await response.json();
+                
+                mostrarResultado('💳 MÉTODOS DISPONÍVEIS:\n' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                mostrarResultado('❌ ERRO:\n' + error.message);
+            }
+        }
+        
+        function mostrarCarregando() {
+            const resultado = document.getElementById('resultado');
+            resultado.style.display = 'block';
+            resultado.textContent = '⏳ Carregando...';
+        }
+        
+        function mostrarResultado(texto) {
+            const resultado = document.getElementById('resultado');
+            resultado.style.display = 'block';
+            resultado.textContent = texto;
+        }
+    </script>
+</body>
+</html>
