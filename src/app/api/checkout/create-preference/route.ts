@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { supabaseAdmin } from '@/lib/supabase';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 /**
  * 🛒 API para criar preferência de pagamento com frete incluído
@@ -32,6 +34,34 @@ const preference = client ? new Preference(client) : null;
 
 export async function POST(request: NextRequest) {
   try {
+    // Verificar autenticação do usuário
+    const cookieStore = await cookies();
+    const supabaseAuth = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+        },
+      }
+    );
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+    
+    if (authError || !user) {
+      console.error('❌ Usuário não autenticado:', authError?.message);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Usuário não autenticado. Faça login para continuar.'
+        },
+        { status: 401 }
+      );
+    }
+
+    console.log('✅ Usuário autenticado:', user.email, 'ID:', user.id);
     // Verificar se estamos em ambiente de build
     if (process.env.NODE_ENV === 'development' && !process.env.VERCEL) {
       // Ambiente local, prosseguir normalmente
@@ -222,55 +252,80 @@ export async function POST(request: NextRequest) {
       environment: process.env.NODE_ENV,
       hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
       supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'MISSING'
-    });
-    
-    if (supabaseAdmin) {
+    });    if (supabaseAdmin) {
       const orderData = {
-        user_id: null, // Manter null por enquanto (tabela espera UUID)
+        user_id: user.id, // ✅ Agora salva o ID do usuário autenticado
         preference_id: response.id,
-        external_reference: preferenceData.external_reference, // Salvar external_reference para uso no webhook
+        external_reference: preferenceData.external_reference,
         init_point: response.init_point,
         sandbox_init_point: response.sandbox_init_point,
-        total: total,
-        breakdown: { subtotal, shipping: shippingCost, total },
-        items: items,
-        shipping_option: shippingOption,
-        status: 'pending',
-        customer_info: {
+        subtotal: subtotal, // ✅ Campo obrigatório
+        shipping_cost: shippingCost,
+        total: total, // ✅ Campo obrigatório
+        items: items, // ✅ Campo obrigatório (JSONB)
+        shipping_option: shippingOption, // ✅ JSONB
+        customer_info: { // ✅ JSONB
           name: customerInfo.name,
           email: customerInfo.email,
           phone: customerInfo.phone || null,
           document: customerInfo.document || null
         },
-        shipping_address: shippingAddress
+        shipping_address: shippingAddress, // ✅ JSONB
+        status: 'pending'
       };
 
-      console.log('💾 [PROD] Salvando pedido no Supabase...', {
+      // Validar se o e-mail do pedido é igual ao do usuário autenticado
+      if (customerInfo.email !== user.email) {
+        console.error('❌ E-mail do pedido não confere com usuário logado:', {
+          userEmail: user.email,
+          orderEmail: customerInfo.email
+        });
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'E-mail do pedido deve ser igual ao da conta logada.'
+          },
+          { status: 400 }
+        );
+      }
+
+      console.log('💾 Salvando pedido no Supabase...', {
+        user_id: orderData.user_id,
+        user_email: user.email,
         preference_id: orderData.preference_id,
         customer_email: orderData.customer_info.email,
         total: orderData.total,
+        subtotal: orderData.subtotal,
+        shipping_cost: orderData.shipping_cost,
         environment: process.env.NODE_ENV
       });
-      
-      const { data, error } = await supabaseAdmin.from('orders').insert(orderData);
+        const { data, error } = await supabaseAdmin.from('orders').insert(orderData);
       
       if (error) {
-        console.error('❌ [PROD] Erro ao salvar no Supabase:', {
+        console.error('❌ Erro ao salvar no Supabase:', {
           error: error.message,
           code: error.code,
           details: error.details,
-          hint: error.hint
+          hint: error.hint,
+          user_id: user.id
         });
-        console.error('❌ [PROD] Service Key length:', process.env.SUPABASE_SERVICE_ROLE_KEY?.length || 'MISSING');
+        console.error('❌ Service Key length:', process.env.SUPABASE_SERVICE_ROLE_KEY?.length || 'MISSING');
+        
+        // Não bloquear o checkout se houver erro no banco
+        console.warn('⚠️ Continuando checkout apesar do erro no banco');
       } else {
-        console.log('✅ [PROD] Pedido salvo no Supabase com sucesso:', response.id);
-        console.log('✅ [PROD] Dados salvos:', data);
-      }
-    } else {
-      console.error('⚠️ [PROD] Supabase não configurado - variáveis de ambiente:', {
+        console.log('✅ Pedido salvo no Supabase com sucesso:', {
+          preference_id: response.id,
+          user_id: user.id,
+          user_email: user.email
+        });
+        console.log('✅ Dados salvos:', data);
+      }    } else {
+      console.error('⚠️ Supabase não configurado - variáveis de ambiente:', {
         hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
         hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-        environment: process.env.NODE_ENV
+        environment: process.env.NODE_ENV,
+        user_id: user.id
       });
     }return NextResponse.json({
       success: true,

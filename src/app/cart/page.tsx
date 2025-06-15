@@ -17,12 +17,6 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [customerInfo, setCustomerInfo] = useState({
-    name: '',
-    email: '',
-    phone: '',
-  });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -46,17 +40,7 @@ export default function CartPage() {
       title: "Produto removido",
       description: "Item removido do carrinho com sucesso.",
     });
-  };
-  const handleCheckout = async () => {
-    if (!customerInfo.name || !customerInfo.email) {
-      toast({
-        title: "Informações obrigatórias",
-        description: "Por favor, preencha seu nome e email.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  };  const handleCheckout = async () => {
     if (cartItems.length === 0) {
       toast({
         title: "Carrinho vazio",
@@ -66,17 +50,8 @@ export default function CartPage() {
       return;
     }
 
-    // Redirecionar para checkout com frete
-    const cartData = {
-      items: cartItems,
-      customerInfo
-    };
-    
-    // Salvar dados temporariamente no localStorage para o checkout
-    localStorage.setItem('checkout_data', JSON.stringify(cartData));
-    
-    // Redirecionar para página de checkout com frete
-    window.location.href = '/checkout-with-shipping';
+    // Redirecionar para o novo checkout
+    window.location.href = '/checkout';
   };
 
   const total = CartManager.getTotal();
@@ -165,52 +140,8 @@ export default function CartPage() {
                 </CardContent>
               </Card>
             ))}
-          </div>
-
-          {/* Checkout Summary */}
+          </div>          {/* Checkout Summary */}
           <div className="space-y-6">
-            {/* Customer Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="w-5 h-5" />
-                  Informações do Cliente
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Nome Completo *</Label>
-                  <Input
-                    id="name"
-                    value={customerInfo.name}
-                    onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
-                    placeholder="Seu nome completo"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={customerInfo.email}
-                    onChange={(e) => setCustomerInfo({ ...customerInfo, email: e.target.value })}
-                    placeholder="seu@email.com"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="phone">Telefone</Label>
-                  <Input
-                    id="phone"
-                    value={customerInfo.phone}
-                    onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
-                    placeholder="(11) 99999-9999"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Order Summary */}
             <Card>
               <CardHeader>
@@ -254,19 +185,13 @@ export default function CartPage() {
                 
                 <Button
                   onClick={handleCheckout}
-                  disabled={isLoading}
                   className="w-full bg-primary hover:bg-primary/90 text-lg py-3"
                 >
-                  {isLoading ? (
-                    "Processando..."
-                  ) : (
-                    <>
-                      <CreditCard className="w-5 h-5 mr-2" />
-                      Finalizar Compra
-                    </>
-                  )}
+                  <CreditCard className="w-5 h-5 mr-2" />
+                  Finalizar Compra
                 </Button>
-                  <p className="text-xs text-muted-foreground text-center">
+                
+                <p className="text-xs text-muted-foreground text-center">
                   🔒 Pagamento 100% seguro via Mercado Pago
                 </p>
               </CardContent>
