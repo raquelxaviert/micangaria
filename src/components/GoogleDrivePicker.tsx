@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Folder, Image as ImageIcon, Search, Check, X, RefreshCw } from 'lucide-react';
+import { Folder, Image as ImageIcon, Search, Check, X, RefreshCw, Upload, Plus } from 'lucide-react';
 import Image from 'next/image';
 
 interface GoogleDriveFile {
@@ -34,10 +34,11 @@ export default function GoogleDrivePicker({
 }: GoogleDrivePickerProps) {
   const [files, setFiles] = useState<GoogleDriveFile[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState<string | null>(null);  const [searchTerm, setSearchTerm] = useState('');
   const [currentSelection, setCurrentSelection] = useState<string[]>(selectedImages);
   const [isOpen, setIsOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const FOLDER_ID = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_FOLDER_ID || '1fp36hi2E9rLWIpW7AaegAi7i7MWn8Rvp';
   const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_API_KEY;
@@ -141,28 +142,28 @@ export default function GoogleDrivePicker({
     setIsOpen(false);
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="w-full">
-          <Folder className="w-4 h-4 mr-2" />
-          Selecionar do Google Drive
-          {selectedImages.length > 0 && (
-            <Badge variant="secondary" className="ml-2">
-              {selectedImages.length}
-            </Badge>
-          )}
-        </Button>
-      </DialogTrigger>
+  // Upload de imagem para o Google Drive
+  const uploadToGoogleDrive = async (file: File) => {
+    if (!API_KEY) {
+      throw new Error('Google Drive API Key não configurada');
+    }
 
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Folder className="w-5 h-5" />
-            Selecionar Imagens do Google Drive
-            <Badge variant="outline">
-              {currentSelection.length}/{maxImages}
-            </Badge>
+    setUploading(true);
+    setUploadProgress(0);
+
+    try {
+      // Primeiro, fazer upload do arquivo
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      // Metadados do arquivo
+      const metadata = {
+        name: file.name,
+        parents: [FOLDER_ID],
+        mimeType: file.type
+      };
+
+      // Upload via multipart
           </DialogTitle>
         </DialogHeader>
 

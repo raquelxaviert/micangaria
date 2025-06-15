@@ -970,26 +970,6 @@ function ProductForm({
   };  return (
     <div className="w-full">
       <form onSubmit={handleSubmit} className="space-y-6 p-4 sm:p-6">
-        {/* Informações sobre flexibilidade do formulário */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-white text-xs font-bold">i</span>
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-blue-900 mb-1">
-                ✨ Formulário Flexível e Inteligente
-              </h4>
-              <ul className="text-xs text-blue-800 space-y-1">
-                <li>• <strong>Apenas 4 campos obrigatórios:</strong> Nome, Descrição, Preço e Categorização</li>
-                <li>• <strong>Preencha na ordem que quiser</strong> - não há sequência obrigatória</li>
-                <li>• <strong>Crie novas categorias</strong> digitando diretamente nos campos de seleção</li>
-                <li>• <strong>Suas categorias ficam salvas</strong> e aparecem nas próximas vezes</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
         {/* Informações Básicas */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -1198,45 +1178,23 @@ function ProductForm({
               />
             </div>
           </div>
-        </div>      {/* Imagens - Múltiplas imagens com carrossel */}
+        </div>        {/* Imagens - Múltiplas imagens com carrossel */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">🖼️ Imagens do Produto</h3>
             <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">Múltiplas imagens</span>
           </div>
           
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p className="text-sm text-blue-800">
-              <strong>✨ Novo:</strong> Agora você pode adicionar até 5 imagens por produto! 
-              Selecione diretamente do Google Drive ou faça upload de arquivos.
-            </p>
-          </div>
-
-          {/* Opções de upload */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Google Drive Picker */}
-            <div className="space-y-2">
-              <Label>Selecionar do Google Drive</Label>
-              <GoogleDrivePicker 
-                onSelect={(selectedImages) => {
-                  setFormData({ ...formData, gallery_urls: selectedImages });
-                }}
-                selectedImages={formData.gallery_urls || []}
-                maxImages={5}
-              />
-            </div>
-
-            {/* Upload tradicional */}
-            <div className="space-y-2">
-              <Label>Upload de Arquivos</Label>
-              <MultiImageUpload 
-                images={formData.gallery_urls || []}
-                onImagesChange={(newImages) => {
-                  setFormData({ ...formData, gallery_urls: newImages });
-                }}
-                maxImages={5}
-              />
-            </div>
+          {/* Google Drive Picker */}
+          <div className="space-y-2">
+            <Label>Adicionar Imagens</Label>
+            <GoogleDrivePicker 
+              onSelect={(selectedImages) => {
+                setFormData({ ...formData, gallery_urls: selectedImages });
+              }}
+              selectedImages={formData.gallery_urls || []}
+              maxImages={5}
+            />
           </div>
 
           {/* Preview das imagens selecionadas */}
