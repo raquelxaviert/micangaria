@@ -212,30 +212,30 @@ export default function AdminPage() {
           </Button>
         </div>        <Tabs defaultValue="products" className="space-y-6">
           <TabsList
-            className="flex sm:grid sm:grid-cols-6 gap-2 overflow-x-auto flex-nowrap w-full"
+            className="flex flex-wrap gap-2 w-full sm:grid sm:grid-cols-6"
             style={{ WebkitOverflowScrolling: 'touch' }}
           >
-            <TabsTrigger value="products" className="flex items-center gap-2">
+            <TabsTrigger value="products" className="flex items-center justify-center gap-2 flex-1 sm:flex-auto">
               <Package className="w-4 h-4" />
               <span className="hidden sm:inline">Produtos</span>
             </TabsTrigger>
-            <TabsTrigger value="collections" className="flex items-center gap-2">
+            <TabsTrigger value="collections" className="flex items-center justify-center gap-2 flex-1 sm:flex-auto">
               <Layers3 className="w-4 h-4" />
               <span className="hidden sm:inline">Coleções</span>
             </TabsTrigger>
-            <TabsTrigger value="orders" className="flex items-center gap-2">
+            <TabsTrigger value="orders" className="flex items-center justify-center gap-2 flex-1 sm:flex-auto">
               <ShoppingBag className="w-4 h-4" />
               <span className="hidden sm:inline">Pedidos</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <TabsTrigger value="analytics" className="flex items-center justify-center gap-2 flex-1 sm:flex-auto">
               <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">Relatórios</span>
             </TabsTrigger>
-            <TabsTrigger value="customers" className="flex items-center gap-2">
+            <TabsTrigger value="customers" className="flex items-center justify-center gap-2 flex-1 sm:flex-auto">
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Clientes</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
+            <TabsTrigger value="settings" className="flex items-center justify-center gap-2 flex-1 sm:flex-auto">
               <Settings className="w-4 h-4" />
               <span className="hidden sm:inline">Configurações</span>
             </TabsTrigger>
