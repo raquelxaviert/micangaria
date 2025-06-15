@@ -211,35 +211,66 @@ export default function AdminPage() {
             Sair
           </Button>
         </div>        <Tabs defaultValue="products" className="space-y-6">
-          <TabsList
-            className="flex flex-wrap gap-2 w-full sm:grid sm:grid-cols-6"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-          >
-            <TabsTrigger value="products" className="flex items-center justify-center gap-2 flex-1 sm:flex-auto">
-              <Package className="w-4 h-4" />
-              <span className="hidden sm:inline">Produtos</span>
-            </TabsTrigger>
-            <TabsTrigger value="collections" className="flex items-center justify-center gap-2 flex-1 sm:flex-auto">
-              <Layers3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Coleções</span>
-            </TabsTrigger>
-            <TabsTrigger value="orders" className="flex items-center justify-center gap-2 flex-1 sm:flex-auto">
-              <ShoppingBag className="w-4 h-4" />
-              <span className="hidden sm:inline">Pedidos</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center justify-center gap-2 flex-1 sm:flex-auto">
-              <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Relatórios</span>
-            </TabsTrigger>
-            <TabsTrigger value="customers" className="flex items-center justify-center gap-2 flex-1 sm:flex-auto">
-              <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">Clientes</span>
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center justify-center gap-2 flex-1 sm:flex-auto">
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Configurações</span>
-            </TabsTrigger>
-          </TabsList>          <TabsContent value="products">
+          {/* Mobile Layout */}
+          <div className="sm:hidden">
+            <TabsList className="grid grid-cols-2 w-full gap-2">
+              <TabsTrigger value="products" className="h-12 flex items-center justify-center gap-2 text-base">
+                <Package className="w-5 h-5" />
+                <span>Produtos</span>
+              </TabsTrigger>
+              <TabsTrigger value="collections" className="h-12 flex items-center justify-center gap-2 text-base">
+                <Layers3 className="w-5 h-5" />
+                <span>Coleções</span>
+              </TabsTrigger>
+              <TabsTrigger value="orders" className="h-12 flex items-center justify-center gap-2 text-base">
+                <ShoppingBag className="w-5 h-5" />
+                <span>Pedidos</span>
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="h-12 flex items-center justify-center gap-2 text-base">
+                <BarChart3 className="w-5 h-5" />
+                <span>Relatórios</span>
+              </TabsTrigger>
+              <TabsTrigger value="customers" className="h-12 flex items-center justify-center gap-2 text-base">
+                <Users className="w-5 h-5" />
+                <span>Clientes</span>
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="h-12 flex items-center justify-center gap-2 text-base">
+                <Settings className="w-5 h-5" />
+                <span>Configurações</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden sm:block">
+            <TabsList className="grid grid-cols-6 gap-2">
+              <TabsTrigger value="products" className="flex items-center justify-center gap-2">
+                <Package className="w-4 h-4" />
+                <span>Produtos</span>
+              </TabsTrigger>
+              <TabsTrigger value="collections" className="flex items-center justify-center gap-2">
+                <Layers3 className="w-4 h-4" />
+                <span>Coleções</span>
+              </TabsTrigger>
+              <TabsTrigger value="orders" className="flex items-center justify-center gap-2">
+                <ShoppingBag className="w-4 h-4" />
+                <span>Pedidos</span>
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="flex items-center justify-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                <span>Relatórios</span>
+              </TabsTrigger>
+              <TabsTrigger value="customers" className="flex items-center justify-center gap-2">
+                <Users className="w-4 h-4" />
+                <span>Clientes</span>
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="flex items-center justify-center gap-2">
+                <Settings className="w-4 h-4" />
+                <span>Configurações</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          <TabsContent value="products">
             <ProductManagement 
               products={productList} 
               setProducts={setProductList}
@@ -358,7 +389,7 @@ function ProductManagement({
             </Button>
           </DialogTrigger>
           <DialogContent
-            className="fixed inset-0 m-auto w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto"
+            className="fixed inset-0 m-auto w-[95vw] max-h-[90vh] overflow-y-auto sm:inset-auto sm:left-1/2 sm:top-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-auto sm:max-w-2xl"
           >
             <DialogHeader>
               <DialogTitle>Adicionar Novo Produto</DialogTitle>
