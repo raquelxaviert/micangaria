@@ -442,7 +442,7 @@ export function MultiImageUpload({
       {/* Quick Select from Existing */}
       <div className="space-y-2">
         <p className="text-sm font-medium text-gray-700">Ou selecione imagens existentes:</p>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
           {[
             '/products/colar.jpg',
             '/products/brinco.jpg',

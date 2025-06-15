@@ -211,7 +211,10 @@ export default function AdminPage() {
             Sair
           </Button>
         </div>        <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl grid-cols-3 sm:grid-cols-6">
+          <TabsList
+            className="flex sm:grid sm:grid-cols-6 gap-2 overflow-x-auto flex-nowrap w-full"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
             <TabsTrigger value="products" className="flex items-center gap-2">
               <Package className="w-4 h-4" />
               <span className="hidden sm:inline">Produtos</span>
@@ -347,17 +350,20 @@ function ProductManagement({
           <h2 className="text-2xl font-semibold">Gerenciar Produtos</h2>
           <p className="text-muted-foreground">{products.length} produtos cadastrados</p>
         </div>
-        
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-primary hover:bg-primary/90">
               <Plus className="w-4 h-4 mr-2" />
               Novo Produto
             </Button>
-          </DialogTrigger>          <DialogContent className="sm:max-w-2xl">
+          </DialogTrigger>
+          <DialogContent
+            className="fixed inset-0 m-auto w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto"
+          >
             <DialogHeader>
               <DialogTitle>Adicionar Novo Produto</DialogTitle>
-            </DialogHeader><ProductForm 
+            </DialogHeader>
+            <ProductForm 
               onSave={(product) => {
                 // Gerar ID temporal mais consistente (mas ainda será substituído pelo UUID do Supabase)
                 const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -453,14 +459,14 @@ function ProductManagement({
                 </div>
               )}
               
-              <div className="flex gap-2">
-                <Dialog>
+              <div className="flex gap-2">                <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm" className="flex-1">
                       <Edit className="w-4 h-4 mr-1" />
                       Editar
                     </Button>
-                  </DialogTrigger>                  <DialogContent className="sm:max-w-2xl">
+                  </DialogTrigger>
+                  <DialogContent className="max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Editar Produto</DialogTitle>
                     </DialogHeader><ProductForm 
@@ -849,7 +855,8 @@ function ProductForm({
               throw error;
             }
             console.log('✅ Produto criado no Supabase:', data);
-          }} catch (supabaseError: any) {
+          }
+        } catch (supabaseError: any) {
           console.error('❌ Erro ao salvar no Supabase:', supabaseError);
           console.error('❌ Stack trace:', supabaseError?.stack);
           console.error('❌ Error details:', {
@@ -874,520 +881,523 @@ function ProductForm({
       }
     }
   };  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Informações sobre flexibilidade do formulário */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-start gap-3">
-          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-            <span className="text-white text-xs font-bold">i</span>
-          </div>
-          <div>
-            <h4 className="text-sm font-semibold text-blue-900 mb-1">
-              ✨ Formulário Flexível e Inteligente
-            </h4>
-            <ul className="text-xs text-blue-800 space-y-1">
-              <li>• <strong>Apenas 4 campos obrigatórios:</strong> Nome, Descrição, Preço e Categorização</li>
-              <li>• <strong>Preencha na ordem que quiser</strong> - não há sequência obrigatória</li>
-              <li>• <strong>Crie novas categorias</strong> digitando diretamente nos campos de seleção</li>
-              <li>• <strong>Suas categorias ficam salvas</strong> e aparecem nas próximas vezes</li>
-            </ul>
+    <div className="w-full">
+      <form onSubmit={handleSubmit} className="space-y-6 p-4 sm:p-6">
+        {/* Informações sobre flexibilidade do formulário */}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-white text-xs font-bold">i</span>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-blue-900 mb-1">
+                ✨ Formulário Flexível e Inteligente
+              </h4>
+              <ul className="text-xs text-blue-800 space-y-1">
+                <li>• <strong>Apenas 4 campos obrigatórios:</strong> Nome, Descrição, Preço e Categorização</li>
+                <li>• <strong>Preencha na ordem que quiser</strong> - não há sequência obrigatória</li>
+                <li>• <strong>Crie novas categorias</strong> digitando diretamente nos campos de seleção</li>
+                <li>• <strong>Suas categorias ficam salvas</strong> e aparecem nas próximas vezes</li>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Informações Básicas */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold">📝 Informações Básicas</h3>
-          <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">Essencial</span>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Informações Básicas */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">📝 Informações Básicas</h3>
+            <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">Essencial</span>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="name">Nome do Produto *</Label>
+              <Input
+                id="name"
+                value={formData.name || ''}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Ex: Colar Lua Cheia"
+                required
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="slug">URL Amigável (Slug)</Label>
+              <Input
+                id="slug"
+                value={formData.slug || ''}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                placeholder="colar-lua-cheia"
+              />
+            </div>
+          </div>
+
           <div>
-            <Label htmlFor="name">Nome do Produto *</Label>
-            <Input
-              id="name"
-              value={formData.name || ''}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Ex: Colar Lua Cheia"
+            <Label htmlFor="description">Descrição *</Label>
+            <Textarea
+              id="description"
+              value={formData.description || ''}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Descreva o produto, materiais, inspiração..."
+              rows={3}
               required
             />
           </div>
+
+          <div>
+            <Label htmlFor="price">Preço de Venda (R$) *</Label>
+            <Input
+              id="price"
+              type="number"
+              step="0.01"
+              value={formData.price || ''}
+              onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+              placeholder="0.00"
+              required
+              className="max-w-xs"
+            />
+          </div>
+        </div>      {/* Categorização - Campos mais flexíveis */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">📂 Categorização</h3>
+            <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">Organize seu produto</span>
+          </div>
           
-          <div>
-            <Label htmlFor="slug">URL Amigável (Slug)</Label>
-            <Input
-              id="slug"
-              value={formData.slug || ''}
-              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-              placeholder="colar-lua-cheia"
-            />
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <p className="text-sm text-amber-800">
+              <strong>💡 Dica:</strong> Digite qualquer categoria que não esteja na lista para criá-la automaticamente. 
+              Suas categorias personalizadas ficarão salvas para uso futuro.
+            </p>
           </div>
-        </div>
-
-        <div>
-          <Label htmlFor="description">Descrição *</Label>
-          <Textarea
-            id="description"
-            value={formData.description || ''}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="Descreva o produto, materiais, inspiração..."
-            rows={3}
-            required
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="price">Preço de Venda (R$) *</Label>
-          <Input
-            id="price"
-            type="number"
-            step="0.01"
-            value={formData.price || ''}
-            onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-            placeholder="0.00"
-            required
-            className="max-w-xs"
-          />
-        </div>
-      </div>      {/* Categorização - Campos mais flexíveis */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold">📂 Categorização</h3>
-          <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">Organize seu produto</span>
-        </div>
-        
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-          <p className="text-sm text-amber-800">
-            <strong>💡 Dica:</strong> Digite qualquer categoria que não esteja na lista para criá-la automaticamente. 
-            Suas categorias personalizadas ficarão salvas para uso futuro.
-          </p>
-        </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <SmartSelect
-            label="Tipo de Produto"
-            value={formData.type || ''}
-            onChange={(type) => setFormData({ ...formData, type })}
-            options={getAllTypes()}
-            onAddNew={addCustomType}
-            placeholder="Selecione ou crie um tipo"
-            allowCustom={true}
-          />
-
-          <SmartSelect
-            label="Estilo"
-            value={formData.style || ''}
-            onChange={(style) => setFormData({ ...formData, style })}
-            options={getAllStyles()}
-            onAddNew={addCustomStyle}
-            placeholder="Selecione ou crie um estilo"
-            allowCustom={true}
-          />
-
-          <SelectInput
-            label="Fornecedor/Marca"
-            value={formData.vendor || ''}
-            onChange={(vendor) => setFormData({ ...formData, vendor })}
-            options={vendorSuggestions}
-            placeholder="Selecione ou crie um fornecedor"
-            allowCustom={true}
-          />
-
-          <SelectInput
-            label="Coleção"
-            value={formData.collection || ''}
-            onChange={(collection) => setFormData({ ...formData, collection })}
-            options={collectionSuggestions}
-            placeholder="Selecione ou crie uma coleção"
-            allowCustom={true}
-          />
-        </div>
-      </div>
-
-      {/* Preços Adicionais - Seção opcional */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold">💰 Preços Adicionais</h3>
-          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="compare_at_price">Preço Original (R$)</Label>
-            <Input
-              id="compare_at_price"
-              type="number"
-              step="0.01"
-              value={formData.compare_at_price || ''}
-              onChange={(e) => setFormData({ ...formData, compare_at_price: parseFloat(e.target.value) || 0 })}
-              placeholder="Para mostrar desconto"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="cost_price">Custo (R$)</Label>
-            <Input
-              id="cost_price"
-              type="number"
-              step="0.01"
-              value={formData.cost_price || ''}
-              onChange={(e) => setFormData({ ...formData, cost_price: parseFloat(e.target.value) || 0 })}
-              placeholder="Seu custo interno"
-            />
-          </div>
-        </div>
-      </div>      {/* Características do Produto */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold">🎨 Características</h3>
-          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
-        </div>
-        
-        <div className="space-y-6">
-          <MultiSelectInput
-            label="Cores"
-            value={formData.colors || []}
-            onChange={(colors) => setFormData({ ...formData, colors })}
-            suggestions={colorSuggestions}
-            placeholder="Digite uma cor e pressione Enter"
-            maxItems={8}
-          />
-
-          <MultiSelectInput
-            label="Materiais"
-            value={formData.materials || []}
-            onChange={(materials) => setFormData({ ...formData, materials })}
-            suggestions={materialSuggestions}
-            placeholder="Digite um material e pressione Enter"
-            maxItems={10}
-          />
-
-          <MultiSelectInput
-            label="Tamanhos"
-            value={formData.sizes || []}
-            onChange={(sizes) => setFormData({ ...formData, sizes })}
-            suggestions={sizeSuggestions}
-            placeholder="Digite um tamanho e pressione Enter"
-            maxItems={6}
-          />
-
-          <MultiSelectInput
-            label="Tags/Palavras-chave"
-            value={formData.tags || []}
-            onChange={(tags) => setFormData({ ...formData, tags })}
-            suggestions={tagSuggestions}
-            placeholder="Digite uma tag e pressione Enter"
-            maxItems={12}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="weight_grams">Peso (gramas)</Label>
-            <Input
-              id="weight_grams"
-              type="number"
-              value={formData.weight_grams || ''}
-              onChange={(e) => setFormData({ ...formData, weight_grams: parseInt(e.target.value) || 0 })}
-              placeholder="0"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="search_keywords">Palavras-chave para busca</Label>
-            <Input
-              id="search_keywords"
-              value={formData.search_keywords || ''}
-              onChange={(e) => setFormData({ ...formData, search_keywords: e.target.value })}
-              placeholder="colar vintage dourado bohemio"
-            />
-          </div>
-        </div>
-      </div>      {/* Imagens - Múltiplas imagens com carrossel */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold">🖼️ Imagens do Produto</h3>
-          <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">Múltiplas imagens</span>
-        </div>
-        
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <p className="text-sm text-blue-800">
-            <strong>✨ Novo:</strong> Agora você pode adicionar até 5 imagens por produto! 
-            A primeira imagem será exibida como principal nos cards de produto.
-          </p>
-        </div>        <div>
-          <MultiImageUpload 
-            images={formData.gallery_urls || []}
-            onImagesChange={(newImages) => {
-              setFormData({ ...formData, gallery_urls: newImages });
-            }}
-            maxImages={5}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="alt_text">Texto Alternativo (ALT)</Label>
-          <Input
-            id="alt_text"
-            value={formData.alt_text || ''}
-            onChange={(e) => setFormData({ ...formData, alt_text: e.target.value })}
-            placeholder="Descrição das imagens para acessibilidade"
-          />
-        </div>
-      </div>{/* Inventário e Controle - Seção opcional */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold">📦 Inventário</h3>
-          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <Label htmlFor="sku">SKU (Código)</Label>
-            <Input
-              id="sku"
-              value={formData.sku || ''}
-              onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-              placeholder="Ex: COL-001"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="barcode">Código de Barras</Label>
-            <Input
-              id="barcode"
-              value={formData.barcode || ''}
-              onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-              placeholder="7891234567890"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="quantity">Quantidade em Estoque</Label>
-            <Input
-              id="quantity"
-              type="number"
-              value={formData.quantity || ''}
-              onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
-              placeholder="0"
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-4">
-          <div className="flex items-center space-x-2">            <Checkbox
-              id="track_inventory"
-              checked={formData.track_inventory || false}
-              onCheckedChange={handleTrackInventoryChange}
-            />
-            <Label htmlFor="track_inventory">Controlar Estoque</Label>
-          </div>
-
-          <div className="flex items-center space-x-2">            <Checkbox
-              id="allow_backorder"
-              checked={formData.allow_backorder || false}
-              onCheckedChange={handleAllowBackorderChange}
-            />
-            <Label htmlFor="allow_backorder">Permitir Encomenda</Label>
-          </div>
-        </div>
-      </div>      {/* Status e Promoções - Seção opcional */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold">🏷️ Status e Promoções</h3>
-          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
-        </div>
-        
-        <div className="flex flex-wrap gap-4">          <div className="flex items-center space-x-2">            <Checkbox
-              id="is_active"
-              checked={Boolean(formData.is_active ?? true)}
-              onCheckedChange={handleIsActiveChange}
-            />
-            <Label htmlFor="is_active">Produto Ativo</Label>
-          </div>
-
-          <div className="flex items-center space-x-2">            <Checkbox
-              id="is_featured"
-              checked={formData.is_featured || false}
-              onCheckedChange={handleIsFeaturedChange}
-            />
-            <Label htmlFor="is_featured">Produto em Destaque</Label>
-          </div>
-
-          <div className="flex items-center space-x-2">            <Checkbox
-              id="is_new_arrival"
-              checked={formData.is_new_arrival || false}
-              onCheckedChange={handleIsNewArrivalChange}
-            />
-            <Label htmlFor="is_new_arrival">Produto Novo</Label>
-          </div>
-
-          <div className="flex items-center space-x-2">            <Checkbox
-              id="is_on_sale"
-              checked={formData.is_on_sale || false}
-              onCheckedChange={handleIsOnSaleChange}
-            />
-            <Label htmlFor="is_on_sale">Em Promoção</Label>
-          </div>
-        </div>
-
-        {formData.is_on_sale && (
-          <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
-            <div>
-              <Label htmlFor="promotion_text">Texto da Promoção</Label>
-              <Input
-                id="promotion_text"
-                value={formData.promotion_text || ''}
-                onChange={(e) => setFormData({ ...formData, promotion_text: e.target.value })}
-                placeholder="Ex: 20% OFF por tempo limitado"
-              />
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="sale_start_date">Data de Início</Label>
-                <Input
-                  id="sale_start_date"
-                  type="datetime-local"
-                  value={formData.sale_start_date || ''}
-                  onChange={(e) => setFormData({ ...formData, sale_start_date: e.target.value })}
-                />
-              </div>
+            <SmartSelect
+              label="Tipo de Produto"
+              value={formData.type || ''}
+              onChange={(type) => setFormData({ ...formData, type })}
+              options={getAllTypes()}
+              onAddNew={addCustomType}
+              placeholder="Selecione ou crie um tipo"
+              allowCustom={true}
+            />
 
-              <div>
-                <Label htmlFor="sale_end_date">Data de Fim</Label>
-                <Input
-                  id="sale_end_date"
-                  type="datetime-local"
-                  value={formData.sale_end_date || ''}
-                  onChange={(e) => setFormData({ ...formData, sale_end_date: e.target.value })}
-                />
-              </div>
-            </div>
-          </div>        )}
-      </div>
+            <SmartSelect
+              label="Estilo"
+              value={formData.style || ''}
+              onChange={(style) => setFormData({ ...formData, style })}
+              options={getAllStyles()}
+              onAddNew={addCustomStyle}
+              placeholder="Selecione ou crie um estilo"
+              allowCustom={true}
+            />
 
-      {/* Configuração de Badges - Seção nova */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold">🏷️ Configuração de Badges</h3>
-          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Controla a exibição</span>
-        </div>
-        
-        <div className="p-4 bg-blue-50/50 rounded-lg space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Configure quais badges serão exibidos nos cards de produto nas páginas de produtos, favoritos e full-store.
-          </p>
-          
-          <div className="flex flex-wrap gap-4">            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="show_colors_badge"
-                checked={Boolean(formData.show_colors_badge)}
-                onCheckedChange={handleShowColorsBadgeChange}
-              />
-              <Label htmlFor="show_colors_badge">Mostrar Badge de Cores</Label>
-            </div>
+            <SelectInput
+              label="Fornecedor/Marca"
+              value={formData.vendor || ''}
+              onChange={(vendor) => setFormData({ ...formData, vendor })}
+              options={vendorSuggestions}
+              placeholder="Selecione ou crie um fornecedor"
+              allowCustom={true}
+            />
 
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="show_materials_badge"
-                checked={Boolean(formData.show_materials_badge)}
-                onCheckedChange={handleShowMaterialsBadgeChange}
-              />
-              <Label htmlFor="show_materials_badge">Mostrar Badge de Materiais</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="show_sizes_badge"
-                checked={Boolean(formData.show_sizes_badge)}
-                onCheckedChange={handleShowSizesBadgeChange}
-              />
-              <Label htmlFor="show_sizes_badge">Mostrar Badge de Tamanhos</Label>
-            </div>
-          </div>
-          
-          <div className="text-xs text-muted-foreground mt-2">
-            💡 <strong>Dica:</strong> Os badges ajudam os clientes a identificar rapidamente as características dos produtos. 
-            Desmarque para produtos onde essas informações não são relevantes.
+            <SelectInput
+              label="Coleção"
+              value={formData.collection || ''}
+              onChange={(collection) => setFormData({ ...formData, collection })}
+              options={collectionSuggestions}
+              placeholder="Selecione ou crie uma coleção"
+              allowCustom={true}
+            />
           </div>
         </div>
-      </div>      {/* SEO - Seção opcional */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold">🔍 SEO</h3>
-          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
-        </div>
-        
-        <div>
-          <Label htmlFor="meta_title">Título SEO</Label>
-          <Input
-            id="meta_title"
-            value={formData.meta_title || ''}
-            onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
-            placeholder="Título para mecanismos de busca"
-            maxLength={60}
-          />
-        </div>
 
-        <div>
-          <Label htmlFor="meta_description">Descrição SEO</Label>
-          <Textarea
-            id="meta_description"
-            value={formData.meta_description || ''}
-            onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
-            placeholder="Descrição para mecanismos de busca"
-            maxLength={160}
-            rows={2}
-          />
-        </div>
-      </div>
+        {/* Preços Adicionais - Seção opcional */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">💰 Preços Adicionais</h3>
+            <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="compare_at_price">Preço Original (R$)</Label>
+              <Input
+                id="compare_at_price"
+                type="number"
+                step="0.01"
+                value={formData.compare_at_price || ''}
+                onChange={(e) => setFormData({ ...formData, compare_at_price: parseFloat(e.target.value) || 0 })}
+                placeholder="Para mostrar desconto"
+              />
+            </div>
 
-      {/* Notas Internas - Seção opcional */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold">📝 Notas Internas</h3>
-          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
-        </div>
+            <div>
+              <Label htmlFor="cost_price">Custo (R$)</Label>
+              <Input
+                id="cost_price"
+                type="number"
+                step="0.01"
+                value={formData.cost_price || ''}
+                onChange={(e) => setFormData({ ...formData, cost_price: parseFloat(e.target.value) || 0 })}
+                placeholder="Seu custo interno"
+              />
+            </div>
+          </div>
+        </div>      {/* Características do Produto */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">🎨 Características</h3>
+            <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+          </div>
+          
+          <div className="space-y-6">
+            <MultiSelectInput
+              label="Cores"
+              value={formData.colors || []}
+              onChange={(colors) => setFormData({ ...formData, colors })}
+              suggestions={colorSuggestions}
+              placeholder="Digite uma cor e pressione Enter"
+              maxItems={8}
+            />
+
+            <MultiSelectInput
+              label="Materiais"
+              value={formData.materials || []}
+              onChange={(materials) => setFormData({ ...formData, materials })}
+              suggestions={materialSuggestions}
+              placeholder="Digite um material e pressione Enter"
+              maxItems={10}
+            />
+
+            <MultiSelectInput
+              label="Tamanhos"
+              value={formData.sizes || []}
+              onChange={(sizes) => setFormData({ ...formData, sizes })}
+              suggestions={sizeSuggestions}
+              placeholder="Digite um tamanho e pressione Enter"
+              maxItems={6}
+            />
+
+            <MultiSelectInput
+              label="Tags/Palavras-chave"
+              value={formData.tags || []}
+              onChange={(tags) => setFormData({ ...formData, tags })}
+              suggestions={tagSuggestions}
+              placeholder="Digite uma tag e pressione Enter"
+              maxItems={12}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="weight_grams">Peso (gramas)</Label>
+              <Input
+                id="weight_grams"
+                type="number"
+                value={formData.weight_grams || ''}
+                onChange={(e) => setFormData({ ...formData, weight_grams: parseInt(e.target.value) || 0 })}
+                placeholder="0"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="search_keywords">Palavras-chave para busca</Label>
+              <Input
+                id="search_keywords"
+                value={formData.search_keywords || ''}
+                onChange={(e) => setFormData({ ...formData, search_keywords: e.target.value })}
+                placeholder="colar vintage dourado bohemio"
+              />
+            </div>
+          </div>
+        </div>      {/* Imagens - Múltiplas imagens com carrossel */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">🖼️ Imagens do Produto</h3>
+            <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">Múltiplas imagens</span>
+          </div>
+          
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-sm text-blue-800">
+              <strong>✨ Novo:</strong> Agora você pode adicionar até 5 imagens por produto! 
+              A primeira imagem será exibida como principal nos cards de produto.
+            </p>
+          </div>          <div>
+            <MultiImageUpload 
+              images={formData.gallery_urls || []}
+              onImagesChange={(newImages) => {
+                setFormData({ ...formData, gallery_urls: newImages });
+              }}
+              maxImages={5}
+            />
+          </div>
+
           <div>
-          <Label htmlFor="notes">Observações</Label>
-          <Textarea
-            id="notes"
-            value={formData.notes || ''}
-            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            placeholder="Anotações internas sobre o produto..."
-            rows={3}
-          />
-        </div>
-        
-        <div>
-          <Label htmlFor="care_instructions">🧼 Instruções de Cuidados</Label>
-          <Textarea
-            id="care_instructions"
-            value={formData.care_instructions || ''}
-            onChange={(e) => setFormData({ ...formData, care_instructions: e.target.value })}
-            placeholder="Ex: Lavar à mão com água fria, não usar alvejante, secar à sombra..."
-            rows={4}
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            Instruções para conservação e manutenção do produto (aparecerá na página do produto)
-          </p>
-        </div>
-      </div>
+            <Label htmlFor="alt_text">Texto Alternativo (ALT)</Label>
+            <Input
+              id="alt_text"
+              value={formData.alt_text || ''}
+              onChange={(e) => setFormData({ ...formData, alt_text: e.target.value })}
+              placeholder="Descrição das imagens para acessibilidade"
+            />
+          </div>
+        </div>{/* Inventário e Controle - Seção opcional */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">📦 Inventário</h3>
+            <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="sku">SKU (Código)</Label>
+              <Input
+                id="sku"
+                value={formData.sku || ''}
+                onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                placeholder="Ex: COL-001"
+              />
+            </div>
 
-      {/* Botões de Ação */}
-      <div className="flex gap-2 pt-6 border-t">
-        <Button type="submit" className="flex-1" disabled={isUploading}>
-          <Save className="w-4 h-4 mr-2" />
-          {isUploading ? 'Salvando...' : 'Salvar Produto'}
-        </Button>
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isUploading}>
-            Cancelar
+            <div>
+              <Label htmlFor="barcode">Código de Barras</Label>
+              <Input
+                id="barcode"
+                value={formData.barcode || ''}
+                onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                placeholder="7891234567890"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="quantity">Quantidade em Estoque</Label>
+              <Input
+                id="quantity"
+                type="number"
+                value={formData.quantity || ''}
+                onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center space-x-2">            <Checkbox
+                id="track_inventory"
+                checked={formData.track_inventory || false}
+                onCheckedChange={handleTrackInventoryChange}
+              />
+              <Label htmlFor="track_inventory">Controlar Estoque</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">            <Checkbox
+                id="allow_backorder"
+                checked={formData.allow_backorder || false}
+                onCheckedChange={handleAllowBackorderChange}
+              />
+              <Label htmlFor="allow_backorder">Permitir Encomenda</Label>
+            </div>
+          </div>
+        </div>      {/* Status e Promoções - Seção opcional */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">🏷️ Status e Promoções</h3>
+            <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+          </div>
+          
+          <div className="flex flex-wrap gap-4">            <div className="flex items-center space-x-2">              <Checkbox
+                id="is_active"
+                checked={Boolean(formData.is_active ?? true)}
+                onCheckedChange={handleIsActiveChange}
+              />
+              <Label htmlFor="is_active">Produto Ativo</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">              <Checkbox
+                id="is_featured"
+                checked={formData.is_featured || false}
+                onCheckedChange={handleIsFeaturedChange}
+              />
+              <Label htmlFor="is_featured">Produto em Destaque</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">              <Checkbox
+                id="is_new_arrival"
+                checked={formData.is_new_arrival || false}
+                onCheckedChange={handleIsNewArrivalChange}
+              />
+              <Label htmlFor="is_new_arrival">Produto Novo</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">              <Checkbox
+                id="is_on_sale"
+                checked={formData.is_on_sale || false}
+                onCheckedChange={handleIsOnSaleChange}
+              />
+              <Label htmlFor="is_on_sale">Em Promoção</Label>
+            </div>
+          </div>
+
+          {formData.is_on_sale && (
+            <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
+              <div>
+                <Label htmlFor="promotion_text">Texto da Promoção</Label>
+                <Input
+                  id="promotion_text"
+                  value={formData.promotion_text || ''}
+                  onChange={(e) => setFormData({ ...formData, promotion_text: e.target.value })}
+                  placeholder="Ex: 20% OFF por tempo limitado"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="sale_start_date">Data de Início</Label>
+                  <Input
+                    id="sale_start_date"
+                    type="datetime-local"
+                    value={formData.sale_start_date || ''}
+                    onChange={(e) => setFormData({ ...formData, sale_start_date: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="sale_end_date">Data de Fim</Label>
+                  <Input
+                    id="sale_end_date"
+                    type="datetime-local"
+                    value={formData.sale_end_date || ''}
+                    onChange={(e) => setFormData({ ...formData, sale_end_date: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>          )}
+        </div>
+
+        {/* Configuração de Badges - Seção nova */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">🏷️ Configuração de Badges</h3>
+            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Controla a exibição</span>
+          </div>
+          
+          <div className="p-4 bg-blue-50/50 rounded-lg space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Configure quais badges serão exibidos nos cards de produto nas páginas de produtos, favoritos e full-store.
+            </p>
+            
+            <div className="flex flex-wrap gap-4">              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="show_colors_badge"
+                  checked={Boolean(formData.show_colors_badge)}
+                  onCheckedChange={handleShowColorsBadgeChange}
+                />
+                <Label htmlFor="show_colors_badge">Mostrar Badge de Cores</Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="show_materials_badge"
+                  checked={Boolean(formData.show_materials_badge)}
+                  onCheckedChange={handleShowMaterialsBadgeChange}
+                />
+                <Label htmlFor="show_materials_badge">Mostrar Badge de Materiais</Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="show_sizes_badge"
+                  checked={Boolean(formData.show_sizes_badge)}
+                  onCheckedChange={handleShowSizesBadgeChange}
+                />
+                <Label htmlFor="show_sizes_badge">Mostrar Badge de Tamanhos</Label>
+              </div>
+            </div>
+            
+            <div className="text-xs text-muted-foreground mt-2">
+              💡 <strong>Dica:</strong> Os badges ajudam os clientes a identificar rapidamente as características dos produtos. 
+              Desmarque para produtos onde essas informações não são relevantes.
+            </div>
+          </div>
+        </div>      {/* SEO - Seção opcional */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">🔍 SEO</h3>
+            <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+          </div>
+          
+          <div>
+            <Label htmlFor="meta_title">Título SEO</Label>
+            <Input
+              id="meta_title"
+              value={formData.meta_title || ''}
+              onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
+              placeholder="Título para mecanismos de busca"
+              maxLength={60}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="meta_description">Descrição SEO</Label>
+            <Textarea
+              id="meta_description"
+              value={formData.meta_description || ''}
+              onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
+              placeholder="Descrição para mecanismos de busca"
+              maxLength={160}
+              rows={2}
+            />
+          </div>
+        </div>
+
+        {/* Notas Internas - Seção opcional */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">📝 Notas Internas</h3>
+            <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+          </div>
+            <div>
+            <Label htmlFor="notes">Observações</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes || ''}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              placeholder="Anotações internas sobre o produto..."
+              rows={3}
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="care_instructions">🧼 Instruções de Cuidados</Label>
+            <Textarea
+              id="care_instructions"
+              value={formData.care_instructions || ''}
+              onChange={(e) => setFormData({ ...formData, care_instructions: e.target.value })}
+              placeholder="Ex: Lavar à mão com água fria, não usar alvejante, secar à sombra..."
+              rows={4}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Instruções para conservação e manutenção do produto (aparecerá na página do produto)
+            </p>
+          </div>
+        </div>
+
+        {/* Botões de Ação */}
+        <div className="flex gap-2 pt-6 border-t">
+          <Button type="submit" className="flex-1" disabled={isUploading}>
+            <Save className="w-4 h-4 mr-2" />
+            {isUploading ? 'Salvando...' : 'Salvar Produto'}
           </Button>
-        )}
-      </div>
-    </form>  );
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel} disabled={isUploading}>
+              Cancelar
+            </Button>
+          )}
+        </div>
+      </form>
+    </div>
+  );
 }
 
 // Interface para Coleções
@@ -1742,14 +1752,16 @@ function CollectionsManagement({ products }: { products: Product[] }) {
               )}
             </Button>
           )}
-          
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-primary hover:bg-primary/90">
                 <Plus className="w-4 h-4 mr-2" />
                 Nova Coleção
               </Button>
-            </DialogTrigger>            <DialogContent className="sm:max-w-lg">
+            </DialogTrigger>
+            <DialogContent
+              className="max-h-[90vh] overflow-y-auto"
+            >
               <DialogHeader>
                 <DialogTitle>Criar Nova Coleção</DialogTitle>
               </DialogHeader>
@@ -1877,11 +1889,10 @@ function CollectionsManagement({ products }: { products: Product[] }) {
             </CardContent>
           </Card>
         ))}
-      </div>
-
-      {/* Dialog de Edição */}
+      </div>      {/* Dialog de Edição */}
       {editingCollection && (
-        <Dialog open={!!editingCollection} onOpenChange={() => setEditingCollection(null)}>          <DialogContent className="sm:max-w-lg">
+        <Dialog open={!!editingCollection} onOpenChange={() => setEditingCollection(null)}>
+          <DialogContent className="max-w-[95vw] sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Editar Coleção</DialogTitle>
             </DialogHeader>
