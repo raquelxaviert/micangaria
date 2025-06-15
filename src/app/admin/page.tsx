@@ -354,11 +354,10 @@ function ProductManagement({
               <Plus className="w-4 h-4 mr-2" />
               Novo Produto
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          </DialogTrigger>          <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle>Adicionar Novo Produto</DialogTitle>
-            </DialogHeader>            <ProductForm 
+            </DialogHeader><ProductForm 
               onSave={(product) => {
                 // Gerar ID temporal mais consistente (mas ainda será substituído pelo UUID do Supabase)
                 const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -461,11 +460,10 @@ function ProductManagement({
                       <Edit className="w-4 h-4 mr-1" />
                       Editar
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  </DialogTrigger>                  <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
                       <DialogTitle>Editar Produto</DialogTitle>
-                    </DialogHeader>                    <ProductForm 
+                    </DialogHeader><ProductForm 
                       product={product}
                       onSave={(updatedProduct) => {
                         setProducts(products.map(p => p.id === product.id ? updatedProduct : p));
@@ -1751,8 +1749,7 @@ function CollectionsManagement({ products }: { products: Product[] }) {
                 <Plus className="w-4 h-4 mr-2" />
                 Nova Coleção
               </Button>
-            </DialogTrigger>
-            <DialogContent>
+            </DialogTrigger>            <DialogContent>
               <DialogHeader>
                 <DialogTitle>Criar Nova Coleção</DialogTitle>
               </DialogHeader>
@@ -1884,8 +1881,7 @@ function CollectionsManagement({ products }: { products: Product[] }) {
 
       {/* Dialog de Edição */}
       {editingCollection && (
-        <Dialog open={!!editingCollection} onOpenChange={() => setEditingCollection(null)}>
-          <DialogContent>
+        <Dialog open={!!editingCollection} onOpenChange={() => setEditingCollection(null)}>          <DialogContent>
             <DialogHeader>
               <DialogTitle>Editar Coleção</DialogTitle>
             </DialogHeader>

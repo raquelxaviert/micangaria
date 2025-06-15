@@ -169,11 +169,11 @@ export function LikesProvider({ children }: LikesProviderProps) {
         });
 
         // Merge: localStorage + Supabase favorites
-        const mergedLikes = new Set([...localLikes, ...supabaseLikes]);
-
-        // Save any new favorites from localStorage to Supabase
+        const mergedLikes = new Set([...localLikes, ...supabaseLikes]);        // Save any new favorites from localStorage to Supabase
         const newLocalFavorites = [...localLikes].filter(id => !supabaseLikes.has(id));
         if (newLocalFavorites.length > 0) {
+          console.log('💾 Sincronizando favoritos locais com Supabase:', newLocalFavorites.length);
+          
           const { error: insertError } = await supabase
             .from('user_favorites')
             .insert(
@@ -182,13 +182,17 @@ export function LikesProvider({ children }: LikesProviderProps) {
                 product_id: productId
               }))
             );          if (insertError) {
-            console.error('Error syncing local favorites to Supabase:', insertError);
+            console.error('❌ Erro ao sincronizar favoritos com Supabase:', insertError.message);
             console.error('Insert error details:', {
               code: insertError.code,
               message: insertError.message,
-              details: insertError.details,
-              hint: insertError.hint
+              details: insertError.details || 'No details available',
+              hint: insertError.hint || 'No hint available',
+              productIds: newLocalFavorites
             });
+            // Não falhar silenciosamente - continuar com os dados locais
+          } else {
+            console.log('✅ Favoritos sincronizados com sucesso');
           }
         }
 
