@@ -18,6 +18,7 @@ import OrdersManagement from '@/components/OrdersManagement';
 import ImageUploadTemp from '@/components/ImageUploadTemp';
 import { MultiImageUpload } from '@/components/ui/MultiImageUploadDragDropFixed';
 import { uploadImageToSupabase } from '@/lib/uploadUtils';
+import GoogleDrivePicker from '@/components/GoogleDrivePicker';
 import Image from 'next/image';
 import { MultiSelectInput } from '@/components/ui/MultiSelectInput';
 import { SelectInput } from '@/components/ui/SelectInput';
@@ -773,18 +774,20 @@ function ProductForm({
     e.preventDefault();
     if (formData.name && formData.description && formData.price) {
       setIsUploading(true);
-      
-      try {
+        try {
         let finalImageUrl = formData.imageUrl || '';
+        let finalImageStoragePath = '';
         
         // Se há arquivo temporário, fazer upload primeiro
         if (imageData.file && imageData.isTemp) {
-          console.log('📤 Fazendo upload da imagem...');
+          console.log('📤 Fazendo upload da imagem principal...');
           const uploadResult = await uploadImageToSupabase(imageData.file);
           
           if (uploadResult.success && uploadResult.url) {
             finalImageUrl = uploadResult.url;
-            console.log('✅ Imagem enviada com sucesso:', finalImageUrl);
+            finalImageStoragePath = uploadResult.path || '';
+            console.log('✅ Imagem principal enviada com sucesso:', finalImageUrl);
+            console.log('📁 Path de storage:', finalImageStoragePath);
           } else {
             // Se upload falhou, usar imagem local como fallback
             finalImageUrl = `/products/${imageData.file.name}`;
@@ -794,11 +797,18 @@ function ProductForm({
         } else if (imageData.url && !imageData.isTemp) {
           // Usar imagem local selecionada
           finalImageUrl = imageData.url;
+          // Extrair storage path se for URL do Supabase
+          if (imageData.url.includes('supabase') && imageData.url.includes('product-images')) {
+            const match = imageData.url.match(/\/product-images\/(.+)$/);
+            finalImageStoragePath = match ? match[1] : '';
+          }
         }
 
         // Processar gallery_urls - verificar se há URLs blob que precisam ser convertidas
         let finalGalleryUrls = formData.gallery_urls || [];
-          // Filtrar apenas URLs blob que precisam ser processadas
+        let finalGalleryStoragePaths: string[] = [];
+        
+        // Filtrar apenas URLs blob que precisam ser processadas
         const blobUrls = finalGalleryUrls.filter((url: string) => url.startsWith('blob:'));
         
         if (blobUrls.length > 0) {
@@ -807,7 +817,7 @@ function ProductForm({
           
           // Aguardar um pouco para que o MultiImageUpload processe as imagens
           console.log('⏳ Aguardando processamento das imagens...');
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          await new Promise(resolve => setTimeout(resolve, 3000)); // Aumentar tempo para 3 segundos
           
           // Verificar novamente se ainda há URLs blob
           const stillBlobUrls = finalGalleryUrls.filter((url: string) => url.startsWith('blob:'));
@@ -817,6 +827,20 @@ function ProductForm({
             return;
           }
         }
+
+        // Extrair storage paths das URLs da galeria (apenas URLs do Supabase)
+        finalGalleryStoragePaths = finalGalleryUrls
+          .filter((url: string) => url.includes('supabase') && url.includes('product-images'))
+          .map((url: string) => {
+            // Extrair o path da URL do Supabase
+            // Formato: https://[projeto].supabase.co/storage/v1/object/public/product-images/products/arquivo.jpg
+            const match = url.match(/\/product-images\/(.+)$/);
+            return match ? match[1] : '';
+          })
+          .filter(Boolean);
+
+        console.log('🖼️ URLs finais da galeria:', finalGalleryUrls);
+        console.log('📁 Paths de storage da galeria:', finalGalleryStoragePaths);
 
         // Conectar com Supabase
         try {
@@ -855,9 +879,11 @@ function ProductForm({
             tags: formData.tags || [],
             search_keywords: formData.search_keywords || null,            vendor: formData.vendor || null,
             collection: formData.collection || null,
-            notes: formData.notes || null,
-            care_instructions: formData.care_instructions || null,            image_url: finalImageUrl,
+            notes: formData.notes || null,            care_instructions: formData.care_instructions || null,
+            image_url: finalImageUrl,
+            image_storage_path: finalImageStoragePath || null,
             gallery_urls: finalGalleryUrls,
+            gallery_storage_paths: finalGalleryStoragePaths.length > 0 ? finalGalleryStoragePaths : null,
             
             // Badge display configuration
             show_colors_badge: formData.show_colors_badge !== false,
@@ -1176,17 +1202,72 @@ function ProductForm({
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <p className="text-sm text-blue-800">
               <strong>✨ Novo:</strong> Agora você pode adicionar até 5 imagens por produto! 
-              A primeira imagem será exibida como principal nos cards de produto.
+              Selecione diretamente do Google Drive ou faça upload de arquivos.
             </p>
-          </div>          <div>
-            <MultiImageUpload 
-              images={formData.gallery_urls || []}
-              onImagesChange={(newImages) => {
-                setFormData({ ...formData, gallery_urls: newImages });
-              }}
-              maxImages={5}
-            />
           </div>
+
+          {/* Opções de upload */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Google Drive Picker */}
+            <div className="space-y-2">
+              <Label>Selecionar do Google Drive</Label>
+              <GoogleDrivePicker 
+                onSelect={(selectedImages) => {
+                  setFormData({ ...formData, gallery_urls: selectedImages });
+                }}
+                selectedImages={formData.gallery_urls || []}
+                maxImages={5}
+              />
+            </div>
+
+            {/* Upload tradicional */}
+            <div className="space-y-2">
+              <Label>Upload de Arquivos</Label>
+              <MultiImageUpload 
+                images={formData.gallery_urls || []}
+                onImagesChange={(newImages) => {
+                  setFormData({ ...formData, gallery_urls: newImages });
+                }}
+                maxImages={5}
+              />
+            </div>
+          </div>
+
+          {/* Preview das imagens selecionadas */}
+          {formData.gallery_urls && formData.gallery_urls.length > 0 && (
+            <div className="space-y-2">
+              <Label>Imagens Selecionadas ({formData.gallery_urls.length}/5)</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                {formData.gallery_urls.map((url, index) => (
+                  <div key={index} className="relative aspect-square">
+                    <Image
+                      src={url}
+                      alt={`Produto ${index + 1}`}
+                      fill
+                      className="object-cover rounded-lg border"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
+                    />
+                    {index === 0 && (
+                      <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-1 py-0.5 rounded">
+                        Principal
+                      </div>
+                    )}
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-1 right-1 h-6 w-6 p-0"
+                      onClick={() => {
+                        const newImages = formData.gallery_urls.filter((_, i) => i !== index);
+                        setFormData({ ...formData, gallery_urls: newImages });
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div>
             <Label htmlFor="alt_text">Texto Alternativo (ALT)</Label>
