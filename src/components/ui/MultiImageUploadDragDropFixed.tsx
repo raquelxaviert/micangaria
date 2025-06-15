@@ -208,7 +208,6 @@ export function MultiImageUpload({
       })));
     }
   }, [images]);
-
   // Notificar pai apenas quando imageItems mudar (sem incluir onImagesChange nas deps)
   useEffect(() => {
     const urls = imageItems.map(item => item.url);
@@ -216,6 +215,8 @@ export function MultiImageUpload({
     const previousUrls = JSON.stringify(prevImagesRef.current);
     
     if (currentUrls !== previousUrls) {
+      console.log('🔄 MultiImageUpload: Atualizando URLs para o pai:', urls);
+      console.log('🔍 Verificando URLs blob:', urls.filter(url => url.startsWith('blob:')));
       onImagesChange(urls);
     }
   }, [imageItems]); // Removido onImagesChange para evitar loop infinito
@@ -279,8 +280,8 @@ export function MultiImageUpload({
       try {
         // Upload para Supabase
         const uploadResult = await uploadImageToSupabase(file);
-        
-        if (uploadResult.success && uploadResult.url) {
+          if (uploadResult.success && uploadResult.url) {
+          console.log(`✅ Upload concluído: ${file.name} -> ${uploadResult.url}`);
           // Substituir item temporário pelo final
           setImageItems(prev => 
             prev.map(item => 
@@ -290,6 +291,7 @@ export function MultiImageUpload({
             )
           );
         } else {
+          console.log(`❌ Upload falhou: ${file.name} -> ${uploadResult.error}`);
           // Upload falhou, usar imagem local
           const fallbackUrl = `/products/${file.name}`;
           setImageItems(prev => 

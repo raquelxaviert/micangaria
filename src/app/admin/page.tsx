@@ -386,10 +386,12 @@ function ProductManagement({
               <Plus className="w-4 h-4 mr-2" />
               Novo Produto
             </Button>
-          </DialogTrigger>          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Adicionar Novo Produto</DialogTitle>
-            </DialogHeader>
+          </DialogTrigger>          <DialogContent
+              className="fixed inset-0 m-auto w-[95vw] max-h-[90vh] overflow-y-auto sm:inset-auto sm:left-1/2 sm:top-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-auto sm:max-w-2xl"
+            >
+              <DialogHeader>
+                <DialogTitle>Adicionar Novo Produto</DialogTitle>
+              </DialogHeader>
             <ProductForm 
               onSave={(product) => {
                 // Gerar ID temporal mais consistente (mas ainda será substituído pelo UUID do Supabase)
@@ -493,10 +495,13 @@ function ProductManagement({
                       Editar
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogContent
+                    className="fixed inset-0 m-auto w-[95vw] max-h-[90vh] overflow-y-auto sm:inset-auto sm:left-1/2 sm:top-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-auto sm:max-w-2xl"
+                  >
                     <DialogHeader>
                       <DialogTitle>Editar Produto</DialogTitle>
-                    </DialogHeader><ProductForm 
+                    </DialogHeader>
+                    <ProductForm 
                       product={product}
                       onSave={(updatedProduct) => {
                         setProducts(products.map(p => p.id === product.id ? updatedProduct : p));
@@ -789,7 +794,31 @@ function ProductForm({
         } else if (imageData.url && !imageData.isTemp) {
           // Usar imagem local selecionada
           finalImageUrl = imageData.url;
-        }        // Conectar com Supabase
+        }
+
+        // Processar gallery_urls - verificar se há URLs blob que precisam ser convertidas
+        let finalGalleryUrls = formData.gallery_urls || [];
+          // Filtrar apenas URLs blob que precisam ser processadas
+        const blobUrls = finalGalleryUrls.filter((url: string) => url.startsWith('blob:'));
+        
+        if (blobUrls.length > 0) {
+          console.log('⚠️ Encontradas URLs blob na galeria. Isso indica que as imagens ainda não foram processadas pelo MultiImageUpload.');
+          console.log('📋 URLs blob encontradas:', blobUrls);
+          
+          // Aguardar um pouco para que o MultiImageUpload processe as imagens
+          console.log('⏳ Aguardando processamento das imagens...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          // Verificar novamente se ainda há URLs blob
+          const stillBlobUrls = finalGalleryUrls.filter((url: string) => url.startsWith('blob:'));
+          if (stillBlobUrls.length > 0) {
+            alert('⚠️ Algumas imagens ainda estão sendo processadas. Aguarde um momento e tente salvar novamente.');
+            setIsUploading(false);
+            return;
+          }
+        }
+
+        // Conectar com Supabase
         try {
           const { createClient } = await import('@/lib/supabase/client');
           const supabase = createClient();
@@ -827,9 +856,8 @@ function ProductForm({
             search_keywords: formData.search_keywords || null,            vendor: formData.vendor || null,
             collection: formData.collection || null,
             notes: formData.notes || null,
-            care_instructions: formData.care_instructions || null,
-            image_url: finalImageUrl,
-            gallery_urls: formData.gallery_urls || [],
+            care_instructions: formData.care_instructions || null,            image_url: finalImageUrl,
+            gallery_urls: finalGalleryUrls,
             
             // Badge display configuration
             show_colors_badge: formData.show_colors_badge !== false,
