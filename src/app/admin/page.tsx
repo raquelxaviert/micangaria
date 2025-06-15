@@ -386,10 +386,7 @@ function ProductManagement({
               <Plus className="w-4 h-4 mr-2" />
               Novo Produto
             </Button>
-          </DialogTrigger>
-          <DialogContent
-            className="fixed inset-0 m-auto w-[95vw] max-h-[90vh] overflow-y-auto sm:inset-auto sm:left-1/2 sm:top-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-auto sm:max-w-2xl"
-          >
+          </DialogTrigger>          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Adicionar Novo Produto</DialogTitle>
             </DialogHeader>
@@ -496,7 +493,7 @@ function ProductManagement({
                       Editar
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-h-[90vh] overflow-y-auto">
+                  <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Editar Produto</DialogTitle>
                     </DialogHeader><ProductForm 
