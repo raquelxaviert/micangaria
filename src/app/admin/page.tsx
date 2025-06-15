@@ -211,7 +211,7 @@ export default function AdminPage() {
             Sair
           </Button>
         </div>        <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl grid-cols-6">
+          <TabsList className="grid w-full max-w-2xl grid-cols-3 sm:grid-cols-6">
             <TabsTrigger value="products" className="flex items-center gap-2">
               <Package className="w-4 h-4" />
               <span className="hidden sm:inline">Produtos</span>
@@ -1749,7 +1749,7 @@ function CollectionsManagement({ products }: { products: Product[] }) {
                 <Plus className="w-4 h-4 mr-2" />
                 Nova Coleção
               </Button>
-            </DialogTrigger>            <DialogContent>
+            </DialogTrigger>            <DialogContent className="sm:max-w-lg">
               <DialogHeader>
                 <DialogTitle>Criar Nova Coleção</DialogTitle>
               </DialogHeader>
@@ -1881,7 +1881,7 @@ function CollectionsManagement({ products }: { products: Product[] }) {
 
       {/* Dialog de Edição */}
       {editingCollection && (
-        <Dialog open={!!editingCollection} onOpenChange={() => setEditingCollection(null)}>          <DialogContent>
+        <Dialog open={!!editingCollection} onOpenChange={() => setEditingCollection(null)}>          <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Editar Coleção</DialogTitle>
             </DialogHeader>
