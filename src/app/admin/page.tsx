@@ -1179,10 +1179,8 @@ function ProductForm({
             </div>
           </div>
         </div>        {/* Imagens - Múltiplas imagens com carrossel */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
+        <div className="space-y-4">          <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">🖼️ Imagens do Produto</h3>
-            <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">Múltiplas imagens</span>
           </div>
           
           {/* Google Drive Picker */}

@@ -141,48 +141,179 @@ export default function GoogleDrivePicker({
     setCurrentSelection(selectedImages);
     setIsOpen(false);
   };
+  // Upload temporário local - o usuário fará upload manual para Google Drive
+  const uploadTemporary = async (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        // Criar uma URL temporária para preview
+        const dataUrl = reader.result as string;
+        resolve(dataUrl);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
 
-  // Upload de imagem para o Google Drive
-  const uploadToGoogleDrive = async (file: File) => {
-    if (!API_KEY) {
-      throw new Error('Google Drive API Key não configurada');
-    }
+  // Função para lidar com seleção de arquivos
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = event.target.files;
+    if (!selectedFiles || selectedFiles.length === 0) return;
 
     setUploading(true);
-    setUploadProgress(0);
+    setError(null);
 
     try {
-      // Primeiro, fazer upload do arquivo
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      // Metadados do arquivo
-      const metadata = {
-        name: file.name,
-        parents: [FOLDER_ID],
-        mimeType: file.type
-      };
+      const newTemporaryImages: string[] = [];
 
-      // Upload via multipart
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        
+        // Verificar se é imagem
+        if (!file.type.startsWith('image/')) {
+          alert(`${file.name} não é uma imagem válida.`);
+          continue;
+        }
+
+        // Verificar tamanho (máximo 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          alert(`${file.name} é muito grande. Máximo 10MB.`);
+          continue;
+        }
+
+        setUploadProgress(((i + 1) / selectedFiles.length) * 100);
+        
+        // Criar preview temporário
+        const tempUrl = await uploadTemporary(file);
+        newTemporaryImages.push(tempUrl);
+        
+        console.log(`✅ ${file.name} preparado para upload!`);
+      }
+      
+      // Adicionar imagens temporárias à seleção atual
+      if (newTemporaryImages.length > 0) {
+        const updatedSelection = [...currentSelection, ...newTemporaryImages].slice(0, maxImages);
+        setCurrentSelection(updatedSelection);
+        
+        // Mostrar instrução para fazer upload manual
+        setError(
+          `${newTemporaryImages.length} imagem(s) preparada(s)! ` +
+          'Para finalizar, você precisará fazer upload manual para o Google Drive na pasta de produtos e depois recarregar esta lista.'
+        );
+      }
+      
+      // Limpar input
+      event.target.value = '';
+      
+    } catch (error: any) {
+      console.error('❌ Erro no upload:', error);
+      setError(error.message || 'Erro ao preparar as imagens');
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="w-full">
+          <Folder className="w-4 h-4 mr-2" />
+          Selecionar do Google Drive
+          {selectedImages.length > 0 && (
+            <Badge variant="secondary" className="ml-2">
+              {selectedImages.length}
+            </Badge>
+          )}
+        </Button>
+      </DialogTrigger>      <DialogContent className="w-[95vw] max-w-4xl max-h-[85vh] mx-auto overflow-hidden sm:w-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-sm sm:text-base">
+            <Folder className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="truncate">Selecionar Imagens do Google Drive</span>
+            <Badge variant="outline" className="text-xs">
+              {currentSelection.length}/{maxImages}
+            </Badge>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Busca e Controles */}
-          <div className="flex gap-2">
+        <div className="space-y-4">          {/* Busca e Controles */}          <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 placeholder="Buscar imagens..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 text-sm"
               />
             </div>
-            <Button variant="outline" onClick={loadFiles} disabled={loading}>
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
-          </div>
+            
+            <div className="flex gap-2 justify-end sm:justify-start">
+              {/* Botão de Upload */}
+              <div className="relative" title="Adicionar novas imagens">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileSelect}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  disabled={uploading}
+                />
+                <Button variant="outline" disabled={uploading} className="relative" size="sm">
+                  {uploading ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Plus className="w-4 h-4" />
+                  )}
+                  <span className="sr-only">Adicionar imagens</span>
+                </Button>
+              </div>
+              
+              <Button variant="outline" onClick={loadFiles} disabled={loading} title="Recarregar imagens" size="sm">
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                onClick={() => window.open(`https://drive.google.com/drive/folders/${FOLDER_ID}`, '_blank')}
+                title="Abrir pasta no Google Drive"
+                size="sm"
+              >
+                <Folder className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>{/* Progress do Upload */}
+          {uploading && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Upload className="w-4 h-4 text-blue-600" />
+                <span className="text-sm text-blue-800">Preparando imagens...</span>
+              </div>
+              <div className="w-full bg-blue-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
+
+          {/* Instruções para Upload Manual */}
+          {!loading && !error && files.length === 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <Folder className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-amber-800">
+                  <p className="font-medium mb-1">Como adicionar novas imagens:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-xs">
+                    <li>Clique no botão <strong>+</strong> para selecionar imagens do seu computador</li>
+                    <li>Acesse sua pasta do Google Drive de produtos</li>
+                    <li>Faça upload manual das imagens selecionadas</li>
+                    <li>Clique no botão de recarregar para ver as novas imagens</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Status */}
           {error && (
@@ -207,7 +338,7 @@ export default function GoogleDrivePicker({
                   <p>Nenhuma imagem encontrada</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
                   {filteredFiles.map((file) => {
                     const publicUrl = getPublicImageUrl(file.id);
                     const isSelected = currentSelection.includes(publicUrl);
@@ -250,19 +381,17 @@ export default function GoogleDrivePicker({
                 </div>
               )}
             </div>
-          )}
-
-          {/* Botões de Ação */}
-          <div className="flex justify-between items-center pt-4 border-t">
-            <div className="text-sm text-gray-600">
+          )}          {/* Botões de Ação */}
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pt-4 border-t gap-3">
+            <div className="text-sm text-gray-600 text-center sm:text-left">
               {filteredFiles.length} imagens disponíveis
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleCancel}>
+            <div className="flex gap-2 justify-center sm:justify-end">
+              <Button variant="outline" onClick={handleCancel} size="sm">
                 <X className="w-4 h-4 mr-1" />
                 Cancelar
               </Button>
-              <Button onClick={handleConfirm} disabled={currentSelection.length === 0}>
+              <Button onClick={handleConfirm} disabled={currentSelection.length === 0} size="sm">
                 <Check className="w-4 h-4 mr-1" />
                 Confirmar ({currentSelection.length})
               </Button>
