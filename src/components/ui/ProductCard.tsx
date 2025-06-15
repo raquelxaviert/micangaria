@@ -55,7 +55,9 @@ export function ProductCard({
   showRating = false,
   className = ""
 }: ProductCardProps) {  // Normalize product data to handle both formats
-  const imageUrl = product.imageUrl || product.image_url || '/products/placeholder.jpg';
+  const imageUrl = (product.gallery_urls && product.gallery_urls.length > 0) 
+    ? product.gallery_urls[0] 
+    : product.imageUrl || product.image_url || '/products/placeholder.jpg';
   const isNewArrival = product.isNewArrival || product.is_new_arrival || false;
   const isOnSale = product.isOnSale || product.is_on_sale || product.is_promotion || false;
   const promotionDetails = product.promotionDetails || product.promotion_details;

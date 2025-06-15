@@ -2,8 +2,8 @@ export interface Product {
   id: string;
   name: string;
   description: string;
-  price: number;
-  imageUrl: string;
+  price: number;  imageUrl: string;
+  image_url?: string; // Supabase format
   galleryUrls?: string[];
   imageHint: string;
   type: 'acessorio' | 'bolsa' | 'colar' | 'brinco' | 'pulseira' | 'anel' | 'cinto' | 'sandalia' | 'conjunto';

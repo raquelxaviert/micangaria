@@ -423,11 +423,17 @@ function ProductManagement({
       {/* Lista de Produtos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredProducts.map(product => (
-          <Card key={product.id} className="overflow-hidden">
-            <div className="aspect-square relative">
-              {product.imageUrl ? (
+          <Card key={product.id} className="overflow-hidden">            <div className="aspect-square relative">
+              {(product.gallery_urls && product.gallery_urls.length > 0) ? (
                 <Image
-                  src={product.imageUrl}
+                  src={product.gallery_urls[0]}
+                  alt={product.name}
+                  fill
+                  className="object-cover"
+                />
+              ) : (product.imageUrl || product.image_url) ? (
+                <Image
+                  src={product.imageUrl || product.image_url || '/products/placeholder.jpg'}
                   alt={product.name}
                   fill
                   className="object-cover"
@@ -1238,7 +1244,7 @@ function ProductForm({
             <div className="space-y-2">
               <Label>Imagens Selecionadas ({formData.gallery_urls.length}/5)</Label>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                {formData.gallery_urls.map((url, index) => (
+                {formData.gallery_urls.map((url: string, index: number) => (
                   <div key={index} className="relative aspect-square">
                     <Image
                       src={url}
@@ -1257,7 +1263,7 @@ function ProductForm({
                       size="sm"
                       className="absolute top-1 right-1 h-6 w-6 p-0"
                       onClick={() => {
-                        const newImages = formData.gallery_urls.filter((_, i) => i !== index);
+                        const newImages = formData.gallery_urls.filter((_: string, i: number) => i !== index);
                         setFormData({ ...formData, gallery_urls: newImages });
                       }}
                     >
