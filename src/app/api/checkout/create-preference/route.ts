@@ -163,8 +163,8 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 }
       );
-    }    // Definir URLs base - FORÇAR URL CORRETA
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.rugebrecho.com';
+    }    // Definir URLs base - USAR SEMPRE HTTPS em produção
+    const baseUrl = isProduction ? 'https://www.rugebrecho.com' : 'https://www.rugebrecho.com'; // Sempre usar HTTPS
     const webhookUrl = 'https://www.rugebrecho.com/api/webhooks/mercadopago'; // URL fixa para webhook
     
     console.log('🔗 URLs configuradas:', {
@@ -173,7 +173,9 @@ export async function POST(request: NextRequest) {
       success: `${baseUrl}/checkout/success`,
       failure: `${baseUrl}/checkout/failure`,
       pending: `${baseUrl}/checkout/pending`,
-      notification: webhookUrl
+      notification: webhookUrl,
+      isProduction,
+      isSandbox
     });
 
     // Criar preferência    // Gerar external_reference único
@@ -190,13 +192,12 @@ export async function POST(request: NextRequest) {
       shipments: {
         cost: shippingCost,
         mode: 'not_specified'
-      },
-      back_urls: {
+      },      back_urls: {
         success: `${baseUrl}/checkout/success?external_ref=${external_reference}`,
         failure: `${baseUrl}/checkout/failure?external_ref=${external_reference}`,
         pending: `${baseUrl}/checkout/pending?external_ref=${external_reference}`
       },
-      auto_return: 'approved', // Redirecionar automaticamente para success quando aprovado
+      // auto_return: 'approved', // Removido para evitar problemas com localhost
       external_reference: external_reference, // ID único simples
       notification_url: webhookUrl, // Usar URL fixa do webhook
       metadata: {
@@ -284,15 +285,23 @@ export async function POST(request: NextRequest) {
         total: total
       }
     });
-
   } catch (error) {
     console.error('❌ Erro ao criar preferência:', error);
+    console.error('❌ Tipo do erro:', typeof error);
+    console.error('❌ Stack trace:', error instanceof Error ? error.stack : 'N/A');
+    
+    // Log mais detalhado do erro
+    if (error && typeof error === 'object') {
+      console.error('❌ Propriedades do erro:', Object.keys(error));
+      console.error('❌ Erro completo:', JSON.stringify(error, null, 2));
+    }
     
     return NextResponse.json(
       { 
         success: false, 
         error: 'Erro ao processar pagamento',
-        details: error instanceof Error ? error.message : 'Erro desconhecido'
+        details: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
       },
       { status: 500 }
     );
