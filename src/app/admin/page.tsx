@@ -210,32 +210,31 @@ export default function AdminPage() {
           <Button variant="outline" onClick={handleLogout}>
             Sair
           </Button>
-        </div>        <Tabs defaultValue="products" className="space-y-6">
-          {/* Mobile Layout */}
+        </div>        <Tabs defaultValue="products" className="space-y-6">          {/* Mobile Layout */}
           <div className="sm:hidden">
-            <TabsList className="grid grid-cols-2 w-full gap-2">
-              <TabsTrigger value="products" className="h-12 flex items-center justify-center gap-2 text-base">
-                <Package className="w-5 h-5" />
+            <TabsList className="grid grid-cols-3 w-full gap-1 h-auto p-1">
+              <TabsTrigger value="products" className="h-16 flex flex-col items-center justify-center gap-1 text-xs px-1">
+                <Package className="w-4 h-4" />
                 <span>Produtos</span>
               </TabsTrigger>
-              <TabsTrigger value="collections" className="h-12 flex items-center justify-center gap-2 text-base">
-                <Layers3 className="w-5 h-5" />
+              <TabsTrigger value="collections" className="h-16 flex flex-col items-center justify-center gap-1 text-xs px-1">
+                <Layers3 className="w-4 h-4" />
                 <span>Coleções</span>
               </TabsTrigger>
-              <TabsTrigger value="orders" className="h-12 flex items-center justify-center gap-2 text-base">
-                <ShoppingBag className="w-5 h-5" />
+              <TabsTrigger value="orders" className="h-16 flex flex-col items-center justify-center gap-1 text-xs px-1">
+                <ShoppingBag className="w-4 h-4" />
                 <span>Pedidos</span>
               </TabsTrigger>
-              <TabsTrigger value="analytics" className="h-12 flex items-center justify-center gap-2 text-base">
-                <BarChart3 className="w-5 h-5" />
+              <TabsTrigger value="analytics" className="h-16 flex flex-col items-center justify-center gap-1 text-xs px-1">
+                <BarChart3 className="w-4 h-4" />
                 <span>Relatórios</span>
               </TabsTrigger>
-              <TabsTrigger value="customers" className="h-12 flex items-center justify-center gap-2 text-base">
-                <Users className="w-5 h-5" />
+              <TabsTrigger value="customers" className="h-16 flex flex-col items-center justify-center gap-1 text-xs px-1">
+                <Users className="w-4 h-4" />
                 <span>Clientes</span>
               </TabsTrigger>
-              <TabsTrigger value="settings" className="h-12 flex items-center justify-center gap-2 text-base">
-                <Settings className="w-5 h-5" />
+              <TabsTrigger value="settings" className="h-16 flex flex-col items-center justify-center gap-1 text-xs px-1">
+                <Settings className="w-4 h-4" />
                 <span>Configurações</span>
               </TabsTrigger>
             </TabsList>
