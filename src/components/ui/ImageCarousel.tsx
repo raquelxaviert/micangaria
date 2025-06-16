@@ -76,7 +76,7 @@ export function ImageCarousel({
         }, i * 100);
       });
     };    preloadAllImages();
-  }, [currentIndex, optimizedImages, preloadedImages, showZoom]);
+  }, [currentIndex, optimizedImages, showZoom]);
 
   const goToPrevious = () => {
     setCurrentIndex((prevIndex) => 
