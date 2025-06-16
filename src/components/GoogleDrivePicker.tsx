@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -43,19 +43,19 @@ export default function GoogleDrivePicker({
 
   const FOLDER_ID = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_FOLDER_ID || '1fp36hi2E9rLWIpW7AaegAi7i7MWn8Rvp';
   const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_API_KEY;
-  // Converter ID do arquivo para URL pública otimizada
+  // Converter ID do arquivo para URL pÃºblica otimizada
   const getPublicImageUrl = (fileId: string) => {
     return `https://drive.google.com/uc?export=view&id=${fileId}`;
   };
 
-  // Gerar thumbnail otimizado (tamanho menor para carregamento mais rápido)
+  // Gerar thumbnail otimizado (tamanho menor para carregamento mais rÃ¡pido)
   const getThumbnailUrl = (fileId: string, size: number = 200) => {
     return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${size}`;
   };
   // Carregar arquivos da pasta do Google Drive (otimizado)
   const loadFiles = async () => {
     if (!API_KEY) {
-      setError('Google Drive API Key não configurada. Verifique o arquivo .env.local');
+      setError('Google Drive API Key nÃ£o configurada. Verifique o arquivo .env.local');
       return;
     }
 
@@ -70,10 +70,10 @@ export default function GoogleDrivePicker({
         `https://www.googleapis.com/drive/v3/files?` +
         `q=${encodeURIComponent(query)}&` +
         `key=${API_KEY}&` +
-        // Campos mínimos necessários para melhor performance
+        // Campos mÃ­nimos necessÃ¡rios para melhor performance
         `fields=files(id,name,mimeType,size,createdTime)&` +
         `orderBy=createdTime desc&` +
-        // Reduzir para 50 itens iniciais para carregamento mais rápido
+        // Reduzir para 50 itens iniciais para carregamento mais rÃ¡pido
         `pageSize=50`
       );
 
@@ -88,14 +88,14 @@ export default function GoogleDrivePicker({
       }      // Apenas imagens (filtro duplo para garantir)
       const imageFiles = data.files?.filter((file: GoogleDriveFile) => 
         file.mimeType.startsWith('image/') && 
-        !file.name.toLowerCase().includes('.tmp') // Excluir arquivos temporários
+        !file.name.toLowerCase().includes('.tmp') // Excluir arquivos temporÃ¡rios
       ) || [];
 
       setFiles(imageFiles);
-      console.log(`✅ Carregadas ${imageFiles.length} imagens do Google Drive (otimizado)`);
+      console.log(`âœ… Carregadas ${imageFiles.length} imagens do Google Drive (otimizado)`);
       
     } catch (err: any) {
-      console.error('❌ Erro ao carregar arquivos:', err);
+      console.error('âŒ Erro ao carregar arquivos:', err);
       setError(err.message || 'Erro ao carregar arquivos do Google Drive');
     } finally {
       setLoading(false);
@@ -116,7 +116,7 @@ export default function GoogleDrivePicker({
     }
   }, [isOpen]);
 
-  // Atualizar seleção inicial
+  // Atualizar seleÃ§Ã£o inicial
   useEffect(() => {
     setCurrentSelection(selectedImages);
   }, [selectedImages]);
@@ -126,7 +126,7 @@ export default function GoogleDrivePicker({
     file.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Alternar seleção de arquivo
+  // Alternar seleÃ§Ã£o de arquivo
   const toggleSelection = (fileId: string) => {
     const url = getPublicImageUrl(fileId);
     
@@ -134,30 +134,30 @@ export default function GoogleDrivePicker({
       setCurrentSelection(prev => prev.filter(id => id !== url));
     } else {
       if (currentSelection.length >= maxImages) {
-        alert(`Você pode selecionar no máximo ${maxImages} imagens.`);
+        alert(`VocÃª pode selecionar no mÃ¡ximo ${maxImages} imagens.`);
         return;
       }
       setCurrentSelection(prev => [...prev, url]);
     }
   };
 
-  // Confirmar seleção
+  // Confirmar seleÃ§Ã£o
   const handleConfirm = () => {
     onSelect(currentSelection);
     setIsOpen(false);
   };
 
-  // Cancelar e reverter seleção
+  // Cancelar e reverter seleÃ§Ã£o
   const handleCancel = () => {
     setCurrentSelection(selectedImages);
     setIsOpen(false);
   };
-  // Upload temporário local - o usuário fará upload manual para Google Drive
+  // Upload temporÃ¡rio local - o usuÃ¡rio farÃ¡ upload manual para Google Drive
   const uploadTemporary = async (file: File): Promise<string> => {
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = () => {
-        // Criar uma URL temporária para preview
+        // Criar uma URL temporÃ¡ria para preview
         const dataUrl = reader.result as string;
         resolve(dataUrl);
       };
@@ -165,7 +165,7 @@ export default function GoogleDrivePicker({
     });
   };
 
-  // Função para lidar com seleção de arquivos
+  // FunÃ§Ã£o para lidar com seleÃ§Ã£o de arquivos
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = event.target.files;
     if (!selectedFiles || selectedFiles.length === 0) return;
@@ -179,36 +179,36 @@ export default function GoogleDrivePicker({
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
         
-        // Verificar se é imagem
+        // Verificar se Ã© imagem
         if (!file.type.startsWith('image/')) {
-          alert(`${file.name} não é uma imagem válida.`);
+          alert(`${file.name} nÃ£o Ã© uma imagem vÃ¡lida.`);
           continue;
         }
 
-        // Verificar tamanho (máximo 10MB)
+        // Verificar tamanho (mÃ¡ximo 10MB)
         if (file.size > 10 * 1024 * 1024) {
-          alert(`${file.name} é muito grande. Máximo 10MB.`);
+          alert(`${file.name} Ã© muito grande. MÃ¡ximo 10MB.`);
           continue;
         }
 
         setUploadProgress(((i + 1) / selectedFiles.length) * 100);
         
-        // Criar preview temporário
+        // Criar preview temporÃ¡rio
         const tempUrl = await uploadTemporary(file);
         newTemporaryImages.push(tempUrl);
         
-        console.log(`✅ ${file.name} preparado para upload!`);
+        console.log(`âœ… ${file.name} preparado para upload!`);
       }
       
-      // Adicionar imagens temporárias à seleção atual
+      // Adicionar imagens temporÃ¡rias Ã  seleÃ§Ã£o atual
       if (newTemporaryImages.length > 0) {
         const updatedSelection = [...currentSelection, ...newTemporaryImages].slice(0, maxImages);
         setCurrentSelection(updatedSelection);
         
-        // Mostrar instrução para fazer upload manual
+        // Mostrar instruÃ§Ã£o para fazer upload manual
         setError(
           `${newTemporaryImages.length} imagem(s) preparada(s)! ` +
-          'Para finalizar, você precisará fazer upload manual para o Google Drive na pasta de produtos e depois recarregar esta lista.'
+          'Para finalizar, vocÃª precisarÃ¡ fazer upload manual para o Google Drive na pasta de produtos e depois recarregar esta lista.'
         );
       }
       
@@ -216,7 +216,7 @@ export default function GoogleDrivePicker({
       event.target.value = '';
       
     } catch (error: any) {
-      console.error('❌ Erro no upload:', error);
+      console.error('âŒ Erro no upload:', error);
       setError(error.message || 'Erro ao preparar as imagens');
     } finally {
       setUploading(false);
@@ -248,19 +248,6 @@ export default function GoogleDrivePicker({
           </DialogTitle>        </DialogHeader>
 
         <div className="space-y-4">
-          {/* Aviso sobre arquivos HEIC */}
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-            <div className="flex items-start gap-2">
-              <ImageIcon className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm">
-                <p className="text-yellow-800 font-medium">Formato HEIC Detectado</p>
-                <p className="text-yellow-700 mt-1">
-                  Arquivos .heic (iPhone) serão automaticamente convertidos para thumbnails compatíveis. 
-                  Para melhor qualidade, converta para .jpg antes do upload.
-                </p>
-              </div>
-            </div>
-          </div>{/* Busca e Controles */}          <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
@@ -272,7 +259,7 @@ export default function GoogleDrivePicker({
             </div>
             
             <div className="flex gap-2 justify-end sm:justify-start">
-              {/* Botão de Upload */}
+              {/* BotÃ£o de Upload */}
               <div className="relative" title="Adicionar novas imagens">
                 <input
                   type="file"
@@ -321,7 +308,7 @@ export default function GoogleDrivePicker({
             </div>
           )}
 
-          {/* Instruções para Upload Manual */}
+          {/* InstruÃ§Ãµes para Upload Manual */}
           {!loading && !error && files.length === 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
               <div className="flex items-start gap-2">
@@ -329,10 +316,10 @@ export default function GoogleDrivePicker({
                 <div className="text-sm text-amber-800">
                   <p className="font-medium mb-1">Como adicionar novas imagens:</p>
                   <ol className="list-decimal list-inside space-y-1 text-xs">
-                    <li>Clique no botão <strong>+</strong> para selecionar imagens do seu computador</li>
+                    <li>Clique no botÃ£o <strong>+</strong> para selecionar imagens do seu computador</li>
                     <li>Acesse sua pasta do Google Drive de produtos</li>
-                    <li>Faça upload manual das imagens selecionadas</li>
-                    <li>Clique no botão de recarregar para ver as novas imagens</li>
+                    <li>FaÃ§a upload manual das imagens selecionadas</li>
+                    <li>Clique no botÃ£o de recarregar para ver as novas imagens</li>
                   </ol>
                 </div>
               </div>
@@ -351,11 +338,11 @@ export default function GoogleDrivePicker({
             </div>
           )}
 
-          {/* Informações de Performance */}
+          {/* InformaÃ§Ãµes de Performance */}
           {!loading && !error && files.length > 0 && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-2">
               <p className="text-xs text-green-800">
-                ⚡ Carregamento otimizado: {files.length} imagens • Thumbnails 200px • Lazy loading ativo
+                âš¡ Carregamento otimizado: {files.length} imagens â€¢ Thumbnails 200px â€¢ Lazy loading ativo
               </p>
             </div>
           )}
@@ -435,10 +422,10 @@ export default function GoogleDrivePicker({
                 </div>
               )}
             </div>
-          )}          {/* Botões de Ação */}
+          )}          {/* BotÃµes de AÃ§Ã£o */}
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pt-4 border-t gap-3">
             <div className="text-sm text-gray-600 text-center sm:text-left">
-              {filteredFiles.length} imagens disponíveis
+              {filteredFiles.length} imagens disponÃ­veis
             </div>
             <div className="flex gap-2 justify-center sm:justify-end">
               <Button variant="outline" onClick={handleCancel} size="sm">
