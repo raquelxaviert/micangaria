@@ -4,7 +4,7 @@ import React, { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { Package, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getOptimizedGoogleDriveUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
+import { getOptimizedImageUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
 
 interface AdminImageCardProps {
   src: string;
@@ -43,7 +43,7 @@ export function AdminImageCard({
     if (!url) return '/products/placeholder.jpg';
     
     // Usar função utilitária para otimizar URLs do Google Drive
-    const optimized = getOptimizedGoogleDriveUrl(url, IMAGE_CONFIGS.card);
+    const optimized = getOptimizedImageUrl(url, IMAGE_CONFIGS.card);
     console.log('🚀 URL otimizada:', url, '→', optimized);
     return optimized;
   }, []);

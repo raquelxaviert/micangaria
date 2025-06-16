@@ -17,6 +17,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { useSearchParams } from 'next/navigation';
 import { ProductCard, ProductData } from '@/components/ui/ProductCard';
 import { createClient } from '@/lib/supabase/client';
+import { testMultipleImages, testSupabaseStorageConnection } from '@/lib/imageTestUtils';
 
 interface Filters {
   type: string | null;
@@ -296,10 +297,26 @@ function ProductsContent() {
               show_sizes_badge: p.show_sizes_badge
             };
           });
-          
-          console.log('✅ Produtos convertidos:', convertedProducts.length);
+            console.log('✅ Produtos convertidos:', convertedProducts.length);
           console.log('🔍 Primeiro produto convertido:', convertedProducts[0]);
           setProducts(convertedProducts);
+          
+          // Testar conectividade das imagens (apenas em desenvolvimento)
+          if (process.env.NODE_ENV === 'development') {
+            // Testar conectividade do Supabase Storage
+            testSupabaseStorageConnection();
+            
+            // Testar algumas imagens
+            const imageUrls: string[] = [];
+            convertedProducts.forEach(p => {
+              if (p.imageUrl) imageUrls.push(p.imageUrl);
+              if (p.galleryUrls) imageUrls.push(...p.galleryUrls.slice(0, 2));
+            });
+            
+            if (imageUrls.length > 0) {
+              testMultipleImages(imageUrls.slice(0, 5)); // Testa apenas 5 imagens
+            }
+          }
         }
       } catch (error) {
         console.error('Erro ao conectar com Supabase:', error);

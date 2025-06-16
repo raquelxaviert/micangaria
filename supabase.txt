@@ -1,0 +1,23 @@
+Save your new S3 access keys
+You won't be able to see them again. If you lose these access keys, you'll need to create a new ones.
+
+Access key ID
+2c315dc87cb53b472ab885b69cd407fd
+
+Secret access key
+c85db928a6b70ca1805d191d1b5e78564c9972878febe294cc8376122822734d
+
+Storage Settings
+Configure your project's storage settings
+
+S3 Connection
+Connect to your bucket using any S3-compatible service via the S3 protocol
+Docs
+Enable connection via S3 protocol
+
+Allow clients to connect to Supabase Storage via the S3 protocol
+Endpoint
+https://koduoglrfzronbcgqrjc.supabase.co/storage/v1/s3
+
+Region
+sa-east-1

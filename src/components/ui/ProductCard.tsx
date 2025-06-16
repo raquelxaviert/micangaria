@@ -4,11 +4,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { LikeButton } from '@/components/ui/LikeButton';
-import Image from 'next/image';
+import { FastImage } from '@/components/ui/FastImage';
 import Link from 'next/link';
 import { Eye, ShoppingCart, Star } from 'lucide-react';
 import { CartManager } from '@/lib/ecommerce';
-import { getOptimizedGoogleDriveUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
+import { getOptimizedImageUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
 
 // Interface genérica para produto - suporta tanto Supabase quanto mock
 export interface ProductData {
@@ -65,14 +65,12 @@ export function ProductCard({
   
   // Get total number of images for indicator
   const totalImages = 1 + (Array.isArray(product.gallery_urls) ? product.gallery_urls.length : 0);
-  
-  // Otimizar URL da imagem para o tamanho do card
-  const optimizedImageUrl = getOptimizedGoogleDriveUrl(imageUrl, IMAGE_CONFIGS.card);
+    // Otimizar URL da imagem para o tamanho do card
+  const optimizedImageUrl = getOptimizedImageUrl(imageUrl, IMAGE_CONFIGS.card);
   return (
     <Card className={`group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95 w-full ${className}`}>
       <div className="relative">
-        <Link href={`/products/${product.id}`} className="block cursor-pointer">          <div className="relative overflow-hidden">
-            <Image
+        <Link href={`/products/${product.id}`} className="block cursor-pointer">          <div className="relative overflow-hidden">            <FastImage
               src={optimizedImageUrl}
               alt={product.name}
               width={400}
@@ -80,10 +78,7 @@ export function ProductCard({
               className={`w-full object-cover group-hover:scale-110 transition-transform duration-700 ${
                 variant === 'compact' ? 'h-40 sm:h-48' : 'h-72'
               }`}
-              sizes={variant === 'compact' ? '240px' : '400px'}
               quality={85}
-              placeholder="blur"
-              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
             />
             
             {/* Badges superior esquerdo */}

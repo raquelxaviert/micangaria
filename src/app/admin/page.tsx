@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, Edit, Trash2, Save, Upload, Eye, ShoppingBag, Settings, BarChart3, Package, Users, Layers3, AlertCircle, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, Upload, Eye, ShoppingBag, Settings, BarChart3, Package, Users, Layers3, AlertCircle, X, Zap } from 'lucide-react';
 import { Product, products } from '@/lib/placeholder-data';
 import OrdersManagement from '@/components/OrdersManagement';
 import ImageUploadTemp from '@/components/ImageUploadTemp';
@@ -29,6 +29,8 @@ import { SelectInput } from '@/components/ui/SelectInput';
 import SmartSelect from '@/components/SmartSelect';
 import useProductMetadata from '@/hooks/useProductMetadata';
 import { createClient } from '@/lib/supabase/client';
+import { ImageOptimizer } from '@/components/ui/ImageOptimizer';
+import { ImageReorder } from '@/components/ui/ImageReorder';
 
 // Simulação de autenticação simples
 const ADMIN_PASSWORD = 'micangaria2024'; // Em produção, usar sistema de auth real
@@ -96,11 +98,13 @@ export default function AdminPage() {  const [isAuthenticated, setIsAuthenticate
           collection: p.collection,
           notes: p.notes,
           care_instructions: p.care_instructions,
-          gallery_urls: p.gallery_urls || [],
-            // Badge display configuration
+          gallery_urls: p.gallery_urls || [],            // Badge display configuration
           show_colors_badge: p.show_colors_badge,
           show_materials_badge: p.show_materials_badge,
-          show_sizes_badge: p.show_sizes_badge
+          show_sizes_badge: p.show_sizes_badge,
+          
+          // Image optimization flag
+          images_optimized: p.images_optimized
         }));
           console.log('✅ Produtos carregados do Supabase:', convertedProducts.length);
         setProductList(convertedProducts);
@@ -221,40 +225,34 @@ export default function AdminPage() {  const [isAuthenticated, setIsAuthenticate
           </Button>
         </div>        <Tabs defaultValue="products" className="space-y-6">          {/* Mobile Layout */}
           <div className="sm:hidden">
-            <TabsList className="grid grid-cols-3 w-full gap-1 h-auto p-1">
+            <TabsList className="grid grid-cols-4 w-full gap-1 h-auto p-1">
               <TabsTrigger value="products" className="h-16 flex flex-col items-center justify-center gap-1 text-xs px-1">
                 <Package className="w-4 h-4" />
                 <span>Produtos</span>
               </TabsTrigger>
-              <TabsTrigger value="collections" className="h-16 flex flex-col items-center justify-center gap-1 text-xs px-1">
-                <Layers3 className="w-4 h-4" />
-                <span>Coleções</span>
+              <TabsTrigger value="optimizer" className="h-16 flex flex-col items-center justify-center gap-1 text-xs px-1">
+                <Zap className="w-4 h-4" />
+                <span>Otimizar</span>
               </TabsTrigger>
               <TabsTrigger value="orders" className="h-16 flex flex-col items-center justify-center gap-1 text-xs px-1">
                 <ShoppingBag className="w-4 h-4" />
                 <span>Pedidos</span>
               </TabsTrigger>
-              <TabsTrigger value="analytics" className="h-16 flex flex-col items-center justify-center gap-1 text-xs px-1">
-                <BarChart3 className="w-4 h-4" />
-                <span>Relatórios</span>
-              </TabsTrigger>
-              <TabsTrigger value="customers" className="h-16 flex flex-col items-center justify-center gap-1 text-xs px-1">
-                <Users className="w-4 h-4" />
-                <span>Clientes</span>
-              </TabsTrigger>
               <TabsTrigger value="settings" className="h-16 flex flex-col items-center justify-center gap-1 text-xs px-1">
                 <Settings className="w-4 h-4" />
-                <span>Configurações</span>
+                <span>Config</span>
               </TabsTrigger>
             </TabsList>
-          </div>
-
-          {/* Desktop Layout */}
+          </div>          {/* Desktop Layout */}
           <div className="hidden sm:block">
-            <TabsList className="grid grid-cols-6 gap-2">
+            <TabsList className="grid grid-cols-7 gap-2">
               <TabsTrigger value="products" className="flex items-center justify-center gap-2">
                 <Package className="w-4 h-4" />
                 <span>Produtos</span>
+              </TabsTrigger>
+              <TabsTrigger value="optimizer" className="flex items-center justify-center gap-2">
+                <Zap className="w-4 h-4" />
+                <span>Otimizador</span>
               </TabsTrigger>
               <TabsTrigger value="collections" className="flex items-center justify-center gap-2">
                 <Layers3 className="w-4 h-4" />
@@ -277,7 +275,7 @@ export default function AdminPage() {  const [isAuthenticated, setIsAuthenticate
                 <span>Configurações</span>
               </TabsTrigger>
             </TabsList>
-          </div>          <TabsContent value="products">
+          </div><TabsContent value="products">
             <ProductManagement 
               products={productList} 
               setProducts={setProductList}
@@ -291,6 +289,18 @@ export default function AdminPage() {  const [isAuthenticated, setIsAuthenticate
               itemsPerPage={itemsPerPage}
               setItemsPerPage={setItemsPerPage}
               isLoadingProducts={isLoadingProducts}
+            />          </TabsContent>
+
+          <TabsContent value="optimizer">
+            <ImageOptimizer 
+              products={productList.map(p => ({
+                id: p.id,
+                name: p.name,
+                image_url: p.imageUrl,
+                gallery_urls: p.gallery_urls,
+                images_optimized: p.images_optimized
+              }))}
+              onOptimizationComplete={loadProductsFromSupabase}
             />
           </TabsContent>
 
@@ -1181,6 +1191,25 @@ function ProductForm({
             }}
             maxImages={5}
           />
+
+          {/* Reordenação de imagens */}
+          {formData.gallery_urls && formData.gallery_urls.length > 1 && (
+            <div className="space-y-2">
+              <Label>Reordenar Imagens</Label>
+              <ImageReorder
+                images={formData.gallery_urls}
+                onReorder={(newOrder) => {
+                  console.log('🔄 Nova ordem das imagens:', newOrder);
+                  setFormData({ ...formData, gallery_urls: newOrder });
+                }}
+                onRemove={(imageUrl) => {
+                  const newImages = formData.gallery_urls?.filter(url => url !== imageUrl) || [];
+                  console.log('🗑️ Removendo imagem via reorder:', imageUrl);
+                  setFormData({ ...formData, gallery_urls: newImages });
+                }}
+              />
+            </div>
+          )}
 
           <div>
             <Label htmlFor="alt_text">Texto Alternativo (ALT)</Label>

@@ -125,3 +125,25 @@ export function generateBlurDataUrl(width: number = 10, height: number = 10): st
   
   return canvas.toDataURL();
 }
+
+/**
+ * Verifica se uma URL é do Supabase Storage
+ */
+export function isSupabaseStorageUrl(url: string): boolean {
+  return url.includes('.supabase.co/storage/v1/object/public/');
+}
+
+/**
+ * Otimiza URLs de imagem, priorizando Supabase Storage sobre Google Drive
+ * Se a URL for do Supabase, retorna ela diretamente (já otimizada)
+ * Se for do Google Drive, aplica otimizações
+ */
+export function getOptimizedImageUrl(url: string, config: ImageSizeConfig): string {
+  // Se for URL do Supabase Storage, usar diretamente (já é otimizada)
+  if (isSupabaseStorageUrl(url)) {
+    return url;
+  }
+  
+  // Se for do Google Drive, aplicar otimizações
+  return getOptimizedGoogleDriveUrl(url, config);
+}

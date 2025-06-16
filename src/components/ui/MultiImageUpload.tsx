@@ -7,7 +7,7 @@ import { Upload, X, Image as ImageIcon, Plus, Move, ArrowUp, ArrowDown, GripVert
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { uploadImageToSupabase } from '@/lib/uploadUtils';
-import { getOptimizedGoogleDriveUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
+import { getOptimizedImageUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
 
 interface MultiImageUploadProps {
   images: string[];
@@ -184,7 +184,7 @@ export function MultiImageUpload({
                   <div className="flex items-center gap-3 p-3">
                     {/* Image Preview */}                    <div className="relative w-20 h-20 flex-shrink-0">
                       <Image
-                        src={getOptimizedGoogleDriveUrl(item.url, IMAGE_CONFIGS.thumbnail)}
+                        src={getOptimizedImageUrl(item.url, IMAGE_CONFIGS.thumbnail)}
                         alt={`Produto ${index + 1}`}
                         fill
                         className="object-cover rounded-lg"
@@ -364,7 +364,7 @@ export function MultiImageUpload({
               }}
               disabled={imageItems.length >= maxImages}
             >              <Image
-                src={getOptimizedGoogleDriveUrl(imagePath, IMAGE_CONFIGS.thumbnail)}
+                src={getOptimizedImageUrl(imagePath, IMAGE_CONFIGS.thumbnail)}
                 alt={`Opção ${index + 1}`}
                 fill
                 className="object-cover"

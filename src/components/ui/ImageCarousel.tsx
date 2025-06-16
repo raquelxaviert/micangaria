@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import { FastImage } from '@/components/ui/FastImage';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { getOptimizedGoogleDriveUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
+import { getOptimizedImageUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
 
 interface ImageCarouselProps {
   images: string[];
@@ -27,12 +27,11 @@ export function ImageCarousel({
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
   // Se não há imagens ou array vazio, usar placeholder
   const imageList = images && images.length > 0 ? images : ['/products/placeholder.jpg'];
-
   // Otimizar URLs das imagens para diferentes tamanhos
   const optimizedImages = imageList.map(url => ({
-    carousel: getOptimizedGoogleDriveUrl(url, IMAGE_CONFIGS.carousel),
-    zoom: getOptimizedGoogleDriveUrl(url, IMAGE_CONFIGS.zoom),
-    thumbnail: getOptimizedGoogleDriveUrl(url, IMAGE_CONFIGS.thumbnail),
+    carousel: getOptimizedImageUrl(url, IMAGE_CONFIGS.carousel),
+    zoom: getOptimizedImageUrl(url, IMAGE_CONFIGS.zoom),
+    thumbnail: getOptimizedImageUrl(url, IMAGE_CONFIGS.thumbnail),
     original: url
   }));
   // Pré-carregar imagens de forma mais eficiente
@@ -115,18 +114,24 @@ export function ImageCarousel({
     <div className={`relative ${className}`}>
       {/* Main Image Display */}
       <Card className="relative overflow-hidden bg-gray-50">        <div className="relative aspect-square">
-          <Image
+          <FastImage
             src={isZoomed ? optimizedImages[currentIndex]?.zoom : optimizedImages[currentIndex]?.carousel}
             alt={`${alt} - Imagem ${currentIndex + 1}`}
             fill
             className={`object-cover transition-all duration-300 ${
               isZoomed ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'
             }`}
-            onClick={() => showZoom && setIsZoomed(!isZoomed)}
             priority={currentIndex === 0}
             quality={90}
-            sizes={isZoomed ? '1200px' : '800px'}
-          />          {/* Navigation Buttons - Only show if more than 1 image */}
+          />
+          
+          {/* Click overlay para zoom */}
+          {showZoom && (
+            <div 
+              className="absolute inset-0 cursor-pointer"
+              onClick={() => setIsZoomed(!isZoomed)}
+            />
+          )}{/* Navigation Buttons - Only show if more than 1 image */}
           {optimizedImages.length > 1 && (
             <>
               <Button
@@ -178,15 +183,12 @@ export function ImageCarousel({
                     ? 'ring-2 ring-primary ring-offset-2 shadow-lg transform scale-105' 
                     : 'ring-1 ring-gray-200 hover:ring-gray-300 hover:scale-105 opacity-70 hover:opacity-90'
                 }`}
-              >
-                <Image
+              >                <FastImage
                   src={imageSet.thumbnail}
                   alt={`${alt} - Thumbnail ${index + 1}`}
                   fill
                   className="object-cover"
-                  sizes="64px"
                   quality={75}
-                  loading={index === 0 ? "eager" : "lazy"}
                 />
                 {/* Overlay para imagem selecionada */}
                 {index === currentIndex && (

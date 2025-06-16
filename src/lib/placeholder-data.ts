@@ -36,13 +36,15 @@ export interface Product {
   vendor?: string;
   collection?: string;
   notes?: string;
-  care_instructions?: string;
-  gallery_urls?: string[];
+  care_instructions?: string;  gallery_urls?: string[];
   
   // Badge display configuration
   show_colors_badge?: boolean;
   show_materials_badge?: boolean;
   show_sizes_badge?: boolean;
+  
+  // Image optimization flag
+  images_optimized?: boolean;
 }
 
 // ======================================================
