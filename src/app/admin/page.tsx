@@ -648,9 +648,7 @@ function ProductForm({
         show_colors_badge: true,
         show_materials_badge: true,
         show_sizes_badge: true
-      };
-
-      setFormData({
+      };      setFormData({
         ...defaultData,
         ...product,
         show_colors_badge: product.show_colors_badge !== false,
@@ -660,7 +658,8 @@ function ProductForm({
         materials: product.materials || [],
         sizes: product.sizes || [],
         tags: product.tags || [],
-        gallery_urls: product.gallery_urls || []
+        gallery_urls: product.gallery_urls || [],
+        imageUrl: product.imageUrl || '' // ✅ Garantir que imageUrl seja carregado
       });
     }
   }, [product?.id]); // Apenas quando o ID do produto muda
@@ -695,8 +694,16 @@ function ProductForm({
     setFormData(prev => ({ ...prev, is_new_arrival: checked }));
   }, []);
   const handleIsOnSaleChange = useCallback((checked: boolean) => {
-    setFormData(prev => ({ ...prev, is_on_sale: checked }));
-  }, []);
+    setFormData(prev => ({ ...prev, is_on_sale: checked }));  }, []);
+
+  // 🔍 DEBUG: Monitorar mudanças nas imagens
+  useEffect(() => {
+    console.log('🔍 === DEBUG FORMDATA IMAGES ===');
+    console.log('📸 imageUrl:', formData.imageUrl);
+    console.log('🖼️ gallery_urls:', formData.gallery_urls);
+    console.log('📊 Total imagens:', (formData.imageUrl ? 1 : 0) + (formData.gallery_urls?.length || 0));
+    console.log('🔍 === FIM DEBUG ===');
+  }, [formData.imageUrl, formData.gallery_urls]);
 
   // Badge configuration checkboxes
   const handleShowColorsBadgeChange = useCallback((checked: boolean) => {
@@ -769,9 +776,17 @@ function ProductForm({
     e.preventDefault();
     if (formData.name && formData.description && formData.price) {
       setIsUploading(true);
-        try {
-        let finalImageUrl = formData.imageUrl || '';
+        try {        let finalImageUrl = formData.imageUrl || '';
         let finalImageStoragePath = '';
+        
+        console.log('🔍 Imagem principal antes do processamento:', finalImageUrl);
+        console.log('🔍 É do Google Drive?', finalImageUrl.includes('drive.google.com'));
+        
+        // Se não há imagem principal e não há imagens na galeria, definir como null
+        if (!finalImageUrl && (!formData.gallery_urls || formData.gallery_urls.length === 0)) {
+          finalImageUrl = '';
+          console.log('📷 Nenhuma imagem encontrada, definindo image_url como vazio');
+        }
         
         // Se há arquivo temporário, fazer upload primeiro
         if (imageData.file && imageData.isTemp) {
@@ -797,11 +812,14 @@ function ProductForm({
             const match = imageData.url.match(/\/product-images\/(.+)$/);
             finalImageStoragePath = match ? match[1] : '';
           }
-        }
-
-        // Processar gallery_urls - verificar se há URLs blob que precisam ser convertidas
-        let finalGalleryUrls = formData.gallery_urls || [];
+        }        // Processar gallery_urls - PRESERVAR TODAS as URLs (Google Drive + Supabase)
+        // IMPORTANTE: Garantir que gallery_urls nunca contenha image_url para evitar duplicação
+        let finalGalleryUrls = (formData.gallery_urls || []).filter((url: string) => url !== finalImageUrl);
         let finalGalleryStoragePaths: string[] = [];
+        
+        console.log('🔍 Gallery URLs antes do processamento:', formData.gallery_urls);
+        console.log('🔍 Gallery URLs após remover duplicata da image_url:', finalGalleryUrls);
+        console.log('🚫 Image URL removida da galeria (se presente):', finalImageUrl);
         
         // Filtrar apenas URLs blob que precisam ser processadas
         const blobUrls = finalGalleryUrls.filter((url: string) => url.startsWith('blob:'));
@@ -812,7 +830,7 @@ function ProductForm({
           
           // Aguardar um pouco para que o MultiImageUpload processe as imagens
           console.log('⏳ Aguardando processamento das imagens...');
-          await new Promise(resolve => setTimeout(resolve, 3000)); // Aumentar tempo para 3 segundos
+          await new Promise(resolve => setTimeout(resolve, 3000));
           
           // Verificar novamente se ainda há URLs blob
           const stillBlobUrls = finalGalleryUrls.filter((url: string) => url.startsWith('blob:'));
@@ -823,19 +841,19 @@ function ProductForm({
           }
         }
 
-        // Extrair storage paths das URLs da galeria (apenas URLs do Supabase)
+        // Extrair storage paths APENAS das URLs do Supabase (para tracking)
+        // MAS manter TODAS as URLs na gallery_urls (incluindo Google Drive)
         finalGalleryStoragePaths = finalGalleryUrls
           .filter((url: string) => url.includes('supabase') && url.includes('product-images'))
           .map((url: string) => {
-            // Extrair o path da URL do Supabase
-            // Formato: https://[projeto].supabase.co/storage/v1/object/public/product-images/products/arquivo.jpg
             const match = url.match(/\/product-images\/(.+)$/);
             return match ? match[1] : '';
           })
           .filter(Boolean);
 
-        console.log('🖼️ URLs finais da galeria:', finalGalleryUrls);
-        console.log('📁 Paths de storage da galeria:', finalGalleryStoragePaths);
+        console.log('🖼️ URLs finais da galeria (TODAS):', finalGalleryUrls);
+        console.log('📁 Paths de storage da galeria (só Supabase):', finalGalleryStoragePaths);
+        console.log('🌐 URLs do Google Drive preservadas:', finalGalleryUrls.filter((url: string) => url.includes('drive.google.com')));
 
         // Conectar com Supabase
         try {
@@ -844,8 +862,21 @@ function ProductForm({
           
           console.log('🔧 Verificando configuração Supabase...');
           console.log('URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-          console.log('Key exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-            const productData = {
+          console.log('Key exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);          // Verificar se há imagens do Google Drive (não otimizadas)
+          const allImages = [finalImageUrl, ...finalGalleryUrls].filter(Boolean);
+          const hasGoogleDriveImages = allImages.some((url: string) => 
+            url && (url.includes('drive.google.com') || url.includes('googleusercontent.com'))
+          );
+          
+          // Se há imagens do Google Drive, marcar como não otimizado
+          const shouldMarkAsUnoptimized = hasGoogleDriveImages;
+          
+          console.log('🔍 Verificação de otimização:');
+          console.log('- Total de imagens:', allImages.length);
+          console.log('- Imagens do Google Drive:', hasGoogleDriveImages);
+          console.log('- Deve marcar como não otimizado:', shouldMarkAsUnoptimized);
+          
+          const productData = {
             name: formData.name,
             description: formData.description,
             price: formData.price,
@@ -872,23 +903,30 @@ function ProductForm({
             sale_end_date: formData.sale_end_date || null,
             promotion_text: formData.promotion_text || null,
             tags: formData.tags || [],
-            search_keywords: formData.search_keywords || null,            vendor: formData.vendor || null,
+            search_keywords: formData.search_keywords || null,
+            vendor: formData.vendor || null,
             collection: formData.collection || null,
-            notes: formData.notes || null,            care_instructions: formData.care_instructions || null,
-            image_url: finalImageUrl,
+            notes: formData.notes || null,
+            care_instructions: formData.care_instructions || null,
+            image_url: finalImageUrl || null,
             image_storage_path: finalImageStoragePath || null,
             gallery_urls: finalGalleryUrls,
             gallery_storage_paths: finalGalleryStoragePaths.length > 0 ? finalGalleryStoragePaths : null,
-            
-            // Badge display configuration
+            images_optimized: shouldMarkAsUnoptimized ? false : (product?.images_optimized || false),
+              // Badge display configuration
             show_colors_badge: formData.show_colors_badge !== false,
             show_materials_badge: formData.show_materials_badge !== false,
             show_sizes_badge: formData.show_sizes_badge !== false
             // SKU será gerado automaticamente (#20xx)
           };
           
-          console.log('📦 Dados do produto:', productData);
-            if (product?.id) {
+          console.log('📦 Dados do produto antes de salvar:');
+          console.log('- Image URL:', productData.image_url);
+          console.log('- Gallery URLs:', productData.gallery_urls);
+          console.log('- URLs do Google Drive na galeria:', productData.gallery_urls?.filter((url: string) => url.includes('drive.google.com')));
+          console.log('- Images Optimized:', productData.images_optimized);
+          
+          if (product?.id) {
             // Verificar se o ID é um UUID válido
             const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(product.id);
             
@@ -1171,40 +1209,179 @@ function ProductForm({
         <div className="space-y-4">          <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">🖼️ Imagens do Produto</h3>
           </div>
-          
-          {/* Google Drive Picker */}
+            {/* Google Drive Picker */}
           <div className="space-y-2">
-            <Label>Adicionar Imagens</Label>            <GoogleDrivePicker 
-              onSelect={(selectedImages: string[]) => {
-                setFormData({ ...formData, gallery_urls: selectedImages });
+            <Label>Adicionar Imagens</Label>
+            <div className="text-xs text-muted-foreground mb-2">
+              Debug: {formData.imageUrl ? 'Com imagem principal' : 'Sem imagem principal'} | 
+              Galeria: {(formData.gallery_urls || []).length} imagens
+            </div>
+            <GoogleDrivePicker              onSelect={(selectedImages: string[]) => {
+                console.log('🎯 === GOOGLE DRIVE PICKER SELEÇÃO ===');
+                console.log('📸 Imagens selecionadas do Drive:', selectedImages);
+                
+                // Obter todas as imagens atuais (incluindo image_url)
+                const allCurrentImages = [
+                  ...(formData.imageUrl ? [formData.imageUrl] : []),
+                  ...(formData.gallery_urls || [])
+                ];
+                
+                console.log('📂 Imagens atuais antes da adição:', allCurrentImages);
+                
+                // Adicionar as novas imagens
+                const allNewImages = [...allCurrentImages, ...selectedImages];
+                
+                // Remover duplicatas
+                const uniqueImages = Array.from(new Set(allNewImages));
+                
+                console.log('🔗 Imagens únicas após adição:', uniqueImages);
+                
+                // A primeira imagem sempre será a principal
+                const [newImageUrl, ...newGalleryUrls] = uniqueImages;
+                
+                console.log('📸 Nova imagem principal será:', newImageUrl);
+                console.log('🖼️ Nova galeria será:', newGalleryUrls);
+                
+                setFormData({ 
+                  ...formData, 
+                  imageUrl: newImageUrl || '',
+                  gallery_urls: newGalleryUrls
+                });
+                
+                console.log('✅ FormData atualizado via GoogleDrive');
+                console.log('� Total de imagens:', uniqueImages.length);
+                console.log('🎯 === FIM GOOGLE DRIVE PICKER ===');
               }}
-              selectedImages={formData.gallery_urls || []}
-              maxImages={5}
+              selectedImages={(() => {
+                // Mostrar as imagens atuais como já selecionadas
+                const allImages = [
+                  ...(formData.imageUrl ? [formData.imageUrl] : []),
+                  ...(formData.gallery_urls || [])
+                ];
+                return Array.from(new Set(allImages));
+              })()}
+              maxImages={10 - (() => {
+                const allImages = [
+                  ...(formData.imageUrl ? [formData.imageUrl] : []),
+                  ...(formData.gallery_urls || [])
+                ];
+                return Array.from(new Set(allImages)).length;
+              })()} // Limite dinâmico baseado nas imagens já adicionadas
             />
-          </div>          {/* Preview das imagens selecionadas */}          <AdminImagePreview
-            images={formData.gallery_urls || []}
+          </div>          {/* Preview das imagens selecionadas */}
+          <AdminImagePreview
+            images={(() => {
+              // Combinar todas as imagens e remover duplicatas
+              const allImages = [
+                ...(formData.imageUrl ? [formData.imageUrl] : []),
+                ...(formData.gallery_urls || [])
+              ];
+              return Array.from(new Set(allImages)); // Remove duplicatas
+            })()}
             onRemove={(index) => {
-              const currentImages = formData.gallery_urls || [];
-              const newImages = currentImages.filter((_: string, i: number) => i !== index);
-              console.log('🗑️ Removendo imagem:', index, 'de', currentImages.length, '→', newImages.length);
-              setFormData({ ...formData, gallery_urls: newImages });
+              const allImages = [
+                ...(formData.imageUrl ? [formData.imageUrl] : []),
+                ...(formData.gallery_urls || [])
+              ];
+              
+              console.log('🗑️ Removendo imagem:', index, 'de', allImages.length);
+              
+              // Remover a imagem específica
+              const imageToRemove = allImages[index];
+              let newImageUrl = formData.imageUrl;
+              let newGalleryUrls = [...(formData.gallery_urls || [])];
+              
+              if (index === 0 && formData.imageUrl) {
+                // Removendo a imagem principal
+                newImageUrl = '';
+                console.log('🧹 Removendo imagem principal');
+              } else {
+                // Removendo da galeria
+                const galleryIndex = formData.imageUrl ? index - 1 : index;
+                newGalleryUrls = newGalleryUrls.filter((_, i) => i !== galleryIndex);
+                console.log('🗑️ Removendo da galeria, índice:', galleryIndex);
+              }
+              
+              setFormData({ 
+                ...formData, 
+                imageUrl: newImageUrl,
+                gallery_urls: newGalleryUrls
+              });
             }}
             maxImages={5}
-          />
-
-          {/* Reordenação de imagens */}
-          {formData.gallery_urls && formData.gallery_urls.length > 1 && (
+          />          {/* Reordenação de imagens */}
+          {(() => {
+            const allImages = [
+              ...(formData.imageUrl ? [formData.imageUrl] : []),
+              ...(formData.gallery_urls || [])
+            ];
+            const uniqueImages = Array.from(new Set(allImages));
+            return uniqueImages.length > 1;
+          })() && (
             <div className="space-y-2">
-              <Label>Reordenar Imagens</Label>
-              <ImageReorder
-                images={formData.gallery_urls}
-                onReorder={(newOrder) => {
-                  console.log('🔄 Nova ordem das imagens:', newOrder);
-                  setFormData({ ...formData, gallery_urls: newOrder });
-                }}                onRemove={(imageUrl) => {
-                  const newImages = formData.gallery_urls?.filter((url: string) => url !== imageUrl) || [];
-                  console.log('🗑️ Removendo imagem via reorder:', imageUrl);
-                  setFormData({ ...formData, gallery_urls: newImages });
+              <Label>Reordenar Imagens</Label>              <ImageReorder
+                images={(() => {
+                  const allImages = [
+                    ...(formData.imageUrl ? [formData.imageUrl] : []),
+                    ...(formData.gallery_urls || [])
+                  ];
+                  const uniqueImages = Array.from(new Set(allImages));
+                  console.log('🖼️ === IMAGES PARA REORDENAR ===');
+                  console.log('📊 Estado atual do formData:');
+                  console.log('  - imageUrl:', formData.imageUrl);
+                  console.log('  - gallery_urls:', formData.gallery_urls);
+                  console.log('📋 Todas as imagens combinadas:', allImages);
+                  console.log('🔗 Imagens únicas:', uniqueImages);
+                  console.log('🖼️ === FIM DEBUG IMAGES ===');
+                  return uniqueImages;
+                })()}onReorder={(newOrder) => {
+                  console.log('🔄 === REORDENAÇÃO INICIADA ===');
+                  console.log('📥 Nova ordem recebida:', newOrder);
+                  console.log('📊 Estado atual:');
+                  console.log('  - imageUrl:', formData.imageUrl);
+                  console.log('  - gallery_urls:', formData.gallery_urls);
+                  
+                  // A primeira imagem sempre será a principal
+                  const [newImageUrl, ...newGalleryUrls] = newOrder;
+                  
+                  console.log('📤 Novo estado será:');
+                  console.log('  - newImageUrl:', newImageUrl);
+                  console.log('  - newGalleryUrls:', newGalleryUrls);
+                  
+                  setFormData({ 
+                    ...formData, 
+                    imageUrl: newImageUrl || '',
+                    gallery_urls: newGalleryUrls
+                  });
+                  
+                  console.log('✅ Estado atualizado');
+                  console.log('� === REORDENAÇÃO CONCLUÍDA ===');
+                }}
+                onRemove={(imageUrl) => {
+                  const allImages = [
+                    ...(formData.imageUrl ? [formData.imageUrl] : []),
+                    ...(formData.gallery_urls || [])
+                  ];
+                  
+                  const indexToRemove = allImages.indexOf(imageUrl);
+                  console.log('🗑️ Removendo imagem via reorder:', indexToRemove);
+                  
+                  if (indexToRemove === 0 && formData.imageUrl) {
+                    // Removendo a imagem principal
+                    setFormData({ 
+                      ...formData, 
+                      imageUrl: '',
+                      gallery_urls: formData.gallery_urls || []
+                    });
+                  } else {
+                    // Removendo da galeria
+                    const galleryIndex = formData.imageUrl ? indexToRemove - 1 : indexToRemove;
+                    const newGalleryUrls = (formData.gallery_urls || []).filter((_: string, i: number) => i !== galleryIndex);
+                    setFormData({ 
+                      ...formData, 
+                      gallery_urls: newGalleryUrls
+                    });
+                  }
                 }}
               />
             </div>

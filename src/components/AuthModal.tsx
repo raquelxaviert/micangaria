@@ -9,7 +9,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Mail, Lock, User, Heart } from 'lucide-react';
-import { useLikes } from '@/contexts/LikesContextSupabase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -28,9 +27,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  
-  const { signIn, signUp, signInWithGoogle } = useAuth();
-  const { syncFavorites } = useLikes();
+    const { signIn, signUp, signInWithGoogle } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,12 +36,9 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
 
     try {
       const { error } = await signIn(email, password);
-      if (error) {
-        setError(error.message);
+      if (error) {        setError(error.message);
       } else {
         setSuccess('Login realizado com sucesso!');
-        // Sync favorites when user logs in
-        await syncFavorites();
         setTimeout(() => {
           onClose();
           resetForm();

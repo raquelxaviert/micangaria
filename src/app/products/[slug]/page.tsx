@@ -10,7 +10,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { 
   ArrowLeft, 
-  Heart, 
   ShoppingCart, 
   Share2, 
   Star,
@@ -24,7 +23,6 @@ import {
   Info
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { LikeButton } from '@/components/ui/LikeButton';
 import { ProductCard, ProductData } from '@/components/ui/ProductCard';
 import { ImageCarousel } from '@/components/ui/ImageCarousel';
 import ShippingCalculator from '@/components/ShippingCalculator';
@@ -372,15 +370,8 @@ export default function ProductPage() {
                     {product.promotion_text || 'OFERTA'}
                   </Badge>
                 )}
-              </div>
-
-              {/* Botões de ação */}
+              </div>              {/* Botões de ação */}
               <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
-                <LikeButton 
-                  productId={product.id} 
-                  variant="floating"
-                  className="bg-white/90 backdrop-blur-sm hover:bg-white"
-                />
                 <Button
                   size="icon"
                   variant="secondary"
@@ -477,21 +468,13 @@ export default function ProductPage() {
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 Adicionar ao Carrinho
-              </Button>
-
-              {/* Botões secundários - Desktop */}
+              </Button>              {/* Botões secundários - Desktop */}
               <div className="hidden md:flex gap-3">
-                <LikeButton 
-                  productId={product.id} 
-                  variant="default"
-                  size="lg"
-                  className="flex-1 h-12"
-                />
                 <Button 
                   variant="outline" 
                   size="lg" 
                   onClick={handleShare}
-                  className="flex-1 h-12"
+                  className="w-full h-12"
                 >
                   <Share2 className="mr-2 h-4 w-4" />
                   Compartilhar
@@ -633,20 +616,10 @@ export default function ProductPage() {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Sticky Add to Cart - Mobile */}
+      </div>      {/* Sticky Add to Cart - Mobile */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border shadow-lg md:hidden">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center gap-4">
-            {/* Botão de Like - à esquerda */}
-            <LikeButton 
-              productId={product.id} 
-              variant="default"
-              size="lg"
-              className="h-12 w-12 shrink-0"
-            />
-            
             {/* Informações do produto - centro */}
             <div className="flex-1 min-w-0">
               <div className="text-xs text-muted-foreground truncate">

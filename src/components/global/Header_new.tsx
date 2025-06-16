@@ -2,17 +2,15 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Sparkles, Info, ShoppingBag, Search, Menu, X, Gem, Briefcase, Heart } from 'lucide-react'; 
+import { Sparkles, Info, ShoppingBag, Search, Menu, X, Gem, Briefcase } from 'lucide-react'; 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet';
 import { useState } from 'react';
-import { useLikes } from '@/hooks/useLikes';
 
 export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const { likedCount, isLoaded } = useLikes();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,19 +166,7 @@ export function Header() {
                 <Link href="/products" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap">
                   <ShoppingBag size={20} />
                   <span>Produtos</span>
-                </Link>
-              </li>
-              <li>
-                <Link href="/liked-products" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap relative">
-                  <Heart size={20} className={likedCount > 0 ? "text-red-500" : ""} />
-                  <span>Favoritos</span>
-                  {isLoaded && likedCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                      {likedCount > 99 ? '99+' : likedCount}
-                    </span>
-                  )}
-                </Link>
-              </li>
+                </Link>              </li>
               <li>
                 <Link href="/style-advisor" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap">
                   <Sparkles size={20} /> 
@@ -290,22 +276,9 @@ export function Header() {
                 height={32}
                 className="h-8 w-auto"
               />
-            </Link>
-            
-            {/* Ações do mobile: Favoritos e Busca */}
+            </Link>            
+            {/* Ações do mobile: Busca */}
             <div className="flex items-center gap-2">
-              {/* Botão de Favoritos no Mobile */}
-              <Link href="/liked-products" className="relative">
-                <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-                  <Heart size={20} className={likedCount > 0 ? "text-red-500" : ""} />
-                  {isLoaded && likedCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium">
-                      {likedCount > 9 ? '9+' : likedCount}
-                    </span>
-                  )}
-                </Button>
-              </Link>
-              
               {/* Barra de pesquisa compacta no mobile */}
               <form onSubmit={handleSearch} className="relative">
                 <div className="flex items-center">

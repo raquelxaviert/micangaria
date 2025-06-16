@@ -3,7 +3,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { LikeButton } from '@/components/ui/LikeButton';
 import { FastImage } from '@/components/ui/FastImage';
 import Link from 'next/link';
 import { Eye, ShoppingCart, Star } from 'lucide-react';
@@ -39,7 +38,7 @@ export interface ProductData {
 
 interface ProductCardProps {
   product: ProductData;
-  variant?: 'default' | 'compact' | 'detailed' | 'favorites';
+  variant?: 'default' | 'compact' | 'detailed';
   showActions?: boolean;
   showDescription?: boolean;
   showColors?: boolean;
@@ -113,20 +112,10 @@ export function ProductCard({
             )}
 
             {/* Overlay gradient em detailed */}
-            {(variant === 'detailed' || variant === 'favorites') && (
+            {variant === 'detailed' && (
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             )}
-          </div>
-        </Link>
-
-        {/* Botão de Like superior direito - fora do link */}
-        <div className="absolute top-2 right-2 z-10">
-          <LikeButton 
-            productId={product.id} 
-            variant="floating"
-            size={variant === 'compact' ? 'sm' : 'md'}
-          />
-        </div>
+          </div>        </Link>
       </div>
 
       <CardContent className={`space-y-2 sm:space-y-4 ${variant === 'compact' ? 'p-2 sm:p-3' : 'p-5'}`}>        <Link href={`/products/${product.slug || product.id}`} className="block cursor-pointer">          {/* Todos os badges inline em uma única linha */}
@@ -189,10 +178,8 @@ export function ProductCard({
             }`}>
               {product.description}
             </p>
-          )}
-
-          {/* Rating (para variantes detailed e favorites) */}
-          {showRating && (variant === 'detailed' || variant === 'favorites') && (
+          )}          {/* Rating (para variante detailed) */}
+          {showRating && variant === 'detailed' && (
             <div className="flex items-center gap-1 text-yellow-500">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className="w-4 h-4 fill-current" />

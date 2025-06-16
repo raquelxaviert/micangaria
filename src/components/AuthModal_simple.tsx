@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { X, Eye, EyeOff, Heart } from 'lucide-react';
-import { useLikes } from '@/contexts/LikesContextSupabase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -26,9 +25,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  
-  const { signIn, signUp, signInWithGoogle } = useAuth();
-  const { syncFavorites } = useLikes();
+    const { signIn, signUp, signInWithGoogle } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,10 +35,8 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
     try {
       const { error } = await signIn(email, password);
       if (error) {
-        setError(error.message);
-      } else {
+        setError(error.message);      } else {
         setSuccess('Login realizado com sucesso!');
-        await syncFavorites();
         setTimeout(() => {
           onClose();
           resetForm();

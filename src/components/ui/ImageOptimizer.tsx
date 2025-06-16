@@ -40,15 +40,39 @@ interface OptimizationStatus {
 export function ImageOptimizer({ products, onOptimizationComplete }: ImageOptimizerProps) {
   const [optimizationStatus, setOptimizationStatus] = useState<OptimizationStatus>({});
   const [isOptimizing, setIsOptimizing] = useState(false);
+  // Função para verificar se um produto tem imagens não otimizadas
+  const hasUnoptimizedImages = (product: Product) => {
+    const allImages = [
+      product.image_url,
+      ...(product.gallery_urls || [])
+    ].filter(Boolean);
+    
+    // Se não tem imagens, não precisa otimizar
+    if (allImages.length === 0) return false;
+    
+    // Se nunca foi otimizado, precisa otimizar
+    if (!product.images_optimized) return true;
+      // Se já foi otimizado, verificar se há imagens do Google Drive (não otimizadas)
+    const hasGoogleDriveImages = allImages.some((url) => 
+      url && (url.includes('drive.google.com') || url.includes('googleusercontent.com'))
+    );
+    
+    return hasGoogleDriveImages;
+  };
 
-  // Produtos que precisam de otimização (ainda não otimizados e têm imagens)
-  const productsNeedingOptimization = products.filter(product => 
-    !product.images_optimized && 
-    (product.image_url || (product.gallery_urls && product.gallery_urls.length > 0))
-  );
-
-  // Produtos já otimizados
-  const optimizedProducts = products.filter(product => product.images_optimized);
+  // Produtos que precisam de otimização
+  const productsNeedingOptimization = products.filter(hasUnoptimizedImages);
+  // Produtos já otimizados completamente
+  const fullyOptimizedProducts = products.filter(product => {
+    const allImages = [
+      product.image_url,
+      ...(product.gallery_urls || [])
+    ].filter(Boolean);
+    
+    return allImages.length > 0 && 
+           product.images_optimized && 
+           !hasUnoptimizedImages(product);
+  });
 
   const optimizeSingleProduct = async (product: Product) => {
     setOptimizationStatus(prev => ({
@@ -116,7 +140,7 @@ export function ImageOptimizer({ products, onOptimizationComplete }: ImageOptimi
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">
-                {optimizedProducts.length}
+                {fullyOptimizedProducts.length}
               </div>
               <div className="text-sm text-muted-foreground">Otimizados</div>
             </div>
@@ -231,17 +255,17 @@ export function ImageOptimizer({ products, onOptimizationComplete }: ImageOptimi
       )}
 
       {/* Lista de produtos otimizados */}
-      {optimizedProducts.length > 0 && (
+      {fullyOptimizedProducts.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-500" />
-              Produtos Otimizados ({optimizedProducts.length})
+              Produtos Otimizados ({fullyOptimizedProducts.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {optimizedProducts.map(product => (
+              {fullyOptimizedProducts.map((product: Product) => (
                 <div key={product.id} className="flex items-center gap-3 p-3 border rounded-lg bg-green-50">
                   <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                   <div className="min-w-0 flex-1">
@@ -260,7 +284,7 @@ export function ImageOptimizer({ products, onOptimizationComplete }: ImageOptimi
         </Card>
       )}
 
-      {productsNeedingOptimization.length === 0 && optimizedProducts.length === 0 && (
+      {productsNeedingOptimization.length === 0 && fullyOptimizedProducts.length === 0 && (
         <Card>
           <CardContent className="text-center py-8">
             <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

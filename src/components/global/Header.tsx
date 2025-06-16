@@ -2,16 +2,14 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Sparkles, Info, ShoppingBag, Search, Menu, Heart, User, LogOut, ShoppingCart } from 'lucide-react'; 
+import { Sparkles, Info, ShoppingBag, Search, Menu, User, LogOut, ShoppingCart } from 'lucide-react'; 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet';
 import { useState, useEffect } from 'react';
-import { useLikes } from '@/contexts/LikesContextSupabase';
 import { ClientOnly } from '@/components/ui/ClientOnly';
 import { cn } from '@/lib/utils';
 import { AuthModal } from '@/components/AuthModal_centered';
-import { LoginPromptModal } from '@/components/LoginPromptModal_enhanced';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCategories } from '@/hooks/useCategories';
 import { CartManager } from '@/lib/ecommerce';
@@ -20,7 +18,6 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
-  const { likedCount, isLoaded, showLoginPrompt, setShowLoginPrompt } = useLikes();
   const { user, signOut } = useAuth();
   const { categories, isLoading: categoriesLoading } = useCategories();
 
@@ -213,9 +210,7 @@ export function Header() {
                   <ShoppingBag size={20} />
                   <span>Produtos</span>
                 </Link>
-              </li>
-
-              <li>
+              </li>              <li>
                 <Link href="/cart" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap relative">
                   <ShoppingCart size={20} />
                   <span>Carrinho</span>
@@ -226,21 +221,6 @@ export function Header() {
                       </span>
                     )}
                   </ClientOnly>
-                </Link>
-              </li>
-                <li>
-                <Link href="/liked-products" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap">
-                  <Heart size={20} className={cn(likedCount > 0 ? "text-primary fill-current" : "")} />
-                  <div className="flex items-center gap-1">
-                    <span>Favoritos</span>
-                    <ClientOnly fallback={null}>
-                      {isLoaded && likedCount > 0 && (
-                        <span className="bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                          {likedCount > 99 ? '99+' : likedCount}
-                        </span>
-                      )}
-                    </ClientOnly>
-                  </div>
                 </Link>
               </li>
               
@@ -289,7 +269,7 @@ export function Header() {
                 height={32}
                 className="h-8 w-auto"
               />
-            </Link>              {/* Ações do mobile: Usuário, Sacolinha, Carrinho, Favoritos */}
+            </Link>              {/* Ações do mobile: Usuário, Sacolinha, Carrinho */}
             <div className="flex items-center gap-2">
               {/* Botão de Usuário no Mobile - apenas mostrar se logado */}
               {user && (
@@ -309,9 +289,7 @@ export function Header() {
                 <Button variant="ghost" size="icon" className="hover:bg-primary/10" title="Todos os Produtos">
                   <ShoppingBag size={20} />
                 </Button>
-              </Link>
-
-              {/* Botão de Carrinho no Mobile */}
+              </Link>              {/* Botão de Carrinho no Mobile */}
               <Link href="/cart" className="relative">
                 <Button variant="ghost" size="icon" className="hover:bg-primary/10">
                   <ShoppingCart size={20} />
@@ -324,39 +302,14 @@ export function Header() {
                   </ClientOnly>
                 </Button>
               </Link>
-
-              {/* Botão de Favoritos no Mobile */}
-              <Link href="/liked-products" className="relative">
-                <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-                  <Heart size={20} className={cn(likedCount > 0 ? "text-primary fill-current" : "")} />
-                  <ClientOnly fallback={null}>
-                    {isLoaded && likedCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium">
-                        {likedCount > 9 ? '9+' : likedCount}
-                      </span>
-                    )}
-                  </ClientOnly>
-                </Button>
-              </Link>
             </div>
           </div>
         </div>
       </div>
-      
-      {/* Modal de Autenticação */}
+        {/* Modal de Autenticação */}
       <AuthModal 
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 
-      />
-
-      {/* Modal de Prompt de Login após salvar favorito */}
-      <LoginPromptModal
-        isOpen={showLoginPrompt}
-        onClose={() => setShowLoginPrompt(false)}
-        onLogin={() => {
-          setShowLoginPrompt(false);
-          setIsAuthModalOpen(true);
-        }}
       />
     </header>
   );

@@ -7,8 +7,7 @@ import { Button } from '@/components/ui/button';
 import useCollections, { CollectionProduct } from '@/hooks/useCollections';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, ArrowRight, ShoppingBag, Eye, ShoppingCart, Star, Truck } from 'lucide-react';
-import { LikeButton } from '@/components/ui/LikeButton';
+import { ArrowRight, ShoppingBag, Eye, ShoppingCart, Star, Truck } from 'lucide-react';
 import { ProductCard } from '@/components/ui/ProductCard';
 
 interface CollectionSectionProps {
