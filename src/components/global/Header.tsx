@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Sparkles, Info, ShoppingBag, Search, Menu, X, Heart, User, LogOut, ShoppingCart } from 'lucide-react'; 
+import { Sparkles, Info, ShoppingBag, Search, Menu, Heart, User, LogOut, ShoppingCart } from 'lucide-react'; 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet';
@@ -18,7 +18,6 @@ import { CartManager } from '@/lib/ecommerce';
 
 export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const { likedCount, isLoaded, showLoginPrompt, setShowLoginPrompt } = useLikes();
@@ -229,15 +228,14 @@ export function Header() {
                   </ClientOnly>
                 </Link>
               </li>
-              
-              <li>
+                <li>
                 <Link href="/liked-products" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap">
-                  <Heart size={20} className={cn(likedCount > 0 ? "text-red-500 fill-current" : "")} />
+                  <Heart size={20} className={cn(likedCount > 0 ? "text-primary fill-current" : "")} />
                   <div className="flex items-center gap-1">
                     <span>Favoritos</span>
                     <ClientOnly fallback={null}>
                       {isLoaded && likedCount > 0 && (
-                        <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                        <span className="bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
                           {likedCount > 99 ? '99+' : likedCount}
                         </span>
                       )}
@@ -291,8 +289,7 @@ export function Header() {
                 height={32}
                 className="h-8 w-auto"
               />
-            </Link>
-              {/* Ações do mobile: Usuário, Carrinho, Favoritos e Busca */}
+            </Link>              {/* Ações do mobile: Usuário, Sacolinha, Carrinho, Favoritos */}
             <div className="flex items-center gap-2">
               {/* Botão de Usuário no Mobile - apenas mostrar se logado */}
               {user && (
@@ -306,6 +303,13 @@ export function Header() {
                   <LogOut size={20} />
                 </Button>
               )}
+
+              {/* Botão de Sacolinha - Todos os Produtos */}
+              <Link href="/products">
+                <Button variant="ghost" size="icon" className="hover:bg-primary/10" title="Todos os Produtos">
+                  <ShoppingBag size={20} />
+                </Button>
+              </Link>
 
               {/* Botão de Carrinho no Mobile */}
               <Link href="/cart" className="relative">
@@ -324,54 +328,16 @@ export function Header() {
               {/* Botão de Favoritos no Mobile */}
               <Link href="/liked-products" className="relative">
                 <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-                  <Heart size={20} className={cn(likedCount > 0 ? "text-red-500 fill-current" : "")} />
+                  <Heart size={20} className={cn(likedCount > 0 ? "text-primary fill-current" : "")} />
                   <ClientOnly fallback={null}>
                     {isLoaded && likedCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium">
+                      <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium">
                         {likedCount > 9 ? '9+' : likedCount}
                       </span>
                     )}
                   </ClientOnly>
                 </Button>
               </Link>
-              
-              {/* Barra de pesquisa compacta no mobile */}
-              <form onSubmit={handleSearch} className="relative">
-                <div className="flex items-center">
-                  {isSearchFocused ? (
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="text"
-                        placeholder="Buscar..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onBlur={() => !searchQuery && setIsSearchFocused(false)}
-                        className="w-40 h-9 text-sm bg-background border-primary/20 focus:border-primary"
-                        autoFocus
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setIsSearchFocused(false)}
-                        className="h-9 w-9"
-                      >
-                        <X size={16} />
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setIsSearchFocused(true)}
-                      className="hover:bg-primary/10"
-                    >
-                      <Search size={20} />
-                    </Button>
-                  )}
-                </div>
-              </form>
             </div>
           </div>
         </div>
