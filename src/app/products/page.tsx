@@ -4,7 +4,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useMemo, useEffect, Suspense } from 'react';
-import { Product, uniqueTypes, uniqueStyles, uniqueColors } from '@/lib/placeholder-data';
+import { Product } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -52,7 +52,19 @@ function convertProductToProductData(product: Product): ProductData {
   };
 }
 
-function FilterControls({ filters, setFilters }: { filters: Filters, setFilters: (filters: Filters) => void}) {
+function FilterControls({ 
+  filters, 
+  setFilters,
+  uniqueTypes,
+  uniqueStyles,
+  uniqueColors
+}: { 
+  filters: Filters, 
+  setFilters: (filters: Filters) => void,
+  uniqueTypes: string[],
+  uniqueStyles: string[],
+  uniqueColors: string[]
+}) {
   const handleColorChange = (color: string) => {
     setFilters({
       ...filters,
@@ -217,6 +229,27 @@ function ProductsContent() {
   });
 
   const supabase = createClient();
+  // Calcular valores únicos dinamicamente dos produtos carregados
+  const uniqueTypes = useMemo(() => {
+    const types = products.map(p => p.type).filter(Boolean);
+    const uniqueTypesArray = [...new Set(types)].sort();
+    console.log('📂 Categorias (types) únicas encontradas:', uniqueTypesArray);
+    return uniqueTypesArray;
+  }, [products]);
+
+  const uniqueStyles = useMemo(() => {
+    const styles = products.map(p => p.style).filter(Boolean);
+    const uniqueStylesArray = [...new Set(styles)].sort();
+    console.log('🎨 Estilos únicos encontrados:', uniqueStylesArray);
+    return uniqueStylesArray;
+  }, [products]);
+
+  const uniqueColors = useMemo(() => {
+    const allColors = products.flatMap(p => p.colors || []).filter(Boolean);
+    const uniqueColorsArray = [...new Set(allColors)].sort();
+    console.log('🌈 Cores únicas encontradas:', uniqueColorsArray);
+    return uniqueColorsArray;
+  }, [products]);
 
   // Buscar produtos do Supabase
   useEffect(() => {
@@ -404,7 +437,13 @@ function ProductsContent() {
                       Filtros
                     </SheetTitle>
                   </SheetHeader>
-                  <FilterControls filters={filters} setFilters={setFilters} />
+                  <FilterControls 
+                    filters={filters} 
+                    setFilters={setFilters}
+                    uniqueTypes={uniqueTypes}
+                    uniqueStyles={uniqueStyles}
+                    uniqueColors={uniqueColors}
+                  />
                 </SheetContent>
               </Sheet>
             </div>
@@ -422,7 +461,13 @@ function ProductsContent() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <FilterControls filters={filters} setFilters={setFilters} />
+                <FilterControls 
+                  filters={filters} 
+                  setFilters={setFilters}
+                  uniqueTypes={uniqueTypes}
+                  uniqueStyles={uniqueStyles}
+                  uniqueColors={uniqueColors}
+                />
               </CardContent>
             </Card>
           </aside>          {/* Products Grid */}
