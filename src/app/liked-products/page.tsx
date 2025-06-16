@@ -35,6 +35,7 @@ function LikedProductsContent() {
             price: p.price,
             image_url: p.image_url,
             imageUrl: p.image_url, // Compatibilidade com ambos os formatos
+            gallery_urls: p.gallery_urls || [], // Adicionar galeria de imagens
             type: p.type,
             style: p.style,
             colors: p.colors || [],

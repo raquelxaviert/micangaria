@@ -34,8 +34,9 @@ function convertProductToProductData(product: Product): ProductData {
     name: product.name,
     description: product.description,
     price: product.price,
-    image_url: product.imageUrl,
-    gallery_urls: product.galleryUrls || [],
+    imageUrl: product.imageUrl, // Formato antigo
+    image_url: product.imageUrl, // Formato Supabase
+    gallery_urls: product.galleryUrls || [], // Array de imagens adicionais
     type: product.type,
     style: product.style,
     colors: product.colors,

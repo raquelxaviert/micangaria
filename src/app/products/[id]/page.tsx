@@ -94,13 +94,14 @@ export default function ProductPage() {
             .or(`type.eq.${productData.type},style.eq.${productData.style}`)
             .limit(4);
 
-          if (related) {
-            const convertedRelated: ProductData[] = related.map(p => ({
+          if (related) {            const convertedRelated: ProductData[] = related.map(p => ({
               id: p.id,
               name: p.name,
               description: p.description,
               price: p.price,
               imageUrl: p.image_url,
+              image_url: p.image_url, // Adicionar formato Supabase
+              gallery_urls: Array.isArray(p.gallery_urls) ? p.gallery_urls : [], // Adicionar gallery_urls
               type: p.type,
               style: p.style,
               colors: Array.isArray(p.colors) ? p.colors : [],
