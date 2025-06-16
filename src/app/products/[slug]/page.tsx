@@ -66,6 +66,19 @@ export default function ProductPage() {
   
   const supabase = createClient();
 
+  // Handler para promises rejeitadas não tratadas
+  useEffect(() => {
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.warn('Promise rejeitada não tratada capturada:', event.reason);
+      event.preventDefault(); // Previne o erro padrão
+    };
+
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    
+    return () => {
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
   // Função para pré-carregar imagens
   const preloadImage = (url: string): Promise<void> => {
     if (preloadedImages.has(url)) return Promise.resolve();
@@ -76,7 +89,10 @@ export default function ProductPage() {
         setPreloadedImages(prev => new Set([...prev, url]));
         resolve();
       };
-      img.onerror = () => resolve();
+      img.onerror = (error) => {
+        console.warn('Erro ao pré-carregar imagem:', url, error);
+        resolve(); // Resolve mesmo com erro para não bloquear
+      };
       img.src = url;
     });
   };
@@ -147,12 +163,15 @@ export default function ProductPage() {
           router.push('/products');
           return;
         }        if (productData) {
-          setProduct(productData);
-
-          // Se o produto foi encontrado por ID, redirecionar para a URL com slug
+          setProduct(productData);          // Se o produto foi encontrado por ID, redirecionar para a URL com slug
           if (productData.slug && params.slug !== productData.slug) {
-            router.replace(`/products/${productData.slug}`);
-            return;
+            try {
+              router.replace(`/products/${productData.slug}`);
+              return;
+            } catch (redirectError) {
+              console.warn('Erro ao redirecionar para slug:', redirectError);
+              // Continua normalmente se o redirecionamento falhar
+            }
           }
 
           // Buscar produtos relacionados (mesmo tipo ou estilo)
@@ -197,11 +216,10 @@ export default function ProductPage() {
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchProduct().catch(error => {
+    };    fetchProduct().catch(error => {
       console.error('Erro não tratado em fetchProduct:', error);
       setLoading(false);
+      // Não redirecionar aqui para evitar loops
     });
   }, [params.slug, supabase, router]);
 
