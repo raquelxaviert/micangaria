@@ -52,9 +52,11 @@ interface Product {
 
 export default function ProductPage() {
   const params = useParams();
-  const router = useRouter();  const [product, setProduct] = useState<Product | null>(null);
+  const router = useRouter();
+  const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<ProductData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'materials' | 'care'>('description');
@@ -63,12 +65,54 @@ export default function ProductPage() {
   
   const supabase = createClient();
 
+  // Função para pré-carregar imagens
+  const preloadImage = (url: string): Promise<void> => {
+    if (preloadedImages.has(url)) return Promise.resolve();
+    
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      img.onload = () => {
+        setPreloadedImages(prev => new Set([...prev, url]));
+        resolve();
+      };
+      img.onerror = () => resolve();
+      img.src = url;
+    });
+  };
+
+  // Pré-carregar imagens do produto e produtos relacionados
+  useEffect(() => {
+    const preloadAllImages = async () => {
+      if (product) {
+        // Pré-carregar imagens do produto atual
+        const productImages = [
+          product.image_url,
+          ...(Array.isArray(product.gallery_urls) ? product.gallery_urls : [])
+        ].filter(Boolean);
+
+        // Pré-carregar imagens dos produtos relacionados
+        const relatedImages = relatedProducts.flatMap(p => [
+          p.image_url || p.imageUrl,
+          ...(Array.isArray(p.gallery_urls) ? p.gallery_urls : [])
+        ]).filter(Boolean);
+
+        // Carregar todas as imagens em paralelo, apenas URLs válidas
+        await Promise.all([
+          ...productImages.filter((url): url is string => !!url).map(url => preloadImage(url)),
+          ...relatedImages.filter((url): url is string => !!url).map(url => preloadImage(url))
+        ]);
+      }
+    };
+
+    preloadAllImages();
+  }, [product, relatedProducts]);
+
   useEffect(() => {
     const fetchProduct = async () => {
       if (!params.id) return;
 
       try {
-        // Buscar produto específico
+        setLoading(true);
         const { data: productData, error } = await supabase
           .from('products')
           .select('*')
@@ -94,14 +138,15 @@ export default function ProductPage() {
             .or(`type.eq.${productData.type},style.eq.${productData.style}`)
             .limit(4);
 
-          if (related) {            const convertedRelated: ProductData[] = related.map(p => ({
+          if (related) {
+            const convertedRelated: ProductData[] = related.map(p => ({
               id: p.id,
               name: p.name,
               description: p.description,
               price: p.price,
               imageUrl: p.image_url,
-              image_url: p.image_url, // Adicionar formato Supabase
-              gallery_urls: Array.isArray(p.gallery_urls) ? p.gallery_urls : [], // Adicionar gallery_urls
+              image_url: p.image_url,
+              gallery_urls: Array.isArray(p.gallery_urls) ? p.gallery_urls : [],
               type: p.type,
               style: p.style,
               colors: Array.isArray(p.colors) ? p.colors : [],
@@ -123,7 +168,9 @@ export default function ProductPage() {
     };
 
     fetchProduct();
-  }, [params.id, supabase, router]);  const handleAddToCart = () => {
+  }, [params.id, supabase, router]);
+
+  const handleAddToCart = () => {
     if (!product) return;
     
     try {

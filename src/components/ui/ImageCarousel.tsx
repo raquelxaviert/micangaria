@@ -23,9 +23,30 @@ export function ImageCarousel({
 }: ImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
 
   // Se não há imagens ou array vazio, usar placeholder
   const imageList = images && images.length > 0 ? images : ['/products/placeholder.jpg'];
+
+  // Pré-carregar imagens
+  useEffect(() => {
+    const preloadImage = (url: string) => {
+      if (preloadedImages.has(url)) return;
+      
+      const img = new window.Image();
+      img.onload = () => {
+        setPreloadedImages(prev => new Set([...prev, url]));
+      };
+      img.src = url;
+    };
+
+    // Pré-carregar a imagem atual e a próxima
+    const currentImage = imageList[currentIndex];
+    const nextImage = imageList[(currentIndex + 1) % imageList.length];
+    
+    preloadImage(currentImage);
+    preloadImage(nextImage);
+  }, [currentIndex, imageList, preloadedImages]);
 
   const goToPrevious = () => {
     setCurrentIndex((prevIndex) => 
@@ -73,6 +94,8 @@ export function ImageCarousel({
             }`}
             onClick={() => showZoom && setIsZoomed(!isZoomed)}
             priority={currentIndex === 0}
+            quality={85}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
 
           {/* Navigation Buttons - Only show if more than 1 image */}
@@ -138,6 +161,8 @@ export function ImageCarousel({
                 fill
                 className="object-cover"
                 sizes="64px"
+                quality={75}
+                loading={index === 0 ? "eager" : "lazy"}
               />
             </button>
           ))}
