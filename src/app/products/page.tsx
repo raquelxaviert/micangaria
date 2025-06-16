@@ -477,14 +477,14 @@ function ProductsContent() {
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
                 <p className="text-muted-foreground">Carregando produtos...</p>
               </div>            ) : filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 lg:gap-6">
+              <div className="columns-2 lg:columns-3 gap-3 sm:gap-4 lg:gap-6 space-y-3 sm:space-y-4 lg:space-y-6">
                 {filteredProducts.map(product => (
-                  <div key={product.id}>
+                  <div key={product.id} className="break-inside-avoid mb-3 sm:mb-4 lg:mb-6">
                     <ProductCard 
                       product={convertProductToProductData(product)}
                       variant="compact"
                       showRating={false}
-                      className="hover:-translate-y-1 sm:hover:-translate-y-2"
+                      className="hover:-translate-y-1 sm:hover:-translate-y-2 w-full"
                     />
                   </div>
                 ))}
