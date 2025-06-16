@@ -43,9 +43,46 @@ export default function GoogleDrivePicker({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [imageLoadErrors, setImageLoadErrors] = useState<Set<string>>(new Set());
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
+  const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
 
   const FOLDER_ID = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_FOLDER_ID || '1fp36hi2E9rLWIpW7AaegAi7i7MWn8Rvp';
   const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_API_KEY;
+
+  // Função para pré-carregar imagens
+  const preloadImage = (url: string): Promise<void> => {
+    if (preloadedImages.has(url)) return Promise.resolve();
+    
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      img.onload = () => {
+        setPreloadedImages(prev => new Set([...prev, url]));
+        resolve();
+      };
+      img.onerror = () => resolve();
+      img.src = url;
+    });
+  };
+
+  // Pré-carregar imagens quando os arquivos são carregados
+  useEffect(() => {
+    const preloadImages = async () => {
+      if (files.length > 0) {
+        // Primeiro, pré-carregar miniaturas
+        const thumbnailPromises = files.map(file => 
+          preloadImage(getThumbnailUrl(file.id))
+        );
+        await Promise.all(thumbnailPromises);
+
+        // Depois, pré-carregar imagens em tamanho maior para as selecionadas
+        const selectedPromises = currentSelection.map(url => 
+          preloadImage(url)
+        );
+        await Promise.all(selectedPromises);
+      }
+    };
+
+    preloadImages();
+  }, [files, currentSelection]);
 
   // Converter ID do arquivo para URL pública otimizada
   const getPublicImageUrl = (fileId: string) => {
@@ -334,7 +371,14 @@ export default function GoogleDrivePicker({
                                 className="object-cover"
                                 sizes="120px"
                                 quality={75}
-                                onLoad={() => setLoadedImages(prev => new Set([...prev, file.id]))}
+                                priority={currentSelection.includes(imageUrl)}
+                                onLoadingComplete={() => {
+                                  setLoadedImages(prev => new Set([...prev, file.id]));
+                                  // Pré-carregar a versão maior da imagem se estiver selecionada
+                                  if (currentSelection.includes(imageUrl)) {
+                                    preloadImage(imageUrl);
+                                  }
+                                }}
                                 onError={() => setImageLoadErrors(prev => new Set([...prev, file.id]))}
                               />
                             ) : (

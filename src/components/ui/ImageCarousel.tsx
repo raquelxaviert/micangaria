@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { getOptimizedGoogleDriveUrl, IMAGE_CONFIGS, preloadImages } from '@/lib/imageUtils';
 
 interface ImageCarouselProps {
   images: string[];
@@ -24,48 +23,9 @@ export function ImageCarousel({
 }: ImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const imageRef = useRef<HTMLDivElement>(null);
-
-  // Configuração do swipe - distância mínima para considerar um swipe
-  const minSwipeDistance = 50;
 
   // Se não há imagens ou array vazio, usar placeholder
   const imageList = images && images.length > 0 ? images : ['/products/placeholder.jpg'];
-
-  // Otimizar URLs das imagens para diferentes tamanhos
-  const optimizedImages = imageList.map(url => ({
-    carousel: getOptimizedGoogleDriveUrl(url, IMAGE_CONFIGS.carousel),
-    zoom: getOptimizedGoogleDriveUrl(url, IMAGE_CONFIGS.zoom),
-    thumbnail: getOptimizedGoogleDriveUrl(url, IMAGE_CONFIGS.thumbnail),
-    original: url
-  }));
-
-  // Pré-carregar imagens adjacentes para navegação mais suave
-  useEffect(() => {
-    const preloadAdjacent = async () => {
-      const toPreload: string[] = [];
-      
-      // Pré-carregar próxima e anterior
-      if (optimizedImages.length > 1) {
-        const nextIndex = currentIndex === optimizedImages.length - 1 ? 0 : currentIndex + 1;
-        const prevIndex = currentIndex === 0 ? optimizedImages.length - 1 : currentIndex - 1;
-        
-        toPreload.push(
-          optimizedImages[nextIndex].carousel,
-          optimizedImages[prevIndex].carousel
-        );
-      }
-      
-      if (toPreload.length > 0) {
-        await preloadImages(toPreload);
-      }
-    };
-
-    preloadAdjacent();
-  }, [currentIndex, optimizedImages]);
 
   const goToPrevious = () => {
     setCurrentIndex((prevIndex) => 
@@ -78,34 +38,9 @@ export function ImageCarousel({
       prevIndex === imageList.length - 1 ? 0 : prevIndex + 1
     );
   };
+
   const goToSlide = (index: number) => {
     setCurrentIndex(index);
-    setIsLoading(true);
-  };
-
-  // Funções para swipe touch
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null); // Reset touchEnd
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe && imageList.length > 1) {
-      goToNext();
-    }
-    if (isRightSwipe && imageList.length > 1) {
-      goToPrevious();
-    }
   };
 
   // Keyboard navigation
@@ -125,37 +60,23 @@ export function ImageCarousel({
   }, [isZoomed]);
 
   return (
-    <div className={`relative ${className}`}>      {/* Main Image Display */}
+    <div className={`relative ${className}`}>
+      {/* Main Image Display */}
       <Card className="relative overflow-hidden bg-gray-50">
-        <div 
-          ref={imageRef}
-          className="relative aspect-square"
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}        >
+        <div className="relative aspect-square">
           <Image
-            src={isZoomed ? optimizedImages[currentIndex].zoom : optimizedImages[currentIndex].carousel}
+            src={imageList[currentIndex]}
             alt={`${alt} - Imagem ${currentIndex + 1}`}
             fill
-            className={`object-cover transition-all duration-300 ${
+            className={`object-cover transition-transform duration-300 ${
               isZoomed ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'
-            } ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+            }`}
             onClick={() => showZoom && setIsZoomed(!isZoomed)}
             priority={currentIndex === 0}
-            draggable={false}
-            onLoad={() => setIsLoading(false)}
-            onError={() => setIsLoading(false)}
-            sizes={isZoomed ? '1200px' : '800px'}
-            quality={90}
           />
 
-          {/* Loading overlay */}
-          {isLoading && (
-            <div className="absolute inset-0 bg-gray-100 animate-pulse flex items-center justify-center">
-              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            </div>
-          )}          {/* Navigation Buttons - Only show if more than 1 image */}
-          {optimizedImages.length > 1 && (
+          {/* Navigation Buttons - Only show if more than 1 image */}
+          {imageList.length > 1 && (
             <>
               <Button
                 variant="outline"
@@ -187,47 +108,46 @@ export function ImageCarousel({
             >
               <ZoomIn className="h-4 w-4" />
             </Button>
-          )}          {/* Image Counter */}
-          {optimizedImages.length > 1 && (
+          )}
+
+          {/* Image Counter */}
+          {imageList.length > 1 && (
             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
-              {currentIndex + 1} / {optimizedImages.length}
+              {currentIndex + 1} / {imageList.length}
             </div>
           )}
         </div>
-      </Card>      {/* Thumbnail Navigation */}
-      {showThumbnails && optimizedImages.length > 1 && (
-        <div className="flex gap-2 mt-4 overflow-x-auto pb-2 px-1">
-          {optimizedImages.map((imageSet, index) => (
+      </Card>
+
+      {/* Thumbnail Navigation */}
+      {showThumbnails && imageList.length > 1 && (
+        <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
+          {imageList.map((image, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`flex-shrink-0 relative aspect-square w-16 h-16 rounded-lg overflow-hidden transition-all duration-200 ${
+              className={`flex-shrink-0 relative aspect-square w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
                 index === currentIndex 
-                  ? 'ring-2 ring-primary ring-offset-2 shadow-lg transform scale-105' 
-                  : 'ring-1 ring-gray-200 hover:ring-gray-300 hover:scale-105 opacity-70 hover:opacity-90'
+                  ? 'border-primary shadow-md scale-105' 
+                  : 'border-gray-200 hover:border-gray-300 hover:scale-105'
               }`}
             >
               <Image
-                src={imageSet.thumbnail}
+                src={image}
                 alt={`${alt} - Thumbnail ${index + 1}`}
                 fill
                 className="object-cover"
                 sizes="64px"
-                quality={75}
               />
-              {/* Overlay para imagem selecionada */}
-              {index === currentIndex && (
-                <div className="absolute inset-0 bg-primary/10 border border-primary/20" />
-              )}
             </button>
           ))}
         </div>
       )}
 
       {/* Dots Indicator (alternative to thumbnails) */}
-      {!showThumbnails && optimizedImages.length > 1 && (
+      {!showThumbnails && imageList.length > 1 && (
         <div className="flex justify-center gap-2 mt-4">
-          {optimizedImages.map((_, index) => (
+          {imageList.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
