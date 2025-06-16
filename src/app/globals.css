@@ -422,3 +422,41 @@ html {
   outline: none;
   box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--primary));
 }
+
+/* ========== PRODUCT CARDS - CORTE UNIFORME DAS IMAGENS ========== */
+
+/* Garantir corte uniforme e aspecto consistente das imagens dos cards */
+.product-card-image {
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  object-position: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Container das imagens com altura fixa */
+.product-card-image-container {
+  height: 18rem; /* h-72 = 288px */
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  background-color: hsl(var(--muted));
+}
+
+/* Responsividade mobile */
+@media (max-width: 640px) {
+  .product-card-image-container {
+    height: 14rem; /* h-56 = 224px */
+  }
+}
+
+/* Variante compacta */
+.product-card-image-container.compact {
+  height: 12rem; /* h-48 = 192px */
+}
+
+@media (max-width: 640px) {
+  .product-card-image-container.compact {
+    height: 14rem; /* h-56 = 224px */
+  }
+}

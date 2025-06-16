@@ -46,8 +46,9 @@ interface Product {
   is_on_sale: boolean;
   promotion_text: string | null;
   care_instructions: string | null;
-  created_at: string;  is_active: boolean;
-  slug?: string; // Slug for URL
+  created_at: string;
+  is_active: boolean;
+  slug: string; // Slug for URL
 }
 
 export default function ProductPage() {
@@ -79,105 +80,115 @@ export default function ProductPage() {
       img.src = url;
     });
   };
-
   // Pré-carregar imagens do produto e produtos relacionados
   useEffect(() => {
     const preloadAllImages = async () => {
-      if (product) {
-        // Pré-carregar imagens do produto atual
-        const productImages = [
-          product.image_url,
-          ...(Array.isArray(product.gallery_urls) ? product.gallery_urls : [])
-        ].filter(Boolean);
+      try {
+        if (product) {
+          // Pré-carregar imagens do produto atual
+          const productImages = [
+            product.image_url,
+            ...(Array.isArray(product.gallery_urls) ? product.gallery_urls : [])
+          ].filter(Boolean);
 
-        // Pré-carregar imagens dos produtos relacionados
-        const relatedImages = relatedProducts.flatMap(p => [
-          p.image_url || p.imageUrl,
-          ...(Array.isArray(p.gallery_urls) ? p.gallery_urls : [])
-        ]).filter(Boolean);
+          // Pré-carregar imagens dos produtos relacionados
+          const relatedImages = relatedProducts.flatMap(p => [
+            p.image_url || p.imageUrl,
+            ...(Array.isArray(p.gallery_urls) ? p.gallery_urls : [])
+          ]).filter(Boolean);
 
-        // Carregar todas as imagens em paralelo, apenas URLs válidas
-        await Promise.all([
-          ...productImages.filter((url): url is string => !!url).map(url => preloadImage(url)),
-          ...relatedImages.filter((url): url is string => !!url).map(url => preloadImage(url))
-        ]);
+          // Carregar todas as imagens em paralelo, apenas URLs válidas
+          await Promise.all([
+            ...productImages.filter((url): url is string => !!url).map(url => preloadImage(url)),
+            ...relatedImages.filter((url): url is string => !!url).map(url => preloadImage(url))
+          ]);
+        }
+      } catch (error) {
+        console.warn('Erro ao pré-carregar imagens:', error);
       }
     };
 
     preloadAllImages();
-  }, [product, relatedProducts]);
-  useEffect(() => {
+  }, [product, relatedProducts]);  useEffect(() => {
     const fetchProduct = async () => {
-      if (!params.id) return;
+      if (!params.slug) return;
 
       try {
         setLoading(true);
         
-        // Try to find product by slug first, then by ID
-        let productData: any = null;
-        let error: any = null;
-        
-        // First, try to find by slug
-        const { data: productBySlug, error: slugError } = await supabase
+        // Primeiro tenta buscar por slug
+        let { data: productData, error } = await supabase
           .from('products')
           .select('*')
-          .eq('slug', params.id)
+          .eq('slug', params.slug)
           .eq('is_active', true)
           .single();
 
-        if (productBySlug && !slugError) {
-          productData = productBySlug;
-        } else {
-          // If not found by slug, try by ID
-          const { data: productById, error: idError } = await supabase
+        // Se não encontrar por slug, tenta buscar por ID (para compatibilidade)
+        if (error && error.code === 'PGRST116') {
+          console.log('Produto não encontrado por slug, tentando por ID...');
+          const { data: productById, error: errorById } = await supabase
             .from('products')
             .select('*')
-            .eq('id', params.id)
+            .eq('id', params.slug)
             .eq('is_active', true)
             .single();
           
           productData = productById;
-          error = idError;
+          error = errorById;
         }
 
         if (error || !productData) {
-          console.error('Erro ao buscar produto:', error);
+          console.error('Erro ao buscar produto:', {
+            error: error?.message || 'Produto não encontrado',
+            code: error?.code,
+            slug: params.slug
+          });
           router.push('/products');
           return;
-        }
-
-        if (productData) {
+        }        if (productData) {
           setProduct(productData);
 
-          // Buscar produtos relacionados (mesmo tipo ou estilo)
-          const { data: related } = await supabase
-            .from('products')
-            .select('*')
-            .eq('is_active', true)
-            .neq('id', productData.id) // Use the actual product ID here
-            .or(`type.eq.${productData.type},style.eq.${productData.style}`)
-            .limit(4);
+          // Se o produto foi encontrado por ID, redirecionar para a URL com slug
+          if (productData.slug && params.slug !== productData.slug) {
+            router.replace(`/products/${productData.slug}`);
+            return;
+          }
 
-          if (related) {
-            const convertedRelated: ProductData[] = related.map(p => ({
-              id: p.id,
-              name: p.name,
-              description: p.description,
-              price: p.price,
-              imageUrl: p.image_url,
-              image_url: p.image_url,
-              gallery_urls: Array.isArray(p.gallery_urls) ? p.gallery_urls : [],
-              type: p.type,
-              style: p.style,
-              colors: Array.isArray(p.colors) ? p.colors : [],
-              materials: Array.isArray(p.materials) ? p.materials : [],
-              sizes: Array.isArray(p.sizes) ? p.sizes : [],
-              isNewArrival: p.is_new_arrival,
-              isOnSale: p.is_on_sale,
-              promotionDetails: p.promotion_text || undefined,
-              slug: p.slug // Include slug in converted data
-            }));
-            setRelatedProducts(convertedRelated);
+          // Buscar produtos relacionados (mesmo tipo ou estilo)
+          try {
+            const { data: related } = await supabase
+              .from('products')
+              .select('*')
+              .eq('is_active', true)
+              .neq('id', productData.id)
+              .or(`type.eq.${productData.type},style.eq.${productData.style}`)
+              .limit(4);
+
+            if (related) {
+              const convertedRelated: ProductData[] = related.map(p => ({
+                id: p.id,
+                name: p.name,
+                description: p.description,
+                price: p.price,
+                imageUrl: p.image_url,
+                image_url: p.image_url,
+                gallery_urls: Array.isArray(p.gallery_urls) ? p.gallery_urls : [],
+                type: p.type,
+                style: p.style,
+                colors: Array.isArray(p.colors) ? p.colors : [],
+                materials: Array.isArray(p.materials) ? p.materials : [],
+                sizes: Array.isArray(p.sizes) ? p.sizes : [],
+                isNewArrival: p.is_new_arrival,
+                isOnSale: p.is_on_sale,
+                promotionDetails: p.promotion_text || undefined,
+                slug: p.slug // Include slug in converted data
+              }));
+              setRelatedProducts(convertedRelated);
+            }
+          } catch (relatedError) {
+            console.warn('Erro ao buscar produtos relacionados:', relatedError);
+            // Não bloqueia o carregamento do produto principal
           }
         }
       } catch (error) {
@@ -188,8 +199,11 @@ export default function ProductPage() {
       }
     };
 
-    fetchProduct();
-  }, [params.id, supabase, router]);
+    fetchProduct().catch(error => {
+      console.error('Erro não tratado em fetchProduct:', error);
+      setLoading(false);
+    });
+  }, [params.slug, supabase, router]);
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -313,7 +327,8 @@ export default function ProductPage() {
           Voltar
         </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">          {/* Imagens do Produto */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+          {/* Imagens do Produto */}
           <div className="space-y-4">
             <div className="relative">
               <ImageCarousel
@@ -339,7 +354,9 @@ export default function ProductPage() {
                     {product.promotion_text || 'OFERTA'}
                   </Badge>
                 )}
-              </div>              {/* Botões de ação */}
+              </div>
+
+              {/* Botões de ação */}
               <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
                 <LikeButton 
                   productId={product.id} 
@@ -354,12 +371,15 @@ export default function ProductPage() {
                 >
                   <Share2 className="h-4 w-4" />
                 </Button>
-              </div></div>
+              </div>
+            </div>
           </div>
 
           {/* Informações do Produto */}
-          <div className="space-y-6">            {/* Título e Preço */}
-            <div>              <div className="flex items-center gap-2 mb-2 flex-wrap">
+          <div className="space-y-6">
+            {/* Título e Preço */}
+            <div>
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <Badge variant="outline" className="text-xs">
                   {product.type}
                 </Badge>
@@ -385,7 +405,9 @@ export default function ProductPage() {
               
               <h1 className="text-3xl lg:text-4xl font-headline text-foreground mb-4">
                 {product.name}
-              </h1>              <div className="text-4xl font-bold text-primary mb-2">
+              </h1>
+
+              <div className="text-4xl font-bold text-primary mb-2">
                 R$ {product.price.toFixed(2).replace('.', ',')}
               </div>
               <p className="text-sm text-muted-foreground">
@@ -412,7 +434,9 @@ export default function ProductPage() {
                   </div>
                 </div>
               )}
-            </div>{/* Calculadora de Frete - Melhor Envio */}
+            </div>
+
+            {/* Calculadora de Frete - Melhor Envio */}
             <div>
               <ShippingCalculator
                 products={[{
@@ -424,7 +448,9 @@ export default function ProductPage() {
                 }]}
                 onShippingSelect={handleShippingSelect}
               />
-            </div>            {/* Botões de Ação */}
+            </div>
+
+            {/* Botões de Ação */}
             <div className="space-y-3">
               <Button 
                 size="lg" 
@@ -436,7 +462,8 @@ export default function ProductPage() {
               </Button>
 
               {/* Botões secundários - Desktop */}
-              <div className="hidden md:flex gap-3">                <LikeButton 
+              <div className="hidden md:flex gap-3">
+                <LikeButton 
                   productId={product.id} 
                   variant="default"
                   size="lg"
@@ -465,7 +492,8 @@ export default function ProductPage() {
 
             {/* Informações Detalhadas */}
             <Card>
-              <CardContent className="p-0">                <div className="border-b">
+              <CardContent className="p-0">
+                <div className="border-b">
                   <nav className="flex">
                     {[
                       { id: 'description', label: 'Descrição' },
@@ -494,7 +522,9 @@ export default function ProductPage() {
                         {product.description}
                       </p>
                     </div>
-                  )}                  {activeTab === 'materials' && (
+                  )}
+
+                  {activeTab === 'materials' && (
                     <div>
                       {product.materials && product.materials.length > 0 ? (
                         <div>
@@ -514,7 +544,8 @@ export default function ProductPage() {
                       )}
                     </div>
                   )}
-                    {activeTab === 'care' && (
+
+                  {activeTab === 'care' && (
                     <div>
                       <h4 className="font-semibold mb-2">Cuidados Especiais:</h4>
                       {product.care_instructions ? (
@@ -538,7 +569,8 @@ export default function ProductPage() {
                         </div>
                       )}
                     </div>
-                  )}                </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
@@ -572,7 +604,8 @@ export default function ProductPage() {
             </div>
             
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-              {relatedProducts.map((relatedProduct) => (                <ProductCard
+              {relatedProducts.map((relatedProduct) => (
+                <ProductCard
                   key={relatedProduct.id}
                   product={relatedProduct}
                   variant="compact"
@@ -582,32 +615,42 @@ export default function ProductPage() {
             </div>
           </div>
         )}
-      </div>      {/* Sticky Add to Cart - Mobile */}
+      </div>
+
+      {/* Sticky Add to Cart - Mobile */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border shadow-lg md:hidden">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center gap-4">            {/* Botão de Like - à esquerda */}
+          <div className="flex items-center gap-4">
+            {/* Botão de Like - à esquerda */}
             <LikeButton 
               productId={product.id} 
               variant="default"
               size="lg"
               className="h-12 w-12 shrink-0"
             />
-
-            {/* Botão Adicionar ao Carrinho - à direita */}
+            
+            {/* Informações do produto - centro */}
+            <div className="flex-1 min-w-0">
+              <div className="text-xs text-muted-foreground truncate">
+                {product.name}
+              </div>
+              <div className="text-lg font-bold">
+                R$ {product.price.toFixed(2).replace('.', ',')}
+              </div>
+            </div>
+            
+            {/* Botão Adicionar - direita */}
             <Button 
               size="lg" 
-              className="flex-1 font-semibold h-12"
+              className="h-12 px-6 font-semibold"
               onClick={handleAddToCart}
             >
-              <ShoppingCart className="mr-2 h-5 w-5" />
-              Adicionar ao Carrinho
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              Adicionar
             </Button>
           </div>
         </div>
       </div>
-
-      {/* Spacer para compensar o sticky bar no mobile */}
-      <div className="h-20 md:hidden" />
     </div>
   );
 }

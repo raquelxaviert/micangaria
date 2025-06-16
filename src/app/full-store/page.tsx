@@ -53,16 +53,16 @@ export default function FullStorePage() {
       product: 'Consultoria de Styling',
       text: 'Além das peças incríveis, a consultoria de styling transformou meu guarda-roupa. Recomendo demais!'
     }
-  ];
-  const ProductCard = ({ product }: { product: any }) => (    <Card className="group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95">
+  ];  const ProductCard = ({ product }: { product: any }) => (
+    <Card className="group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95">
       <div className="relative overflow-hidden">
-        <div className="relative h-72 w-full overflow-hidden bg-gray-50">
+        <div className="product-card-image-container">
           <Image
             src={product.image}
             alt={product.name}
             width={400}
             height={400}
-            className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
+            className="product-card-image group-hover:scale-110 transition-transform duration-700"
           />
         </div>
         

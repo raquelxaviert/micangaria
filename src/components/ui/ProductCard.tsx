@@ -70,13 +70,13 @@ export function ProductCard({
   return (
     <Card className={`group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95 w-full ${className}`}>      <div className="relative">
         <Link href={`/products/${product.slug || product.id}`} className="block cursor-pointer">          <div className="relative overflow-hidden">
-            <div className={`relative ${variant === 'compact' ? 'h-48 sm:h-56' : 'h-72'} w-full overflow-hidden bg-gray-50`}>
+            <div className={`product-card-image-container ${variant === 'compact' ? 'compact' : ''}`}>
               <FastImage
                 src={optimizedImageUrl}
                 alt={product.name}
                 width={400}
                 height={400}
-                className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
+                className="product-card-image group-hover:scale-110 transition-transform duration-700"
                 quality={85}
               />
             </div>

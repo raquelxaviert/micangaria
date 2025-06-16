@@ -99,9 +99,9 @@ export default function CollectionSection({
               {displayDescription}
             </p>
           )}
-        </div>          <div className="columns-2 lg:columns-4 xl:columns-4 gap-2 sm:gap-4 lg:gap-6 space-y-2 sm:space-y-4 lg:space-y-6 mb-12">
+        </div>        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 mb-12">
           {products.map((product) => (
-            <div key={product.id} className="break-inside-avoid mb-2 sm:mb-4 lg:mb-6">
+            <div key={product.id} className="w-full">
               <ProductCard product={product} variant="compact" />
             </div>
           ))}
