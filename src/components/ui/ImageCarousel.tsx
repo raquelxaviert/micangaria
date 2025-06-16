@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
@@ -23,6 +23,12 @@ export function ImageCarousel({
 }: ImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const imageRef = useRef<HTMLDivElement>(null);
+
+  // Configuração do swipe - distância mínima para considerar um swipe
+  const minSwipeDistance = 50;
 
   // Se não há imagens ou array vazio, usar placeholder
   const imageList = images && images.length > 0 ? images : ['/products/placeholder.jpg'];
@@ -43,6 +49,31 @@ export function ImageCarousel({
     setCurrentIndex(index);
   };
 
+  // Funções para swipe touch
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null); // Reset touchEnd
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && imageList.length > 1) {
+      goToNext();
+    }
+    if (isRightSwipe && imageList.length > 1) {
+      goToPrevious();
+    }
+  };
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -60,10 +91,15 @@ export function ImageCarousel({
   }, [isZoomed]);
 
   return (
-    <div className={`relative ${className}`}>
-      {/* Main Image Display */}
+    <div className={`relative ${className}`}>      {/* Main Image Display */}
       <Card className="relative overflow-hidden bg-gray-50">
-        <div className="relative aspect-square">
+        <div 
+          ref={imageRef}
+          className="relative aspect-square"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+        >
           <Image
             src={imageList[currentIndex]}
             alt={`${alt} - Imagem ${currentIndex + 1}`}
@@ -73,6 +109,7 @@ export function ImageCarousel({
             }`}
             onClick={() => showZoom && setIsZoomed(!isZoomed)}
             priority={currentIndex === 0}
+            draggable={false}
           />
 
           {/* Navigation Buttons - Only show if more than 1 image */}
@@ -117,19 +154,17 @@ export function ImageCarousel({
             </div>
           )}
         </div>
-      </Card>
-
-      {/* Thumbnail Navigation */}
+      </Card>      {/* Thumbnail Navigation */}
       {showThumbnails && imageList.length > 1 && (
-        <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
+        <div className="flex gap-2 mt-4 overflow-x-auto pb-2 px-1">
           {imageList.map((image, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`flex-shrink-0 relative aspect-square w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+              className={`flex-shrink-0 relative aspect-square w-16 h-16 rounded-lg overflow-hidden transition-all duration-200 ${
                 index === currentIndex 
-                  ? 'border-primary shadow-md scale-105' 
-                  : 'border-gray-200 hover:border-gray-300 hover:scale-105'
+                  ? 'ring-2 ring-primary ring-offset-2 shadow-lg transform scale-105' 
+                  : 'ring-1 ring-gray-200 hover:ring-gray-300 hover:scale-105 opacity-70 hover:opacity-90'
               }`}
             >
               <Image
@@ -139,6 +174,10 @@ export function ImageCarousel({
                 className="object-cover"
                 sizes="64px"
               />
+              {/* Overlay para imagem selecionada */}
+              {index === currentIndex && (
+                <div className="absolute inset-0 bg-primary/10 border border-primary/20" />
+              )}
             </button>
           ))}
         </div>

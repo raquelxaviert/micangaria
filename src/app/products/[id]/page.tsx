@@ -157,16 +157,27 @@ export default function ProductPage() {
       try {
         await navigator.share({
           title: product?.name,
-          text: product?.description,
+          text: `Confira este produto: ${product?.name}`,
           url: window.location.href,
         });
       } catch (error) {
-        console.log('Erro ao compartilhar:', error);
+        console.log('Compartilhamento cancelado');
       }
     } else {
-      // Fallback: copiar para clipboard
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copiado para a área de transferência!');
+      // Fallback para copiar URL
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        alert('Link copiado para a área de transferência!');
+      } catch (error) {
+        // Fallback manual
+        const textArea = document.createElement('textarea');
+        textArea.value = window.location.href;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('Link copiado para a área de transferência!');
+      }
     }
   };
 
@@ -345,9 +356,7 @@ export default function ProductPage() {
                 }]}
                 onShippingSelect={handleShippingSelect}
               />
-            </div>
-
-            {/* Botões de Ação */}
+            </div>            {/* Botões de Ação */}
             <div className="space-y-3">
               <Button 
                 size="lg" 
@@ -357,6 +366,24 @@ export default function ProductPage() {
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 Adicionar ao Carrinho
               </Button>
+
+              {/* Botões secundários - Desktop */}
+              <div className="hidden md:flex gap-3">                <LikeButton 
+                  productId={product.id} 
+                  variant="default"
+                  size="lg"
+                  className="flex-1 h-12"
+                />
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  onClick={handleShare}
+                  className="flex-1 h-12"
+                >
+                  <Share2 className="mr-2 h-4 w-4" />
+                  Compartilhar
+                </Button>
+              </div>
 
               <Button 
                 variant="outline" 
