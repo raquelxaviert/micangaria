@@ -43,8 +43,7 @@ export default function AdminPage() {  const [isAuthenticated, setIsAuthenticate
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Estados para paginação e performance
+    // Estados para paginação e performance
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);  // Carregar produtos reais do Supabase
