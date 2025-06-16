@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { Package, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getOptimizedGoogleDriveUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
 
 interface AdminImageCardProps {
   src: string;
@@ -35,29 +36,24 @@ export function AdminImageCard({
   placeholder = true
 }: AdminImageCardProps) {
   const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);  // Otimizar URL do Google Drive para thumbnail RÁPIDO
+  const [hasError, setHasError] = useState(false);
+
+  // Otimizar URL do Google Drive para thumbnail RÁPIDO
   const optimizedSrc = useCallback((url: string) => {
     if (!url) return '/products/placeholder.jpg';
     
-    // Se for Google Drive, usar thumbnail otimizado
-    if (url.includes('drive.google.com')) {
-      const fileId = url.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1] || url.match(/id=([a-zA-Z0-9-_]+)/)?.[1];
-      if (fileId) {
-        // Usar thumbnail que é MUITO mais rápido
-        const thumbnailUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w400-h400-c`;
-        console.log('🚀 URL otimizada:', url, '→', thumbnailUrl);
-        return thumbnailUrl;
-      }
-    }
-    
-    console.log('📷 URL original:', url);
-    return url;
+    // Usar função utilitária para otimizar URLs do Google Drive
+    const optimized = getOptimizedGoogleDriveUrl(url, IMAGE_CONFIGS.card);
+    console.log('🚀 URL otimizada:', url, '→', optimized);
+    return optimized;
   }, []);
 
   const handleLoad = useCallback(() => {
     setIsLoading(false);
     onLoad?.();
-  }, [onLoad]);  const handleError = useCallback(() => {
+  }, [onLoad]);
+
+  const handleError = useCallback(() => {
     setIsLoading(false);
     setHasError(true);
     console.error('❌ Erro ao carregar imagem:', src);
@@ -67,8 +63,11 @@ export function AdminImageCard({
   const handleRetry = useCallback(() => {
     setHasError(false);
     setIsLoading(true);
-  }, []);  if (hasError) {
-    return (<div className={cn(
+  }, []);
+
+  if (hasError) {
+    return (
+      <div className={cn(
         "w-full h-full bg-muted/50 flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25",
         className
       )}>
@@ -93,7 +92,9 @@ export function AdminImageCard({
         <div className="absolute inset-0 bg-muted/50 animate-pulse rounded-lg flex items-center justify-center">
           <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
         </div>
-      )}      <Image
+      )}
+
+      <Image
         src={optimizedSrc(src)}
         alt={alt}
         fill
@@ -147,7 +148,8 @@ export function AdminImagePreview({
           </span>
         )}
       </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+      
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
         {images.map((url, index) => (
           <div key={index} className="relative aspect-square group bg-muted rounded-lg overflow-hidden">
             <AdminImageCard
@@ -161,7 +163,9 @@ export function AdminImagePreview({
               <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded shadow-sm z-10">
                 Principal
               </div>
-            )}            {/* Botão de remover - sempre visível e clicável */}
+            )}
+
+            {/* Botão de remover - sempre visível e clicável */}
             <button
               onClick={(e) => {
                 e.preventDefault();

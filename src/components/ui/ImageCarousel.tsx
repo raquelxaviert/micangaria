@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { getOptimizedGoogleDriveUrl, IMAGE_CONFIGS, preloadImages } from '@/lib/imageUtils';
 
 interface ImageCarouselProps {
   images: string[];
@@ -25,6 +26,7 @@ export function ImageCarousel({
   const [isZoomed, setIsZoomed] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const imageRef = useRef<HTMLDivElement>(null);
 
   // Configuração do swipe - distância mínima para considerar um swipe
@@ -32,6 +34,38 @@ export function ImageCarousel({
 
   // Se não há imagens ou array vazio, usar placeholder
   const imageList = images && images.length > 0 ? images : ['/products/placeholder.jpg'];
+
+  // Otimizar URLs das imagens para diferentes tamanhos
+  const optimizedImages = imageList.map(url => ({
+    carousel: getOptimizedGoogleDriveUrl(url, IMAGE_CONFIGS.carousel),
+    zoom: getOptimizedGoogleDriveUrl(url, IMAGE_CONFIGS.zoom),
+    thumbnail: getOptimizedGoogleDriveUrl(url, IMAGE_CONFIGS.thumbnail),
+    original: url
+  }));
+
+  // Pré-carregar imagens adjacentes para navegação mais suave
+  useEffect(() => {
+    const preloadAdjacent = async () => {
+      const toPreload: string[] = [];
+      
+      // Pré-carregar próxima e anterior
+      if (optimizedImages.length > 1) {
+        const nextIndex = currentIndex === optimizedImages.length - 1 ? 0 : currentIndex + 1;
+        const prevIndex = currentIndex === 0 ? optimizedImages.length - 1 : currentIndex - 1;
+        
+        toPreload.push(
+          optimizedImages[nextIndex].carousel,
+          optimizedImages[prevIndex].carousel
+        );
+      }
+      
+      if (toPreload.length > 0) {
+        await preloadImages(toPreload);
+      }
+    };
+
+    preloadAdjacent();
+  }, [currentIndex, optimizedImages]);
 
   const goToPrevious = () => {
     setCurrentIndex((prevIndex) => 
@@ -44,9 +78,9 @@ export function ImageCarousel({
       prevIndex === imageList.length - 1 ? 0 : prevIndex + 1
     );
   };
-
   const goToSlide = (index: number) => {
     setCurrentIndex(index);
+    setIsLoading(true);
   };
 
   // Funções para swipe touch
@@ -98,22 +132,30 @@ export function ImageCarousel({
           className="relative aspect-square"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-        >
+          onTouchEnd={onTouchEnd}        >
           <Image
-            src={imageList[currentIndex]}
+            src={isZoomed ? optimizedImages[currentIndex].zoom : optimizedImages[currentIndex].carousel}
             alt={`${alt} - Imagem ${currentIndex + 1}`}
             fill
-            className={`object-cover transition-transform duration-300 ${
+            className={`object-cover transition-all duration-300 ${
               isZoomed ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'
-            }`}
+            } ${isLoading ? 'opacity-0' : 'opacity-100'}`}
             onClick={() => showZoom && setIsZoomed(!isZoomed)}
             priority={currentIndex === 0}
             draggable={false}
+            onLoad={() => setIsLoading(false)}
+            onError={() => setIsLoading(false)}
+            sizes={isZoomed ? '1200px' : '800px'}
+            quality={90}
           />
 
-          {/* Navigation Buttons - Only show if more than 1 image */}
-          {imageList.length > 1 && (
+          {/* Loading overlay */}
+          {isLoading && (
+            <div className="absolute inset-0 bg-gray-100 animate-pulse flex items-center justify-center">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}          {/* Navigation Buttons - Only show if more than 1 image */}
+          {optimizedImages.length > 1 && (
             <>
               <Button
                 variant="outline"
@@ -145,19 +187,17 @@ export function ImageCarousel({
             >
               <ZoomIn className="h-4 w-4" />
             </Button>
-          )}
-
-          {/* Image Counter */}
-          {imageList.length > 1 && (
+          )}          {/* Image Counter */}
+          {optimizedImages.length > 1 && (
             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
-              {currentIndex + 1} / {imageList.length}
+              {currentIndex + 1} / {optimizedImages.length}
             </div>
           )}
         </div>
       </Card>      {/* Thumbnail Navigation */}
-      {showThumbnails && imageList.length > 1 && (
+      {showThumbnails && optimizedImages.length > 1 && (
         <div className="flex gap-2 mt-4 overflow-x-auto pb-2 px-1">
-          {imageList.map((image, index) => (
+          {optimizedImages.map((imageSet, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
@@ -168,11 +208,12 @@ export function ImageCarousel({
               }`}
             >
               <Image
-                src={image}
+                src={imageSet.thumbnail}
                 alt={`${alt} - Thumbnail ${index + 1}`}
                 fill
                 className="object-cover"
                 sizes="64px"
+                quality={75}
               />
               {/* Overlay para imagem selecionada */}
               {index === currentIndex && (
@@ -184,9 +225,9 @@ export function ImageCarousel({
       )}
 
       {/* Dots Indicator (alternative to thumbnails) */}
-      {!showThumbnails && imageList.length > 1 && (
+      {!showThumbnails && optimizedImages.length > 1 && (
         <div className="flex justify-center gap-2 mt-4">
-          {imageList.map((_, index) => (
+          {optimizedImages.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}

@@ -1164,9 +1164,8 @@ function ProductForm({
           
           {/* Google Drive Picker */}
           <div className="space-y-2">
-            <Label>Adicionar Imagens</Label>
-            <GoogleDrivePicker 
-              onSelect={(selectedImages) => {
+            <Label>Adicionar Imagens</Label>            <GoogleDrivePicker 
+              onSelect={(selectedImages: string[]) => {
                 setFormData({ ...formData, gallery_urls: selectedImages });
               }}
               selectedImages={formData.gallery_urls || []}

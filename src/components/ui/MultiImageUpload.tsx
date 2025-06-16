@@ -7,6 +7,7 @@ import { Upload, X, Image as ImageIcon, Plus, Move, ArrowUp, ArrowDown, GripVert
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { uploadImageToSupabase } from '@/lib/uploadUtils';
+import { getOptimizedGoogleDriveUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
 
 interface MultiImageUploadProps {
   images: string[];
@@ -75,17 +76,16 @@ export function MultiImageUpload({
       try {
         // Upload para Supabase
         const uploadResult = await uploadImageToSupabase(file);
-        
-        if (uploadResult.success && uploadResult.url) {
+          if (uploadResult.success && uploadResult.url) {
           // Substituir item temporário pelo final
           const updatedItems = imageItems.map(item => 
             item.url === tempItem.url 
-              ? { url: uploadResult.url, isUploading: false, isTemp: false }
+              ? { url: uploadResult.url!, isUploading: false, isTemp: false }
               : item
           );
-          const finalItems = [...updatedItems, { url: uploadResult.url, isUploading: false, isTemp: false }];
-          setImageItems(finalItems);
-          updateParent(finalItems);
+          // Não duplicar - apenas atualizar o item existente
+          setImageItems(updatedItems);
+          updateParent(updatedItems);
         } else {
           // Upload falhou, usar imagem local
           const fallbackUrl = `/products/${file.name}`;
@@ -94,9 +94,8 @@ export function MultiImageUpload({
               ? { url: fallbackUrl, isUploading: false, isTemp: false }
               : item
           );
-          const finalItems = [...updatedItems, { url: fallbackUrl, isUploading: false, isTemp: false }];
-          setImageItems(finalItems);
-          updateParent(finalItems);
+          setImageItems(updatedItems);
+          updateParent(updatedItems);
           alert(`Upload falhou: ${uploadResult.error}. Usando imagem local como fallback.`);
         }
       } catch (error) {
@@ -183,13 +182,14 @@ export function MultiImageUpload({
               <Card key={index} className="relative overflow-hidden">
                 <CardContent className="p-0">
                   <div className="flex items-center gap-3 p-3">
-                    {/* Image Preview */}
-                    <div className="relative w-20 h-20 flex-shrink-0">
+                    {/* Image Preview */}                    <div className="relative w-20 h-20 flex-shrink-0">
                       <Image
-                        src={item.url}
+                        src={getOptimizedGoogleDriveUrl(item.url, IMAGE_CONFIGS.thumbnail)}
                         alt={`Produto ${index + 1}`}
                         fill
                         className="object-cover rounded-lg"
+                        sizes="80px"
+                        quality={75}
                       />
                       
                       {/* Loading overlay */}
@@ -363,12 +363,13 @@ export function MultiImageUpload({
                 }
               }}
               disabled={imageItems.length >= maxImages}
-            >
-              <Image
-                src={imagePath}
+            >              <Image
+                src={getOptimizedGoogleDriveUrl(imagePath, IMAGE_CONFIGS.thumbnail)}
                 alt={`Opção ${index + 1}`}
                 fill
                 className="object-cover"
+                sizes="80px"
+                quality={75}
               />
               {imageItems.some(item => item.url === imagePath) && (
                 <div className="absolute inset-0 bg-blue-400 bg-opacity-30 flex items-center justify-center">
