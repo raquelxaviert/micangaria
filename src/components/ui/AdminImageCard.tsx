@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
-import { Package, Loader2 } from 'lucide-react';
+import { Package, Loader2, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { HeicConverter } from '@/lib/heicConverter';
 
 interface AdminImageCardProps {
   src: string;
@@ -35,9 +36,7 @@ export function AdminImageCard({
   placeholder = true
 }: AdminImageCardProps) {
   const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-
-  // Otimizar URL do Google Drive para thumbnail
+  const [hasError, setHasError] = useState(false);  // Otimizar URL do Google Drive para thumbnail
   const optimizedSrc = useCallback((url: string) => {
     if (!url) return '/products/placeholder.jpg';
     
@@ -56,21 +55,23 @@ export function AdminImageCard({
     setIsLoading(false);
     onLoad?.();
   }, [onLoad]);
-
   const handleError = useCallback(() => {
     setIsLoading(false);
     setHasError(true);
+    
+    // Log específico para arquivos .heic
+    if (src.toLowerCase().includes('.heic')) {
+      console.error('Arquivo .heic não suportado pelo navegador:', src);
+    }
+    
     onError?.();
-  }, [onError]);
+  }, [onError, src]);
 
   const handleRetry = useCallback(() => {
     setHasError(false);
     setIsLoading(true);
-  }, []);
-
-  if (hasError) {
-    return (
-      <div className={cn(
+  }, []);  if (hasError) {
+    return (<div className={cn(
         "w-full h-full bg-muted/50 flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25",
         className
       )}>

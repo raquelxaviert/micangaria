@@ -86,20 +86,19 @@ const AdminProductCard = memo(({
         )}
       </div>
 
-      {/* Conteúdo do card */}      <CardContent className="p-4 space-y-3">
-        {/* Título e categoria */}
+      {/* Conteúdo do card */}      <CardContent className="p-4 space-y-3">        {/* Título e categoria */}
         <div>
           <h3 className="font-semibold text-lg line-clamp-1 group-hover:text-primary transition-colors">
             {product.name}
           </h3>
-          <p className="text-sm text-muted-foreground capitalize flex items-center gap-2">
+          <div className="text-sm text-muted-foreground capitalize flex items-center gap-2">
             <span>{product.type} • {product.style}</span>
             {product.sku && (
               <Badge variant="outline" className="text-xs">
                 {product.sku}
               </Badge>
             )}
-          </p>
+          </div>
         </div>
         
         {/* Preços */}

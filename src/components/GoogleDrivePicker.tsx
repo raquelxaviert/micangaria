@@ -85,16 +85,30 @@ export default function GoogleDrivePicker({
       
       if (data.error) {
         throw new Error(data.error.message);
-      }
-
-      // Apenas imagens (filtro duplo para garantir)
+      }      // Apenas imagens (filtro duplo para garantir)
       const imageFiles = data.files?.filter((file: GoogleDriveFile) => 
         file.mimeType.startsWith('image/') && 
         !file.name.toLowerCase().includes('.tmp') // Excluir arquivos temporários
       ) || [];
 
+      // Avisar sobre arquivos .heic que podem não funcionar
+      const heicFiles = imageFiles.filter(file => 
+        file.name.toLowerCase().includes('.heic')
+      );
+      
+      if (heicFiles.length > 0) {
+        console.warn(
+          `⚠️ Encontrados ${heicFiles.length} arquivo(s) .heic que podem não ser suportados:`,
+          heicFiles.map(f => f.name)
+        );
+      }
+
       setFiles(imageFiles);
       console.log(`✅ Carregadas ${imageFiles.length} imagens do Google Drive (otimizado)`);
+      
+      if (heicFiles.length > 0) {
+        setError(`⚠️ ${heicFiles.length} arquivo(s) .heic encontrado(s). Recomendamos converter para .jpg ou .png para melhor compatibilidade.`);
+      }
       
     } catch (err: any) {
       console.error('❌ Erro ao carregar arquivos:', err);
@@ -247,10 +261,22 @@ export default function GoogleDrivePicker({
             <Badge variant="outline" className="text-xs">
               {currentSelection.length}/{maxImages}
             </Badge>
-          </DialogTitle>
-        </DialogHeader>
+          </DialogTitle>        </DialogHeader>
 
-        <div className="space-y-4">          {/* Busca e Controles */}          <div className="flex flex-col sm:flex-row gap-2">
+        <div className="space-y-4">
+          {/* Aviso sobre arquivos HEIC */}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <div className="flex items-start gap-2">
+              <ImageIcon className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm">
+                <p className="text-yellow-800 font-medium">Formato HEIC Detectado</p>
+                <p className="text-yellow-700 mt-1">
+                  Arquivos .heic (iPhone) serão automaticamente convertidos para thumbnails compatíveis. 
+                  Para melhor qualidade, converta para .jpg antes do upload.
+                </p>
+              </div>
+            </div>
+          </div>{/* Busca e Controles */}          <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
