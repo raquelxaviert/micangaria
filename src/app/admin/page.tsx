@@ -20,6 +20,10 @@ import { MultiImageUpload } from '@/components/ui/MultiImageUploadDragDropFixed'
 import { uploadImageToSupabase } from '@/lib/uploadUtils';
 import GoogleDrivePicker from '@/components/GoogleDrivePicker';
 import Image from 'next/image';
+import { AdminImageCard, AdminImagePreview } from '@/components/ui/AdminImageCard';
+import AdminProductCard from '@/components/ui/AdminProductCard';
+import { AdminProductGridSkeleton } from '@/components/ui/AdminProductSkeleton';
+import AdminPagination from '@/components/ui/AdminPagination';
 import { MultiSelectInput } from '@/components/ui/MultiSelectInput';
 import { SelectInput } from '@/components/ui/SelectInput';
 import SmartSelect from '@/components/SmartSelect';
@@ -32,17 +36,21 @@ const ADMIN_PASSWORD = 'micangaria2024'; // Em produção, usar sistema de auth 
 // Criar cliente Supabase
 const supabase = createClient();
 
-export default function AdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+export default function AdminPage() {  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [productList, setProductList] = useState<Product[]>(products);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  // Carregar produtos reais do Supabase
+  
+  // Estados para paginação e performance
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);  // Carregar produtos reais do Supabase
   const loadProductsFromSupabase = async () => {
     try {
+      setIsLoadingProducts(true);
       const { data: supabaseProducts, error } = await supabase
         .from('products')
         .select('*')
@@ -95,12 +103,13 @@ export default function AdminPage() {
           show_materials_badge: p.show_materials_badge,
           show_sizes_badge: p.show_sizes_badge
         }));
-        
-        console.log('✅ Produtos carregados do Supabase:', convertedProducts.length);
+          console.log('✅ Produtos carregados do Supabase:', convertedProducts.length);
         setProductList(convertedProducts);
       }
     } catch (error) {
       console.log('⚠️ Erro ao carregar produtos do Supabase:', error);
+    } finally {
+      setIsLoadingProducts(false);
     }
   };
 
@@ -269,8 +278,7 @@ export default function AdminPage() {
                 <span>Configurações</span>
               </TabsTrigger>
             </TabsList>
-          </div>
-          <TabsContent value="products">
+          </div>          <TabsContent value="products">
             <ProductManagement 
               products={productList} 
               setProducts={setProductList}
@@ -279,6 +287,11 @@ export default function AdminPage() {
               isCreateDialogOpen={isCreateDialogOpen}
               setIsCreateDialogOpen={setIsCreateDialogOpen}
               loadProductsFromSupabase={loadProductsFromSupabase}
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              setItemsPerPage={setItemsPerPage}
+              isLoadingProducts={isLoadingProducts}
             />
           </TabsContent>
 
@@ -315,7 +328,12 @@ function ProductManagement({
   setEditingProduct,
   isCreateDialogOpen,
   setIsCreateDialogOpen,
-  loadProductsFromSupabase
+  loadProductsFromSupabase,
+  currentPage,
+  setCurrentPage,
+  itemsPerPage,
+  setItemsPerPage,
+  isLoadingProducts
 }: {
   products: Product[];
   setProducts: (products: Product[]) => void;
@@ -324,6 +342,11 @@ function ProductManagement({
   isCreateDialogOpen: boolean;
   setIsCreateDialogOpen: (open: boolean) => void;
   loadProductsFromSupabase: () => Promise<void>;
+  currentPage: number;
+  setCurrentPage: (page: number) => void;
+  itemsPerPage: number;
+  setItemsPerPage: (itemsPerPage: number) => void;
+  isLoadingProducts: boolean;
 }) {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -331,6 +354,17 @@ function ProductManagement({
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Paginação
+  const totalProducts = filteredProducts.length;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
+  // Reset página quando filtro muda
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, setCurrentPage]);
   const handleDeleteProduct = async (productId: string) => {
     if (confirm('Tem certeza que deseja excluir este produto?')) {
       try {
@@ -418,122 +452,68 @@ function ProductManagement({
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-      </div>
-
-      {/* Lista de Produtos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProducts.map(product => (
-          <Card key={product.id} className="overflow-hidden">            <div className="aspect-square relative">
-              {(product.gallery_urls && product.gallery_urls.length > 0) ? (
-                <Image
-                  src={product.gallery_urls[0]}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
+      </div>      {/* Lista de Produtos */}
+      {isLoadingProducts ? (
+        <AdminProductGridSkeleton count={itemsPerPage} />
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {paginatedProducts.map(product => (
+              <AdminProductCard
+                key={product.id}
+                product={product}
+                onEdit={setEditingProduct}
+                onDelete={handleDeleteProduct}
+              >
+                <ProductForm 
+                  product={product}
+                  onSave={(updatedProduct) => {
+                    setProducts(products.map(p => p.id === product.id ? updatedProduct : p));
+                    
+                    // Recarregar produtos do Supabase após editar
+                    setTimeout(() => {
+                      loadProductsFromSupabase();
+                    }, 1000);
+                  }}
                 />
-              ) : (product.imageUrl || product.image_url) ? (
-                <Image
-                  src={product.imageUrl || product.image_url || '/products/placeholder.jpg'}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-muted flex items-center justify-center">
-                  <Package className="w-12 h-12 text-muted-foreground" />
-                </div>
-              )}
-              <div className="absolute top-2 right-2 flex gap-2">
-                {product.isNewArrival && (
-                  <Badge className="bg-accent text-accent-foreground">NOVO</Badge>
-                )}
-                {product.isPromotion && (
-                  <Badge className="bg-destructive text-destructive-foreground">OFERTA</Badge>
-                )}
-              </div>
-            </div>
-              <CardContent className="p-4 space-y-3">
-              <div>
-                <h3 className="font-semibold text-lg line-clamp-1">{product.name}</h3>
-                <p className="text-sm text-muted-foreground capitalize">
-                  {product.type} • {product.style}
-                  {product.sku && (
-                    <span className="ml-2 bg-muted px-2 py-0.5 rounded text-xs">
-                      {product.sku}
-                    </span>
-                  )}
-                </p>
-              </div>
-              
-              <div className="space-y-1">
-                <div className="text-xl font-bold text-primary">
-                  R$ {product.price.toFixed(2)}
-                </div>
-                {product.compare_at_price && product.compare_at_price > product.price && (
-                  <div className="text-sm text-muted-foreground line-through">
-                    De: R$ {product.compare_at_price.toFixed(2)}
-                  </div>
-                )}
-              </div>
+              </AdminProductCard>
+            ))}
+          </div>
 
-              {/* Tags rápidas */}
-              <div className="flex flex-wrap gap-1">
-                {product.colors?.slice(0, 3).map((color, idx) => (
-                  <span key={idx} className="text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded">
-                    {color}
-                  </span>
-                ))}
-                {product.colors?.length > 3 && (
-                  <span className="text-xs text-muted-foreground">+{product.colors.length - 3}</span>
-                )}
-              </div>
+          {/* Paginação */}
+          {totalProducts > itemsPerPage && (
+            <AdminPagination
+              currentPage={currentPage}
+              totalItems={totalProducts}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={setItemsPerPage}
+            />
+          )}
 
-              {/* Status do estoque */}
-              {product.track_inventory && (
-                <div className="text-xs text-muted-foreground">
-                  Estoque: {product.quantity || 0} unidades
-                </div>
-              )}
-              
-              <div className="flex gap-2">                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Edit className="w-4 h-4 mr-1" />
-                      Editar
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent
-                    className="fixed inset-0 m-auto w-[95vw] max-h-[90vh] overflow-y-auto sm:inset-auto sm:left-1/2 sm:top-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-auto sm:max-w-2xl"
-                  >
-                    <DialogHeader>
-                      <DialogTitle>Editar Produto</DialogTitle>
-                    </DialogHeader>
-                    <ProductForm 
-                      product={product}
-                      onSave={(updatedProduct) => {
-                        setProducts(products.map(p => p.id === product.id ? updatedProduct : p));
-                        
-                        // Recarregar produtos do Supabase após editar
-                        setTimeout(() => {
-                          loadProductsFromSupabase();
-                        }, 1000);
-                      }}
-                    />
-                  </DialogContent>
-                </Dialog>
-                  <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDeleteProduct(product.id)}
-                  className="text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/20 hover:border-destructive transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
+          {/* Mensagem quando não há produtos */}
+          {paginatedProducts.length === 0 && !isLoadingProducts && (
+            <div className="text-center py-12">
+              <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-muted-foreground mb-2">
+                {searchTerm ? 'Nenhum produto encontrado' : 'Nenhum produto cadastrado'}
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                {searchTerm 
+                  ? `Não foram encontrados produtos que correspondam a "${searchTerm}"`
+                  : 'Comece criando seu primeiro produto'
+                }
+              </p>
+              {!searchTerm && (
+                <Button onClick={() => setIsCreateDialogOpen(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Criar Primeiro Produto
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
@@ -1193,43 +1173,15 @@ function ProductForm({
               selectedImages={formData.gallery_urls || []}
               maxImages={5}
             />
-          </div>
-
-          {/* Preview das imagens selecionadas */}
-          {formData.gallery_urls && formData.gallery_urls.length > 0 && (
-            <div className="space-y-2">
-              <Label>Imagens Selecionadas ({formData.gallery_urls.length}/5)</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                {formData.gallery_urls.map((url: string, index: number) => (
-                  <div key={index} className="relative aspect-square">
-                    <Image
-                      src={url}
-                      alt={`Produto ${index + 1}`}
-                      fill
-                      className="object-cover rounded-lg border"
-                      sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
-                    />
-                    {index === 0 && (
-                      <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-1 py-0.5 rounded">
-                        Principal
-                      </div>
-                    )}
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-1 right-1 h-6 w-6 p-0"
-                      onClick={() => {
-                        const newImages = formData.gallery_urls.filter((_: string, i: number) => i !== index);
-                        setFormData({ ...formData, gallery_urls: newImages });
-                      }}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          </div>          {/* Preview das imagens selecionadas */}
+          <AdminImagePreview
+            images={formData.gallery_urls || []}
+            onRemove={(index) => {
+              const newImages = formData.gallery_urls.filter((_: string, i: number) => i !== index);
+              setFormData({ ...formData, gallery_urls: newImages });
+            }}
+            maxImages={5}
+          />
 
           <div>
             <Label htmlFor="alt_text">Texto Alternativo (ALT)</Label>
@@ -1943,16 +1895,19 @@ function CollectionsManagement({ products }: { products: Product[] }) {
                         className={`flex items-center justify-between p-2 rounded border transition-colors ${
                           isInCollection ? 'bg-primary/10 border-primary/30' : 'hover:bg-muted/50'
                         }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
-                            {product.imageUrl ? (
-                              <Image
+                      >                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded overflow-hidden bg-muted flex items-center justify-center">
+                            {(product.gallery_urls && product.gallery_urls.length > 0) ? (
+                              <AdminImageCard
+                                src={product.gallery_urls[0]}
+                                alt={product.name}
+                                className="w-8 h-8"
+                              />
+                            ) : product.imageUrl ? (
+                              <AdminImageCard
                                 src={product.imageUrl}
                                 alt={product.name}
-                                width={32}
-                                height={32}
-                                className="w-8 h-8 object-cover rounded"
+                                className="w-8 h-8"
                               />
                             ) : (
                               <Package className="w-4 h-4 text-muted-foreground" />
