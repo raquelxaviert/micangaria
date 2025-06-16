@@ -2,15 +2,27 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Sparkles, Info, ShoppingBag, Search, Menu, X, Gem, Briefcase } from 'lucide-react'; 
+import { Sparkles, Info, ShoppingBag, Search, Menu, X, Gem, Briefcase, User, LogOut } from 'lucide-react'; 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet';
 import { useState } from 'react';
+import { AuthModal } from '@/components/AuthModal_centered';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,7 +183,26 @@ export function Header() {
                 <Link href="/style-advisor" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap">
                   <Sparkles size={20} /> 
                   <span>Consultoria</span>
-                </Link>
+                </Link>              </li>
+              <li>
+                {user ? (
+                  <button
+                    onClick={handleSignOut}
+                    className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap cursor-pointer bg-transparent border-none p-0"
+                  >
+                    <User size={20} />
+                    <span className="hidden lg:inline">{user.user_metadata?.full_name?.split(' ')[0] || 'Usuário'}</span>
+                    <LogOut size={16} className="ml-1" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setIsAuthModalOpen(true)}
+                    className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap cursor-pointer bg-transparent border-none p-0"
+                  >
+                    <User size={20} />
+                    <span className="hidden lg:inline">Entrar</span>
+                  </button>
+                )}
               </li>
             </ul>
           </nav>
@@ -277,8 +308,31 @@ export function Header() {
                 className="h-8 w-auto"
               />
             </Link>            
-            {/* Ações do mobile: Busca */}
+            {/* Ações do mobile: Usuário e Busca */}
             <div className="flex items-center gap-2">
+              {/* Botão de Usuário no Mobile */}
+              {user ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleSignOut}
+                  className="hover:bg-primary/10"
+                  title={`Sair (${user.user_metadata?.full_name?.split(' ')[0] || 'Usuário'})`}
+                >
+                  <LogOut size={20} />
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="hover:bg-primary/10"
+                  title="Entrar"
+                >
+                  <User size={20} />
+                </Button>
+              )}
+              
               {/* Barra de pesquisa compacta no mobile */}
               <form onSubmit={handleSearch} className="relative">
                 <div className="flex items-center">
@@ -317,9 +371,14 @@ export function Header() {
                 </div>
               </form>
             </div>
-          </div>
-        </div>
+          </div>        </div>
       </div>
+      
+      {/* Modal de Autenticação */}
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+      />
     </header>
   );
 }

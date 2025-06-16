@@ -221,7 +221,27 @@ export function Header() {
                       </span>
                     )}
                   </ClientOnly>
-                </Link>
+                </Link>              </li>
+                {/* Usuário */}
+              <li>
+                {user ? (
+                  <button
+                    onClick={handleSignOut}
+                    className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap cursor-pointer bg-transparent border-none p-0"
+                  >
+                    <User size={20} />
+                    <span className="hidden lg:inline">{user.user_metadata?.full_name?.split(' ')[0] || 'Usuário'}</span>
+                    <LogOut size={16} className="ml-1" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setIsAuthModalOpen(true)}
+                    className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap cursor-pointer bg-transparent border-none p-0"
+                  >
+                    <User size={20} />
+                    <span className="hidden lg:inline">Entrar</span>
+                  </button>
+                )}
               </li>
               
               <li>
@@ -269,18 +289,28 @@ export function Header() {
                 height={32}
                 className="h-8 w-auto"
               />
-            </Link>              {/* Ações do mobile: Usuário, Sacolinha, Carrinho */}
+            </Link>            {/* Ações do mobile: Usuário, Sacolinha, Carrinho */}
             <div className="flex items-center gap-2">
-              {/* Botão de Usuário no Mobile - apenas mostrar se logado */}
-              {user && (
+              {/* Botão de Usuário no Mobile */}
+              {user ? (
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handleSignOut}
                   className="hover:bg-primary/10"
-                  title="Sair"
+                  title={`Sair (${user.user_metadata?.full_name?.split(' ')[0] || 'Usuário'})`}
                 >
                   <LogOut size={20} />
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="hover:bg-primary/10"
+                  title="Entrar"
+                >
+                  <User size={20} />
                 </Button>
               )}
 
