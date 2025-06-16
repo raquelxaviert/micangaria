@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import Image from 'next/image';
-import { Package, Loader2, RefreshCw } from 'lucide-react';
+import { Package, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { HeicConverter } from '@/lib/heicConverter';
 
 interface AdminImageCardProps {
   src: string;
@@ -132,6 +131,8 @@ export function AdminImagePreview({
   maxImages = 5,
   className 
 }: AdminImagePreviewProps) {
+  console.log('🖼️ AdminImagePreview renderizado com', images?.length || 0, 'imagens');
+  
   if (!images || images.length === 0) {
     return null;
   }
@@ -148,34 +149,34 @@ export function AdminImagePreview({
           </span>
         )}
       </div>
-      
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
         {images.map((url, index) => (
-          <div key={index} className="relative aspect-square group">
+          <div key={index} className="relative aspect-square group bg-muted rounded-lg overflow-hidden">
             <AdminImageCard
               src={url}
               alt={`Produto ${index + 1}`}
-              className="border-2 border-muted hover:border-primary/50 transition-colors"
+              className="border-2 border-muted hover:border-primary/50 transition-colors w-full h-full"
             />
             
             {/* Indicador de imagem principal */}
             {index === 0 && (
-              <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded shadow-sm">
+              <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded shadow-sm z-10">
                 Principal
               </div>
-            )}
-            
-            {/* Botão de remover */}
+            )}            {/* Botão de remover - sempre visível e clicável */}
             <button
-              onClick={() => onRemove(index)}
-              className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-sm transition-colors opacity-0 group-hover:opacity-100"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🗑️ Clicou para remover imagem índice:', index);
+                onRemove(index);
+              }}
+              className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg transition-all duration-200 z-20 cursor-pointer border-2 border-white hover:scale-110"
               title="Remover imagem"
+              type="button"
             >
               ×
             </button>
-            
-            {/* Overlay hover */}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg" />
           </div>
         ))}
       </div>

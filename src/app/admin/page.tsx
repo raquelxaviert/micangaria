@@ -1172,11 +1172,12 @@ function ProductForm({
               selectedImages={formData.gallery_urls || []}
               maxImages={5}
             />
-          </div>          {/* Preview das imagens selecionadas */}
-          <AdminImagePreview
+          </div>          {/* Preview das imagens selecionadas */}          <AdminImagePreview
             images={formData.gallery_urls || []}
             onRemove={(index) => {
-              const newImages = formData.gallery_urls.filter((_: string, i: number) => i !== index);
+              const currentImages = formData.gallery_urls || [];
+              const newImages = currentImages.filter((_: string, i: number) => i !== index);
+              console.log('🗑️ Removendo imagem:', index, 'de', currentImages.length, '→', newImages.length);
               setFormData({ ...formData, gallery_urls: newImages });
             }}
             maxImages={5}
