@@ -36,19 +36,23 @@ export default function GoogleDrivePicker({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);  const [searchTerm, setSearchTerm] = useState('');
   const [currentSelection, setCurrentSelection] = useState<string[]>(selectedImages);
-  const [isOpen, setIsOpen] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);  const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [imageLoadErrors, setImageLoadErrors] = useState<Set<string>>(new Set());
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
   const FOLDER_ID = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_FOLDER_ID || '1fp36hi2E9rLWIpW7AaegAi7i7MWn8Rvp';
   const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_API_KEY;
-
-  // Converter ID do arquivo para URL pública
+  // Converter ID do arquivo para URL pública otimizada
   const getPublicImageUrl = (fileId: string) => {
     return `https://drive.google.com/uc?export=view&id=${fileId}`;
   };
 
-  // Carregar arquivos da pasta do Google Drive
+  // Gerar thumbnail otimizado (tamanho menor para carregamento mais rápido)
+  const getThumbnailUrl = (fileId: string, size: number = 200) => {
+    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${size}`;
+  };
+  // Carregar arquivos da pasta do Google Drive (otimizado)
   const loadFiles = async () => {
     if (!API_KEY) {
       setError('Google Drive API Key não configurada. Verifique o arquivo .env.local');
@@ -59,17 +63,18 @@ export default function GoogleDrivePicker({
     setError(null);
 
     try {
-      const query = folderOnly 
-        ? `'${FOLDER_ID}' in parents and mimeType contains 'image/' and trashed=false`
-        : `'${FOLDER_ID}' in parents and trashed=false`;
+      // Query otimizada - apenas imagens, menos campos
+      const query = `'${FOLDER_ID}' in parents and mimeType contains 'image/' and trashed=false`;
 
       const response = await fetch(
         `https://www.googleapis.com/drive/v3/files?` +
         `q=${encodeURIComponent(query)}&` +
         `key=${API_KEY}&` +
-        `fields=files(id,name,mimeType,thumbnailLink,webViewLink,size,createdTime)&` +
+        // Campos mínimos necessários para melhor performance
+        `fields=files(id,name,mimeType,size,createdTime)&` +
         `orderBy=createdTime desc&` +
-        `pageSize=100`
+        // Reduzir para 50 itens iniciais para carregamento mais rápido
+        `pageSize=50`
       );
 
       if (!response.ok) {
@@ -82,13 +87,14 @@ export default function GoogleDrivePicker({
         throw new Error(data.error.message);
       }
 
-      // Filtrar apenas imagens
+      // Apenas imagens (filtro duplo para garantir)
       const imageFiles = data.files?.filter((file: GoogleDriveFile) => 
-        file.mimeType.startsWith('image/')
+        file.mimeType.startsWith('image/') && 
+        !file.name.toLowerCase().includes('.tmp') // Excluir arquivos temporários
       ) || [];
 
       setFiles(imageFiles);
-      console.log(`✅ Carregadas ${imageFiles.length} imagens do Google Drive`);
+      console.log(`✅ Carregadas ${imageFiles.length} imagens do Google Drive (otimizado)`);
       
     } catch (err: any) {
       console.error('❌ Erro ao carregar arquivos:', err);
@@ -98,9 +104,16 @@ export default function GoogleDrivePicker({
     }
   };
 
+  // Limpar cache de imagens
+  const clearImageCache = () => {
+    setLoadedImages(new Set());
+    setImageLoadErrors(new Set());
+  };
+
   // Carregar arquivos quando o dialog abrir
   useEffect(() => {
     if (isOpen) {
+      clearImageCache(); // Limpar cache ao abrir
       loadFiles();
     }
   }, [isOpen]);
@@ -314,9 +327,7 @@ export default function GoogleDrivePicker({
                 </div>
               </div>
             </div>
-          )}
-
-          {/* Status */}
+          )}          {/* Status e Performance */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
               <p className="text-red-800 text-sm">{error}</p>
@@ -327,6 +338,15 @@ export default function GoogleDrivePicker({
             <div className="flex items-center justify-center py-8">
               <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
               <span className="ml-2 text-gray-600">Carregando imagens...</span>
+            </div>
+          )}
+
+          {/* Informações de Performance */}
+          {!loading && !error && files.length > 0 && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-2">
+              <p className="text-xs text-green-800">
+                ⚡ Carregamento otimizado: {files.length} imagens • Thumbnails 200px • Lazy loading ativo
+              </p>
             </div>
           )}
 
@@ -351,18 +371,41 @@ export default function GoogleDrivePicker({
                           isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''
                         }`}
                         onClick={() => toggleSelection(file.id)}
-                      >
-                        <CardContent className="p-2">
+                      >                        <CardContent className="p-2">
                           <div className="aspect-square relative mb-2">
                             <Image
-                              src={file.thumbnailLink || publicUrl}
+                              src={getThumbnailUrl(file.id, 200)}
                               alt={file.name}
                               fill
-                              className="object-cover rounded"
+                              className="object-cover rounded transition-opacity duration-200"
                               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                              loading="lazy"
+                              placeholder="blur"
+                              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+                              onLoad={() => {
+                                setLoadedImages(prev => new Set([...prev, file.id]));
+                              }}
+                              onError={() => {
+                                setImageLoadErrors(prev => new Set([...prev, file.id]));
+                              }}
                             />
+                            
+                            {/* Loading indicator */}
+                            {!loadedImages.has(file.id) && !imageLoadErrors.has(file.id) && (
+                              <div className="absolute inset-0 bg-gray-100 rounded flex items-center justify-center">
+                                <RefreshCw className="w-4 h-4 animate-spin text-gray-400" />
+                              </div>
+                            )}
+                            
+                            {/* Error fallback */}
+                            {imageLoadErrors.has(file.id) && (
+                              <div className="absolute inset-0 bg-gray-100 rounded flex items-center justify-center">
+                                <ImageIcon className="w-4 h-4 text-gray-400" />
+                              </div>
+                            )}
+                            
                             {isSelected && (
-                              <div className="absolute top-1 right-1 bg-blue-500 text-white rounded-full p-1">
+                              <div className="absolute top-1 right-1 bg-blue-500 text-white rounded-full p-1 z-10">
                                 <Check className="w-3 h-3" />
                               </div>
                             )}
