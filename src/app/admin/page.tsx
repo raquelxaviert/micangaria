@@ -666,12 +666,42 @@ function ProductForm({
 
   // Função estável para atualizar imagens
   const handleImagesChange = useCallback((images: string[]) => {
+    console.log('🖼️ === ATUALIZANDO IMAGENS ===');
+    console.log('📥 Novas imagens recebidas:', images);
+    
+    // Garantir que temos pelo menos uma imagem
+    if (images.length === 0) {
+      setFormData(prev => ({ 
+        ...prev, 
+        imageUrl: '',
+        gallery_urls: []
+      }));
+      return;
+    }
+
+    // Separar imagem principal e galeria
     const [primaryImage, ...galleryImages] = images;
+    
+    console.log('📸 Imagem principal:', primaryImage);
+    console.log('🖼️ Imagens da galeria:', galleryImages);
+    
     setFormData(prev => ({ 
       ...prev, 
-      imageUrl: primaryImage || '',
+      imageUrl: primaryImage,
       gallery_urls: galleryImages
-    }));  }, []);
+    }));
+  }, []);
+
+  // Função para lidar com a reordenação de imagens
+  const handleImageReorder = useCallback((newOrder: string[]) => {
+    console.log('🔄 === REORDENAÇÃO DE IMAGENS ===');
+    console.log('📥 Nova ordem recebida:', newOrder);
+    
+    // Atualizar o estado com a nova ordem
+    handleImagesChange(newOrder);
+    
+    console.log('✅ Estado atualizado com nova ordem');
+  }, [handleImagesChange]);
 
   // Funções estáveis para checkboxes (evitar loop infinito)
   const handleTrackInventoryChange = useCallback((checked: boolean) => {
@@ -1215,12 +1245,11 @@ function ProductForm({
             <div className="text-xs text-muted-foreground mb-2">
               Debug: {formData.imageUrl ? 'Com imagem principal' : 'Sem imagem principal'} | 
               Galeria: {(formData.gallery_urls || []).length} imagens
-            </div>
-            <GoogleDrivePicker              onSelect={(selectedImages: string[]) => {
+            </div>            <GoogleDrivePicker              onSelect={(selectedImages: string[]) => {
                 console.log('🎯 === GOOGLE DRIVE PICKER SELEÇÃO ===');
                 console.log('📸 Imagens selecionadas do Drive:', selectedImages);
                 
-                // Obter todas as imagens atuais (incluindo image_url)
+                // Obter todas as imagens atuais
                 const allCurrentImages = [
                   ...(formData.imageUrl ? [formData.imageUrl] : []),
                   ...(formData.gallery_urls || [])
@@ -1236,20 +1265,10 @@ function ProductForm({
                 
                 console.log('🔗 Imagens únicas após adição:', uniqueImages);
                 
-                // A primeira imagem sempre será a principal
-                const [newImageUrl, ...newGalleryUrls] = uniqueImages;
-                
-                console.log('📸 Nova imagem principal será:', newImageUrl);
-                console.log('🖼️ Nova galeria será:', newGalleryUrls);
-                
-                setFormData({ 
-                  ...formData, 
-                  imageUrl: newImageUrl || '',
-                  gallery_urls: newGalleryUrls
-                });
-                
-                console.log('✅ FormData atualizado via GoogleDrive');
-                console.log('� Total de imagens:', uniqueImages.length);
+                // Usar handleImagesChange para manter consistência
+                handleImagesChange(uniqueImages);
+                  console.log('✅ FormData atualizado via GoogleDrive e handleImagesChange');
+                console.log('📊 Total de imagens:', uniqueImages.length);
                 console.log('🎯 === FIM GOOGLE DRIVE PICKER ===');
               }}
               selectedImages={(() => {
@@ -1334,54 +1353,23 @@ function ProductForm({
                   console.log('🔗 Imagens únicas:', uniqueImages);
                   console.log('🖼️ === FIM DEBUG IMAGES ===');
                   return uniqueImages;
-                })()}onReorder={(newOrder) => {
-                  console.log('🔄 === REORDENAÇÃO INICIADA ===');
-                  console.log('📥 Nova ordem recebida:', newOrder);
-                  console.log('📊 Estado atual:');
-                  console.log('  - imageUrl:', formData.imageUrl);
-                  console.log('  - gallery_urls:', formData.gallery_urls);
-                  
-                  // A primeira imagem sempre será a principal
-                  const [newImageUrl, ...newGalleryUrls] = newOrder;
-                  
-                  console.log('📤 Novo estado será:');
-                  console.log('  - newImageUrl:', newImageUrl);
-                  console.log('  - newGalleryUrls:', newGalleryUrls);
-                  
-                  setFormData({ 
-                    ...formData, 
-                    imageUrl: newImageUrl || '',
-                    gallery_urls: newGalleryUrls
-                  });
-                  
-                  console.log('✅ Estado atualizado');
-                  console.log('� === REORDENAÇÃO CONCLUÍDA ===');
-                }}
+                })()}
+                onReorder={handleImageReorder}
                 onRemove={(imageUrl) => {
+                  console.log('🗑️ === REMOÇÃO DE IMAGEM ===');
+                  console.log('🗑️ Removendo imagem:', imageUrl);
+                  
                   const allImages = [
                     ...(formData.imageUrl ? [formData.imageUrl] : []),
                     ...(formData.gallery_urls || [])
                   ];
                   
-                  const indexToRemove = allImages.indexOf(imageUrl);
-                  console.log('🗑️ Removendo imagem via reorder:', indexToRemove);
+                  // Filtrar a imagem removida e usar handleImagesChange
+                  const newImages = allImages.filter(url => url !== imageUrl);
+                  handleImagesChange(newImages);
                   
-                  if (indexToRemove === 0 && formData.imageUrl) {
-                    // Removendo a imagem principal
-                    setFormData({ 
-                      ...formData, 
-                      imageUrl: '',
-                      gallery_urls: formData.gallery_urls || []
-                    });
-                  } else {
-                    // Removendo da galeria
-                    const galleryIndex = formData.imageUrl ? indexToRemove - 1 : indexToRemove;
-                    const newGalleryUrls = (formData.gallery_urls || []).filter((_: string, i: number) => i !== galleryIndex);
-                    setFormData({ 
-                      ...formData, 
-                      gallery_urls: newGalleryUrls
-                    });
-                  }
+                  console.log('✅ Imagem removida via handleImagesChange');
+                  console.log('🗑️ === REMOÇÃO CONCLUÍDA ===');
                 }}
               />
             </div>
