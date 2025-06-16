@@ -54,16 +54,17 @@ export default function FullStorePage() {
       text: 'Além das peças incríveis, a consultoria de styling transformou meu guarda-roupa. Recomendo demais!'
     }
   ];
-  const ProductCard = ({ product }: { product: any }) => (
-    <Card className="group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95">
+  const ProductCard = ({ product }: { product: any }) => (    <Card className="group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95">
       <div className="relative overflow-hidden">
-        <Image
-          src={product.image}
-          alt={product.name}
-          width={400}
-          height={400}
-          className="w-full h-72 object-cover group-hover:scale-110 transition-transform duration-700"
-        />
+        <div className="relative h-72 w-full overflow-hidden bg-gray-50">
+          <Image
+            src={product.image}
+            alt={product.name}
+            width={400}
+            height={400}
+            className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
+          />
+        </div>
         
         {/* Badges superior esquerdo */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">

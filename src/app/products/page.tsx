@@ -17,7 +17,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { useSearchParams } from 'next/navigation';
 import { ProductCard, ProductData } from '@/components/ui/ProductCard';
 import { createClient } from '@/lib/supabase/client';
-import { testMultipleImages, testSupabaseStorageConnection } from '@/lib/imageTestUtils';
 
 interface Filters {
   type: string | null;
@@ -44,8 +43,8 @@ function convertProductToProductData(product: Product): ProductData {
     materials: product.materials || [],
     sizes: product.sizes || [],
     is_new_arrival: product.isNewArrival,
-    is_promotion: product.isPromotion,
-    promotion_details: product.promotionDetails || undefined,
+    is_promotion: product.isPromotion,    promotion_details: product.promotionDetails || undefined,
+    slug: product.slug, // Adicionar slug para URLs amigáveis
     // Badge display configuration
     show_colors_badge: product.show_colors_badge,
     show_materials_badge: product.show_materials_badge,
@@ -297,26 +296,10 @@ function ProductsContent() {
               show_sizes_badge: p.show_sizes_badge
             };
           });
-            console.log('✅ Produtos convertidos:', convertedProducts.length);
-          console.log('🔍 Primeiro produto convertido:', convertedProducts[0]);
+            console.log('✅ Produtos convertidos:', convertedProducts.length);          console.log('🔍 Primeiro produto convertido:', convertedProducts[0]);
           setProducts(convertedProducts);
           
-          // Testar conectividade das imagens (apenas em desenvolvimento)
-          if (process.env.NODE_ENV === 'development') {
-            // Testar conectividade do Supabase Storage
-            testSupabaseStorageConnection();
-            
-            // Testar algumas imagens
-            const imageUrls: string[] = [];
-            convertedProducts.forEach(p => {
-              if (p.imageUrl) imageUrls.push(p.imageUrl);
-              if (p.galleryUrls) imageUrls.push(...p.galleryUrls.slice(0, 2));
-            });
-            
-            if (imageUrls.length > 0) {
-              testMultipleImages(imageUrls.slice(0, 5)); // Testa apenas 5 imagens
-            }
-          }
+          console.log('✅ Produtos carregados com sucesso:', convertedProducts.length);
         }
       } catch (error) {
         console.error('Erro ao conectar com Supabase:', error);

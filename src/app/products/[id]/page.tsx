@@ -46,8 +46,8 @@ interface Product {
   is_on_sale: boolean;
   promotion_text: string | null;
   care_instructions: string | null;
-  created_at: string;
-  is_active: boolean;
+  created_at: string;  is_active: boolean;
+  slug?: string; // Slug for URL
 }
 
 export default function ProductPage() {
@@ -106,21 +106,41 @@ export default function ProductPage() {
 
     preloadAllImages();
   }, [product, relatedProducts]);
-
   useEffect(() => {
     const fetchProduct = async () => {
       if (!params.id) return;
 
       try {
         setLoading(true);
-        const { data: productData, error } = await supabase
+        
+        // Try to find product by slug first, then by ID
+        let productData: any = null;
+        let error: any = null;
+        
+        // First, try to find by slug
+        const { data: productBySlug, error: slugError } = await supabase
           .from('products')
           .select('*')
-          .eq('id', params.id)
+          .eq('slug', params.id)
           .eq('is_active', true)
           .single();
 
-        if (error) {
+        if (productBySlug && !slugError) {
+          productData = productBySlug;
+        } else {
+          // If not found by slug, try by ID
+          const { data: productById, error: idError } = await supabase
+            .from('products')
+            .select('*')
+            .eq('id', params.id)
+            .eq('is_active', true)
+            .single();
+          
+          productData = productById;
+          error = idError;
+        }
+
+        if (error || !productData) {
           console.error('Erro ao buscar produto:', error);
           router.push('/products');
           return;
@@ -134,7 +154,7 @@ export default function ProductPage() {
             .from('products')
             .select('*')
             .eq('is_active', true)
-            .neq('id', params.id)
+            .neq('id', productData.id) // Use the actual product ID here
             .or(`type.eq.${productData.type},style.eq.${productData.style}`)
             .limit(4);
 
@@ -154,7 +174,8 @@ export default function ProductPage() {
               sizes: Array.isArray(p.sizes) ? p.sizes : [],
               isNewArrival: p.is_new_arrival,
               isOnSale: p.is_on_sale,
-              promotionDetails: p.promotion_text || undefined
+              promotionDetails: p.promotion_text || undefined,
+              slug: p.slug // Include slug in converted data
             }));
             setRelatedProducts(convertedRelated);
           }

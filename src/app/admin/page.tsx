@@ -1201,9 +1201,8 @@ function ProductForm({
                 onReorder={(newOrder) => {
                   console.log('🔄 Nova ordem das imagens:', newOrder);
                   setFormData({ ...formData, gallery_urls: newOrder });
-                }}
-                onRemove={(imageUrl) => {
-                  const newImages = formData.gallery_urls?.filter(url => url !== imageUrl) || [];
+                }}                onRemove={(imageUrl) => {
+                  const newImages = formData.gallery_urls?.filter((url: string) => url !== imageUrl) || [];
                   console.log('🗑️ Removendo imagem via reorder:', imageUrl);
                   setFormData({ ...formData, gallery_urls: newImages });
                 }}

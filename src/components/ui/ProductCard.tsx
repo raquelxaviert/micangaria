@@ -27,9 +27,9 @@ export interface ProductData {
   is_new_arrival?: boolean; // Supabase format
   isOnSale?: boolean;
   is_on_sale?: boolean; // Supabase format
-  is_promotion?: boolean; // Supabase format
-  promotionDetails?: string;
+  is_promotion?: boolean; // Supabase format  promotionDetails?: string;
   promotion_details?: string; // Supabase format
+  slug?: string; // URL slug
   
   // Badge display configuration
   show_colors_badge?: boolean;
@@ -61,25 +61,25 @@ export function ProductCard({
     : product.imageUrl || product.image_url || '/products/placeholder.jpg';
   const isNewArrival = product.isNewArrival || product.is_new_arrival || false;
   const isOnSale = product.isOnSale || product.is_on_sale || product.is_promotion || false;
-  const promotionDetails = product.promotionDetails || product.promotion_details;
+  const promotionDetails = product.promotion_details;
   
   // Get total number of images for indicator
   const totalImages = 1 + (Array.isArray(product.gallery_urls) ? product.gallery_urls.length : 0);
     // Otimizar URL da imagem para o tamanho do card
   const optimizedImageUrl = getOptimizedImageUrl(imageUrl, IMAGE_CONFIGS.card);
   return (
-    <Card className={`group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95 w-full ${className}`}>
-      <div className="relative">
-        <Link href={`/products/${product.id}`} className="block cursor-pointer">          <div className="relative overflow-hidden">            <FastImage
-              src={optimizedImageUrl}
-              alt={product.name}
-              width={400}
-              height={400}
-              className={`w-full object-cover group-hover:scale-110 transition-transform duration-700 ${
-                variant === 'compact' ? 'h-40 sm:h-48' : 'h-72'
-              }`}
-              quality={85}
-            />
+    <Card className={`group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95 w-full ${className}`}>      <div className="relative">
+        <Link href={`/products/${product.slug || product.id}`} className="block cursor-pointer">          <div className="relative overflow-hidden">
+            <div className={`relative ${variant === 'compact' ? 'h-48 sm:h-56' : 'h-72'} w-full overflow-hidden bg-gray-50`}>
+              <FastImage
+                src={optimizedImageUrl}
+                alt={product.name}
+                width={400}
+                height={400}
+                className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
+                quality={85}
+              />
+            </div>
             
             {/* Badges superior esquerdo */}
             <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -129,7 +129,7 @@ export function ProductCard({
         </div>
       </div>
 
-      <CardContent className={`space-y-2 sm:space-y-4 ${variant === 'compact' ? 'p-2 sm:p-3' : 'p-5'}`}>        <Link href={`/products/${product.id}`} className="block cursor-pointer">          {/* Todos os badges inline em uma única linha */}
+      <CardContent className={`space-y-2 sm:space-y-4 ${variant === 'compact' ? 'p-2 sm:p-3' : 'p-5'}`}>        <Link href={`/products/${product.slug || product.id}`} className="block cursor-pointer">          {/* Todos os badges inline em uma única linha */}
           <div className="flex items-center gap-1 flex-wrap mb-2">
             {/* Badge de Material (primeiro material) - apenas se configurado para mostrar */}
             {product.show_materials_badge === true && product.materials && product.materials.length > 0 && (              <Badge variant="outline" className={`capitalize text-xs leading-none ${
