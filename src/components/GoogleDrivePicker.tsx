@@ -225,7 +225,8 @@ export default function GoogleDrivePicker({
             </Badge>
           )}
         </Button>
-      </DialogTrigger>      <DialogContent className="w-[95vw] max-w-4xl max-h-[85vh] mx-auto overflow-hidden sm:w-auto">
+      </DialogTrigger>
+      <DialogContent className="fixed inset-0 sm:inset-auto sm:top-[50%] sm:left-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] w-full h-full sm:w-[95vw] sm:max-w-4xl sm:h-[85vh] sm:max-h-[85vh] p-4 sm:p-6 overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-sm sm:text-base">
             <Folder className="w-4 h-4 sm:w-5 sm:h-5" />
