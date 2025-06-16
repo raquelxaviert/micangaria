@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { getOptimizedGoogleDriveUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
 
 interface ImageCarouselProps {
   images: string[];
@@ -24,39 +25,69 @@ export function ImageCarousel({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
-
   // Se não há imagens ou array vazio, usar placeholder
   const imageList = images && images.length > 0 ? images : ['/products/placeholder.jpg'];
 
-  // Pré-carregar imagens
+  // Otimizar URLs das imagens para diferentes tamanhos
+  const optimizedImages = imageList.map(url => ({
+    carousel: getOptimizedGoogleDriveUrl(url, IMAGE_CONFIGS.carousel),
+    zoom: getOptimizedGoogleDriveUrl(url, IMAGE_CONFIGS.zoom),
+    thumbnail: getOptimizedGoogleDriveUrl(url, IMAGE_CONFIGS.thumbnail),
+    original: url
+  }));
+  // Pré-carregar imagens de forma mais eficiente
   useEffect(() => {
     const preloadImage = (url: string) => {
-      if (preloadedImages.has(url)) return;
+      if (preloadedImages.has(url)) return Promise.resolve();
       
-      const img = new window.Image();
-      img.onload = () => {
-        setPreloadedImages(prev => new Set([...prev, url]));
-      };
-      img.src = url;
-    };
+      return new Promise<void>((resolve, reject) => {
+        const img = new window.Image();
+        img.onload = () => {
+          setPreloadedImages(prev => new Set([...prev, url]));
+          resolve();
+        };
+        img.onerror = reject;
+        img.src = url;
+      });
+    };    const preloadAllImages = async () => {
+      // Pré-carregar a imagem atual primeiro (prioridade máxima)
+      const currentImage = optimizedImages[currentIndex]?.carousel;
+      if (currentImage) await preloadImage(currentImage);
 
-    // Pré-carregar a imagem atual e a próxima
-    const currentImage = imageList[currentIndex];
-    const nextImage = imageList[(currentIndex + 1) % imageList.length];
-    
-    preloadImage(currentImage);
-    preloadImage(nextImage);
-  }, [currentIndex, imageList, preloadedImages]);
+      // Pré-carregar próxima e anterior
+      const nextImage = optimizedImages[(currentIndex + 1) % optimizedImages.length]?.carousel;
+      const prevImage = optimizedImages[(currentIndex - 1 + optimizedImages.length) % optimizedImages.length]?.carousel;
+      
+      // Pré-carregar em paralelo
+      const toPreload = [nextImage, prevImage].filter(Boolean);
+      await Promise.all(toPreload.map(img => preloadImage(img!)));
+
+      // Pré-carregar as restantes em background
+      const remainingImages = optimizedImages.filter((_, index) => {
+        return index !== currentIndex && 
+               index !== (currentIndex + 1) % optimizedImages.length && 
+               index !== (currentIndex - 1 + optimizedImages.length) % optimizedImages.length;
+      });
+
+      // Pré-carregar restantes com delay para não travar
+      remainingImages.forEach((imageSet, i) => {
+        setTimeout(() => {
+          preloadImage(imageSet.carousel);
+          if (showZoom) preloadImage(imageSet.zoom);
+        }, i * 100);
+      });
+    };    preloadAllImages();
+  }, [currentIndex, optimizedImages, preloadedImages, showZoom]);
 
   const goToPrevious = () => {
     setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? imageList.length - 1 : prevIndex - 1
+      prevIndex === 0 ? optimizedImages.length - 1 : prevIndex - 1
     );
   };
 
   const goToNext = () => {
     setCurrentIndex((prevIndex) => 
-      prevIndex === imageList.length - 1 ? 0 : prevIndex + 1
+      prevIndex === optimizedImages.length - 1 ? 0 : prevIndex + 1
     );
   };
 
@@ -83,23 +114,20 @@ export function ImageCarousel({
   return (
     <div className={`relative ${className}`}>
       {/* Main Image Display */}
-      <Card className="relative overflow-hidden bg-gray-50">
-        <div className="relative aspect-square">
+      <Card className="relative overflow-hidden bg-gray-50">        <div className="relative aspect-square">
           <Image
-            src={imageList[currentIndex]}
+            src={isZoomed ? optimizedImages[currentIndex]?.zoom : optimizedImages[currentIndex]?.carousel}
             alt={`${alt} - Imagem ${currentIndex + 1}`}
             fill
-            className={`object-cover transition-transform duration-300 ${
+            className={`object-cover transition-all duration-300 ${
               isZoomed ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'
             }`}
             onClick={() => showZoom && setIsZoomed(!isZoomed)}
             priority={currentIndex === 0}
-            quality={85}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-
-          {/* Navigation Buttons - Only show if more than 1 image */}
-          {imageList.length > 1 && (
+            quality={90}
+            sizes={isZoomed ? '1200px' : '800px'}
+          />          {/* Navigation Buttons - Only show if more than 1 image */}
+          {optimizedImages.length > 1 && (
             <>
               <Button
                 variant="outline"
@@ -131,48 +159,47 @@ export function ImageCarousel({
             >
               <ZoomIn className="h-4 w-4" />
             </Button>
-          )}
-
-          {/* Image Counter */}
-          {imageList.length > 1 && (
+          )}          {/* Image Counter */}
+          {optimizedImages.length > 1 && (
             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
-              {currentIndex + 1} / {imageList.length}
+              {currentIndex + 1} / {optimizedImages.length}
             </div>
           )}
         </div>
-      </Card>
-
-      {/* Thumbnail Navigation */}
-      {showThumbnails && imageList.length > 1 && (
-        <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
-          {imageList.map((image, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`flex-shrink-0 relative aspect-square w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                index === currentIndex 
-                  ? 'border-primary shadow-md scale-105' 
-                  : 'border-gray-200 hover:border-gray-300 hover:scale-105'
-              }`}
-            >
-              <Image
-                src={image}
-                alt={`${alt} - Thumbnail ${index + 1}`}
-                fill
-                className="object-cover"
-                sizes="64px"
-                quality={75}
-                loading={index === 0 ? "eager" : "lazy"}
-              />
-            </button>
+      </Card>      {/* Thumbnail Navigation */}
+      {showThumbnails && optimizedImages.length > 1 && (
+        <div className="flex gap-3 mt-6 overflow-x-auto pb-4 px-3 pt-2">
+          {optimizedImages.map((imageSet, index) => (
+            <div key={index} className="flex-shrink-0 p-2">
+              <button
+                onClick={() => goToSlide(index)}
+                className={`relative aspect-square w-16 h-16 rounded-lg overflow-hidden transition-all duration-200 ${
+                  index === currentIndex 
+                    ? 'ring-2 ring-primary ring-offset-2 shadow-lg transform scale-105' 
+                    : 'ring-1 ring-gray-200 hover:ring-gray-300 hover:scale-105 opacity-70 hover:opacity-90'
+                }`}
+              >
+                <Image
+                  src={imageSet.thumbnail}
+                  alt={`${alt} - Thumbnail ${index + 1}`}
+                  fill
+                  className="object-cover"
+                  sizes="64px"
+                  quality={75}
+                  loading={index === 0 ? "eager" : "lazy"}
+                />
+                {/* Overlay para imagem selecionada */}
+                {index === currentIndex && (
+                  <div className="absolute inset-0 bg-primary/10 border border-primary/20 rounded-lg" />
+                )}
+              </button>
+            </div>
           ))}
         </div>
-      )}
-
-      {/* Dots Indicator (alternative to thumbnails) */}
-      {!showThumbnails && imageList.length > 1 && (
+      )}{/* Dots Indicator (alternative to thumbnails) */}
+      {!showThumbnails && optimizedImages.length > 1 && (
         <div className="flex justify-center gap-2 mt-4">
-          {imageList.map((_, index) => (
+          {optimizedImages.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
