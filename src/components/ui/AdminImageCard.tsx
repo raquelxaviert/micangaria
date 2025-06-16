@@ -35,34 +35,32 @@ export function AdminImageCard({
   placeholder = true
 }: AdminImageCardProps) {
   const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);  // Otimizar URL do Google Drive para thumbnail
+  const [hasError, setHasError] = useState(false);  // Otimizar URL do Google Drive para thumbnail RÁPIDO
   const optimizedSrc = useCallback((url: string) => {
     if (!url) return '/products/placeholder.jpg';
     
     // Se for Google Drive, usar thumbnail otimizado
     if (url.includes('drive.google.com')) {
-      const fileId = url.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1];
+      const fileId = url.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1] || url.match(/id=([a-zA-Z0-9-_]+)/)?.[1];
       if (fileId) {
-        return `https://drive.google.com/thumbnail?id=${fileId}&sz=w400-h400-c`;
+        // Usar thumbnail que é MUITO mais rápido
+        const thumbnailUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w400-h400-c`;
+        console.log('🚀 URL otimizada:', url, '→', thumbnailUrl);
+        return thumbnailUrl;
       }
     }
     
+    console.log('📷 URL original:', url);
     return url;
   }, []);
 
   const handleLoad = useCallback(() => {
     setIsLoading(false);
     onLoad?.();
-  }, [onLoad]);
-  const handleError = useCallback(() => {
+  }, [onLoad]);  const handleError = useCallback(() => {
     setIsLoading(false);
     setHasError(true);
-    
-    // Log específico para arquivos .heic
-    if (src.toLowerCase().includes('.heic')) {
-      console.error('Arquivo .heic não suportado pelo navegador:', src);
-    }
-    
+    console.error('❌ Erro ao carregar imagem:', src);
     onError?.();
   }, [onError, src]);
 
@@ -95,9 +93,7 @@ export function AdminImageCard({
         <div className="absolute inset-0 bg-muted/50 animate-pulse rounded-lg flex items-center justify-center">
           <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
         </div>
-      )}
-
-      <Image
+      )}      <Image
         src={optimizedSrc(src)}
         alt={alt}
         fill
@@ -110,6 +106,8 @@ export function AdminImageCard({
         onLoad={handleLoad}
         onError={handleError}
         loading={priority ? "eager" : "lazy"}
+        placeholder="blur"
+        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bvCc5OHv4HabBHcWAuEMypJ8AROg7TgGmHMmKVnKcUZMnHpRcZm2eWZ6Ci1Uny/8pEV1FcrCSTLkh/bZdHN2zITKN8iO7EJJ5WZBaHWMHNQJTDx7CWy1B1LkPKr6nTnK8TBIqjsXFlBGLfV5+wZF/9k="
       />
     </div>
   );

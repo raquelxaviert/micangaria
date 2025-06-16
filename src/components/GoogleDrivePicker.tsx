@@ -91,24 +91,8 @@ export default function GoogleDrivePicker({
         !file.name.toLowerCase().includes('.tmp') // Excluir arquivos temporários
       ) || [];
 
-      // Avisar sobre arquivos .heic que podem não funcionar
-      const heicFiles = imageFiles.filter(file => 
-        file.name.toLowerCase().includes('.heic')
-      );
-      
-      if (heicFiles.length > 0) {
-        console.warn(
-          `⚠️ Encontrados ${heicFiles.length} arquivo(s) .heic que podem não ser suportados:`,
-          heicFiles.map(f => f.name)
-        );
-      }
-
       setFiles(imageFiles);
       console.log(`✅ Carregadas ${imageFiles.length} imagens do Google Drive (otimizado)`);
-      
-      if (heicFiles.length > 0) {
-        setError(`⚠️ ${heicFiles.length} arquivo(s) .heic encontrado(s). Recomendamos converter para .jpg ou .png para melhor compatibilidade.`);
-      }
       
     } catch (err: any) {
       console.error('❌ Erro ao carregar arquivos:', err);

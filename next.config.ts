@@ -70,7 +70,7 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/images/**',
       },
-      // Google Drive hostnames
+      // Google Drive hostnames otimizados
       {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
@@ -102,6 +102,11 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+    // Otimizações de performance
+    minimumCacheTTL: 60,
+    formats: ['image/webp', 'image/avif'],
+    dangerouslyAllowSVG: false,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 };
 
