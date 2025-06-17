@@ -20,6 +20,13 @@ export async function POST(request: Request) {
     // Gerar ID único para o pedido
     const orderId = `order_${Date.now()}`;
 
+    // URLs base
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
+    const successUrl = `${baseUrl}/checkout/success`;
+    const failureUrl = `${baseUrl}/checkout/failure`;
+    const pendingUrl = `${baseUrl}/checkout/pending`;
+    const webhookUrl = `${baseUrl}/api/webhooks/mercadopago`;
+
     // Criar preferência de pagamento
     const preference = new Preference(client);
     const preferenceData = {
@@ -59,11 +66,12 @@ export async function POST(request: Request) {
           free_shipping: false
         },
         back_urls: {
-          success: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002'}/checkout/success`,
-          failure: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002'}/checkout/failure`,
-          pending: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002'}/checkout/pending`
+          success: successUrl,
+          failure: failureUrl,
+          pending: pendingUrl
         },
-        notification_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002'}/api/webhooks/mercadopago`,
+        auto_return: "approved",
+        notification_url: webhookUrl,
         statement_descriptor: "MICA NGUEIRA",
         external_reference: orderId,
         payment_methods: {
