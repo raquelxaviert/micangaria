@@ -26,56 +26,71 @@ export function ImageCarousel({
   const [isZoomed, setIsZoomed] = useState(false);
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
   // Se não há imagens ou array vazio, usar placeholder
-  const imageList = images && images.length > 0 ? images : ['/products/placeholder.jpg'];
-  // Otimizar URLs das imagens para diferentes tamanhos
+  const imageList = images && images.length > 0 ? images : ['/products/placeholder.jpg'];  // Otimizar URLs das imagens para diferentes tamanhos
   const optimizedImages = imageList.map(url => ({
-    carousel: getOptimizedImageUrl(url, IMAGE_CONFIGS.carousel),
-    zoom: getOptimizedImageUrl(url, IMAGE_CONFIGS.zoom),
-    thumbnail: getOptimizedImageUrl(url, IMAGE_CONFIGS.thumbnail),
+    carousel: getOptimizedImageUrl(url, IMAGE_CONFIGS.gallery), // Para o carousel principal
+    zoom: getOptimizedImageUrl(url, IMAGE_CONFIGS.full), // Para zoom
+    thumbnail: getOptimizedImageUrl(url, IMAGE_CONFIGS.card), // Para thumbnails
     original: url
-  }));
-  // Pré-carregar imagens de forma mais eficiente
+  }));// Pré-carregar imagens de forma mais eficiente
   useEffect(() => {
     const preloadImage = (url: string) => {
       if (preloadedImages.has(url)) return Promise.resolve();
       
-      return new Promise<void>((resolve, reject) => {
+      return new Promise<void>((resolve) => {
         const img = new window.Image();
         img.onload = () => {
           setPreloadedImages(prev => new Set([...prev, url]));
           resolve();
         };
-        img.onerror = reject;
+        img.onerror = () => {
+          console.warn('Erro ao pré-carregar imagem:', url);
+          resolve(); // Resolve mesmo com erro para não bloquear
+        };
         img.src = url;
       });
-    };    const preloadAllImages = async () => {
-      // Pré-carregar a imagem atual primeiro (prioridade máxima)
-      const currentImage = optimizedImages[currentIndex]?.carousel;
-      if (currentImage) await preloadImage(currentImage);
+    };
 
-      // Pré-carregar próxima e anterior
-      const nextImage = optimizedImages[(currentIndex + 1) % optimizedImages.length]?.carousel;
-      const prevImage = optimizedImages[(currentIndex - 1 + optimizedImages.length) % optimizedImages.length]?.carousel;
-      
-      // Pré-carregar em paralelo
-      const toPreload = [nextImage, prevImage].filter(Boolean);
-      await Promise.all(toPreload.map(img => preloadImage(img!)));
+    const preloadAllImages = async () => {
+      try {
+        // Pré-carregar a imagem atual primeiro (prioridade máxima)
+        const currentImage = optimizedImages[currentIndex]?.carousel;
+        if (currentImage) await preloadImage(currentImage);
 
-      // Pré-carregar as restantes em background
-      const remainingImages = optimizedImages.filter((_, index) => {
-        return index !== currentIndex && 
-               index !== (currentIndex + 1) % optimizedImages.length && 
-               index !== (currentIndex - 1 + optimizedImages.length) % optimizedImages.length;
-      });
+        // Pré-carregar próxima e anterior
+        const nextImage = optimizedImages[(currentIndex + 1) % optimizedImages.length]?.carousel;
+        const prevImage = optimizedImages[(currentIndex - 1 + optimizedImages.length) % optimizedImages.length]?.carousel;
+        
+        // Pré-carregar em paralelo
+        const toPreload = [nextImage, prevImage].filter(Boolean);
+        await Promise.all(toPreload.map(img => preloadImage(img!)));
 
-      // Pré-carregar restantes com delay para não travar
-      remainingImages.forEach((imageSet, i) => {
-        setTimeout(() => {
-          preloadImage(imageSet.carousel);
-          if (showZoom) preloadImage(imageSet.zoom);
-        }, i * 100);
-      });
-    };    preloadAllImages();
+        // Pré-carregar as restantes em background
+        const remainingImages = optimizedImages.filter((_, index) => {
+          return index !== currentIndex && 
+                 index !== (currentIndex + 1) % optimizedImages.length && 
+                 index !== (currentIndex - 1 + optimizedImages.length) % optimizedImages.length;
+        });
+
+        // Pré-carregar restantes com delay para não travar
+        remainingImages.forEach((imageSet, i) => {
+          setTimeout(() => {
+            preloadImage(imageSet.carousel).catch(err => 
+              console.warn('Erro no preload tardio:', err)
+            );
+            if (showZoom) {
+              preloadImage(imageSet.zoom).catch(err => 
+                console.warn('Erro no preload zoom tardio:', err)
+              );
+            }
+          }, i * 100);
+        });
+      } catch (error) {
+        console.warn('Erro ao pré-carregar imagens:', error);
+      }
+    };
+
+    preloadAllImages();
   }, [currentIndex, optimizedImages, showZoom]);
 
   const goToPrevious = () => {

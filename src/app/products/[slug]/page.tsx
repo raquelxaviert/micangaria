@@ -61,23 +61,7 @@ export default function ProductPage() {
   const [activeTab, setActiveTab] = useState<'description' | 'materials' | 'care'>('description');
   const [selectedShipping, setSelectedShipping] = useState<any>(null);
   const [shippingCost, setShippingCost] = useState(0);
-  
-  const supabase = createClient();
-
-  // Handler para promises rejeitadas não tratadas
-  useEffect(() => {
-    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.warn('Promise rejeitada não tratada capturada:', event.reason);
-      event.preventDefault(); // Previne o erro padrão
-    };
-
-    window.addEventListener('unhandledrejection', handleUnhandledRejection);
-    
-    return () => {
-      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
-    };
-  }, []);
-  // Função para pré-carregar imagens
+    const supabase = createClient();// Função para pré-carregar imagens
   const preloadImage = (url: string): Promise<void> => {
     if (preloadedImages.has(url)) return Promise.resolve();
     
@@ -87,14 +71,13 @@ export default function ProductPage() {
         setPreloadedImages(prev => new Set([...prev, url]));
         resolve();
       };
-      img.onerror = (error) => {
-        console.warn('Erro ao pré-carregar imagem:', url, error);
+      img.onerror = () => {
+        console.warn('Erro ao pré-carregar imagem:', url);
         resolve(); // Resolve mesmo com erro para não bloquear
       };
       img.src = url;
     });
-  };
-  // Pré-carregar imagens do produto e produtos relacionados
+  };  // Pré-carregar imagens do produto e produtos relacionados
   useEffect(() => {
     const preloadAllImages = async () => {
       try {
@@ -112,10 +95,22 @@ export default function ProductPage() {
           ]).filter(Boolean);
 
           // Carregar todas as imagens em paralelo, apenas URLs válidas
-          await Promise.all([
-            ...productImages.filter((url): url is string => !!url).map(url => preloadImage(url)),
-            ...relatedImages.filter((url): url is string => !!url).map(url => preloadImage(url))
-          ]);
+          const allImages = [
+            ...productImages.filter((url): url is string => !!url),
+            ...relatedImages.filter((url): url is string => !!url)
+          ];
+
+          // Preload com Promise.allSettled para não falhar se uma imagem falhar
+          const results = await Promise.allSettled(
+            allImages.map(url => preloadImage(url))
+          );
+
+          // Log apenas erros, mas não quebra o fluxo
+          results.forEach((result, index) => {
+            if (result.status === 'rejected') {
+              console.warn(`Falha no preload da imagem ${allImages[index]}:`, result.reason);
+            }
+          });
         }
       } catch (error) {
         console.warn('Erro ao pré-carregar imagens:', error);
@@ -123,7 +118,7 @@ export default function ProductPage() {
     };
 
     preloadAllImages();
-  }, [product, relatedProducts]);  useEffect(() => {
+  }, [product, relatedProducts]);useEffect(() => {
     const fetchProduct = async () => {
       if (!params.slug) return;
 
@@ -213,12 +208,9 @@ export default function ProductPage() {
         router.push('/products');
       } finally {
         setLoading(false);
-      }
-    };    fetchProduct().catch(error => {
-      console.error('Erro não tratado em fetchProduct:', error);
-      setLoading(false);
-      // Não redirecionar aqui para evitar loops
-    });
+      }    };
+
+    fetchProduct();
   }, [params.slug, supabase, router]);
 
   const handleAddToCart = () => {
