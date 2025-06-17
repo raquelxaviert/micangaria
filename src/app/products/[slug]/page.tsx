@@ -188,44 +188,63 @@ export default function ProductPage() {
     };
 
     preloadAllImages();
-  }, [product, relatedProducts]);useEffect(() => {
+  }, [product, relatedProducts]);  useEffect(() => {
     const fetchProduct = async () => {
-      if (!params.slug) return;
+      if (!params.slug) {
+        console.error('Slug não fornecido');
+        router.push('/products');
+        return;
+      }      // Limpar o slug removendo espaços extras
+      const rawSlug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
+      const cleanSlug = rawSlug.trim();
+      console.log('🔍 Buscando produto com slug:', cleanSlug);
 
       try {
-        setLoading(true);
-        
+        setLoading(true);        
         // Primeiro tenta buscar por slug
+        console.log('📍 Tentando buscar por slug:', cleanSlug);
         let { data: productData, error } = await supabase
           .from('products')
           .select('*')
-          .eq('slug', params.slug)
+          .eq('slug', cleanSlug)
           .eq('is_active', true)
           .single();
 
-        // Se não encontrar por slug, tenta buscar por ID (para compatibilidade)
-        if (error && error.code === 'PGRST116') {
-          console.log('Produto não encontrado por slug, tentando por ID...');
-          const { data: productById, error: errorById } = await supabase
-            .from('products')
-            .select('*')
-            .eq('id', params.slug)
-            .eq('is_active', true)
-            .single();
-          
-          productData = productById;
-          error = errorById;
-        }
+        console.log('🔎 Resultado da busca por slug:', { productData: !!productData, error: error?.code });
 
-        if (error || !productData) {
-          console.error('Erro ao buscar produto:', {
-            error: error?.message || 'Produto não encontrado',
+        // Se não encontrar por slug, verifica se é um UUID válido antes de tentar buscar por ID
+        if (error && error.code === 'PGRST116') {
+          // Validar se o slug parece ser um UUID válido (formato UUID)
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          
+          if (uuidRegex.test(cleanSlug)) {
+            console.log('📍 Produto não encontrado por slug, tentando por ID (UUID válido)...');
+            const { data: productById, error: errorById } = await supabase
+              .from('products')
+              .select('*')
+              .eq('id', cleanSlug)
+              .eq('is_active', true)
+              .single();
+              
+            console.log('🔎 Resultado da busca por ID:', { productById: !!productById, errorById: errorById?.code });
+            
+            productData = productById;
+            error = errorById;
+          } else {
+            console.log('⚠️ Slug não é um UUID válido, não tentando buscar por ID');
+          }
+        }        if (error || !productData) {
+          console.error('Erro ao buscar produto:', error?.message || 'Produto não encontrado');
+          console.error('Detalhes do erro:', {
             code: error?.code,
-            slug: params.slug
+            slug: cleanSlug,
+            originalSlug: rawSlug,
+            details: error?.details,
+            hint: error?.hint
           });
           router.push('/products');
           return;
-        }        if (productData) {
+        }if (productData) {
           setProduct(productData);          // Se o produto foi encontrado por ID, redirecionar para a URL com slug
           if (productData.slug && params.slug !== productData.slug) {
             try {

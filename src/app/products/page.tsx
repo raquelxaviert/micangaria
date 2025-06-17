@@ -284,12 +284,12 @@ function ProductsContent() {
               imageHint: p.name.toLowerCase(),
               type: p.type,
               style: p.style,
-              colors: Array.isArray(p.colors) ? p.colors : [],
-              materials: Array.isArray(p.materials) ? p.materials : [],
+              colors: Array.isArray(p.colors) ? p.colors : [],              materials: Array.isArray(p.materials) ? p.materials : [],
               sizes: Array.isArray(p.sizes) ? p.sizes : [],
               isNewArrival: p.is_new_arrival || false,
               isPromotion: p.is_on_sale || false,
               promotionDetails: p.promotion_text || undefined,
+              slug: p.slug || p.id, // Incluir slug ou usar ID como fallback
               // Badge display configuration
               show_colors_badge: p.show_colors_badge,
               show_materials_badge: p.show_materials_badge,
