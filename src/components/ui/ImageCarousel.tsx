@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FastImage } from '@/components/ui/FastImage';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { getOptimizedImageUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
 
@@ -25,14 +25,142 @@ export function ImageCarousel({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
-  // Se não há imagens ou array vazio, usar placeholder
-  const imageList = images && images.length > 0 ? images : ['/products/placeholder.jpg'];  // Otimizar URLs das imagens para diferentes tamanhos
+    // Pan functionality states
+  const [panPosition, setPanPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [hasMoved, setHasMoved] = useState(false);
+  const imageContainerRef = useRef<HTMLDivElement>(null);// Se não há imagens ou array vazio, usar placeholder
+  const imageList = images && images.length > 0 ? images : ['/products/placeholder.jpg'];
+
+  // Otimizar URLs das imagens para diferentes tamanhos
   const optimizedImages = imageList.map(url => ({
     carousel: getOptimizedImageUrl(url, IMAGE_CONFIGS.gallery), // Para o carousel principal
     zoom: getOptimizedImageUrl(url, IMAGE_CONFIGS.full), // Para zoom
     thumbnail: getOptimizedImageUrl(url, IMAGE_CONFIGS.card), // Para thumbnails
     original: url
-  }));// Pré-carregar imagens de forma mais eficiente
+  }));
+  // Reset pan position when image changes or zoom is toggled
+  useEffect(() => {
+    setPanPosition({ x: 0, y: 0 });
+    setHasMoved(false);
+  }, [currentIndex, isZoomed]);
+
+  // Reset hasMoved when stop dragging
+  useEffect(() => {
+    if (!isDragging) {
+      // Reset hasMoved after a short delay to allow click handler to work
+      const timer = setTimeout(() => {
+        setHasMoved(false);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isDragging]);// Pan functionality handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (showZoom && !isZoomed) {
+      // Se não estiver com zoom, o clique ativa o zoom
+      return; // Deixa o click handler cuidar disso
+    }
+    
+    if (!isZoomed) return;
+    
+    setIsDragging(true);
+    setHasMoved(false);
+    setDragStart({
+      x: e.clientX - panPosition.x,
+      y: e.clientY - panPosition.y
+    });
+  };
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !isZoomed) return;
+    
+    const newX = e.clientX - dragStart.x;
+    const newY = e.clientY - dragStart.y;
+    
+    // Detecta se houve movimento significativo
+    const threshold = 5; // pixels
+    if (!hasMoved && (Math.abs(newX - panPosition.x) > threshold || Math.abs(newY - panPosition.y) > threshold)) {
+      setHasMoved(true);
+    }
+    
+    // Limit pan to reasonable bounds (image is 150% scaled)
+    const maxPan = 100; // pixels
+    const boundedX = Math.max(-maxPan, Math.min(maxPan, newX));
+    const boundedY = Math.max(-maxPan, Math.min(maxPan, newY));
+    
+    setPanPosition({ x: boundedX, y: boundedY });
+  };
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+  // Touch handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (showZoom && !isZoomed) {
+      // Se não estiver com zoom, deixa o click handler cuidar
+      return;
+    }
+    
+    if (!isZoomed) return;
+    
+    // Previne o scroll da página
+    e.preventDefault();
+    
+    const touch = e.touches[0];
+    setIsDragging(true);
+    setHasMoved(false);
+    setDragStart({
+      x: touch.clientX - panPosition.x,
+      y: touch.clientY - panPosition.y
+    });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !isZoomed) return;
+    
+    // Previne o scroll da página
+    e.preventDefault();
+    
+    const touch = e.touches[0];
+    const newX = touch.clientX - dragStart.x;
+    const newY = touch.clientY - dragStart.y;
+    
+    // Detecta se houve movimento significativo
+    const threshold = 5; // pixels
+    if (!hasMoved && (Math.abs(newX - panPosition.x) > threshold || Math.abs(newY - panPosition.y) > threshold)) {
+      setHasMoved(true);
+    }
+    
+    // Limit pan to reasonable bounds
+    const maxPan = 100;
+    const boundedX = Math.max(-maxPan, Math.min(maxPan, newX));
+    const boundedY = Math.max(-maxPan, Math.min(maxPan, newY));
+    
+    setPanPosition({ x: boundedX, y: boundedY });
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };  const handleImageClick = (e: React.MouseEvent) => {
+    if (!showZoom) return;
+    
+    // Se não estiver com zoom, ativa o zoom
+    if (!isZoomed) {
+      toggleZoom();
+      return;
+    }
+    
+    // Se estiver com zoom e não houve movimento (não foi um arrastar), desativa o zoom
+    if (isZoomed && !hasMoved) {
+      toggleZoom();
+    }
+  };
+
+  const toggleZoom = () => {
+    setIsZoomed(!isZoomed);
+    if (isZoomed) {
+      setPanPosition({ x: 0, y: 0 });
+    }
+  };// Pré-carregar imagens de forma mais eficiente
   useEffect(() => {
     const preloadImage = (url: string) => {
       if (preloadedImages.has(url)) return Promise.resolve();
@@ -108,79 +236,140 @@ export function ImageCarousel({
   const goToSlide = (index: number) => {
     setCurrentIndex(index);
   };
-
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'ArrowLeft') {
+      if (event.key === 'ArrowLeft' && !isZoomed) {
         goToPrevious();
-      } else if (event.key === 'ArrowRight') {
+      } else if (event.key === 'ArrowRight' && !isZoomed) {
         goToNext();
       } else if (event.key === 'Escape' && isZoomed) {
         setIsZoomed(false);
+        setPanPosition({ x: 0, y: 0 });
+      } else if (event.key === ' ' && showZoom) {
+        event.preventDefault();
+        toggleZoom();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isZoomed]);
+  }, [isZoomed, showZoom]);
+
+  // Global mouse up handler for pan
+  useEffect(() => {
+    if (isDragging) {
+      const handleGlobalMouseUp = () => {
+        setIsDragging(false);
+      };
+
+      const handleGlobalMouseMove = (e: MouseEvent) => {
+        if (!isDragging || !isZoomed) return;
+        
+        const newX = e.clientX - dragStart.x;
+        const newY = e.clientY - dragStart.y;
+        
+        const maxPan = 100;
+        const boundedX = Math.max(-maxPan, Math.min(maxPan, newX));
+        const boundedY = Math.max(-maxPan, Math.min(maxPan, newY));
+        
+        setPanPosition({ x: boundedX, y: boundedY });
+      };
+
+      window.addEventListener('mouseup', handleGlobalMouseUp);
+      window.addEventListener('mousemove', handleGlobalMouseMove);
+      
+      return () => {
+        window.removeEventListener('mouseup', handleGlobalMouseUp);
+        window.removeEventListener('mousemove', handleGlobalMouseMove);      };
+    }
+  }, [isDragging, isZoomed, dragStart]);
 
   return (
-    <div className={`relative ${className}`}>
-      {/* Main Image Display */}
-      <Card className="relative overflow-hidden bg-gray-50">        <div className="relative aspect-square">
-          <FastImage
-            src={isZoomed ? optimizedImages[currentIndex]?.zoom : optimizedImages[currentIndex]?.carousel}
-            alt={`${alt} - Imagem ${currentIndex + 1}`}
-            fill
-            className={`object-cover transition-all duration-300 ${
-              isZoomed ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'
+    <div className={`relative ${className}`}>{/* Main Image Display */}
+      <Card className="relative overflow-hidden bg-gray-50">
+        <div 
+          ref={imageContainerRef}
+          className="relative aspect-square"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onClick={handleImageClick}          style={{
+            cursor: showZoom 
+              ? (isZoomed 
+                  ? (isDragging ? 'grabbing' : 'grab')
+                  : 'zoom-in'
+                )
+              : 'default',
+            userSelect: 'none',
+            touchAction: isZoomed ? 'none' : 'auto'
+          }}
+        >          <div
+            className={`w-full h-full transition-all duration-300 ${
+              isZoomed ? 'scale-150' : ''
             }`}
-            priority={currentIndex === 0}
-            quality={90}
-          />
-          
-          {/* Click overlay para zoom */}
-          {showZoom && (
-            <div 
-              className="absolute inset-0 cursor-pointer"
-              onClick={() => setIsZoomed(!isZoomed)}
-            />
-          )}{/* Navigation Buttons - Only show if more than 1 image */}
-          {optimizedImages.length > 1 && (
+            style={isZoomed ? {
+              transform: `scale(1.5) translate(${panPosition.x / 1.5}px, ${panPosition.y / 1.5}px)`,
+              transition: isDragging ? 'none' : 'transform 0.3s ease'
+            } : undefined}
+          >
+            <FastImage
+              src={isZoomed ? optimizedImages[currentIndex]?.zoom : optimizedImages[currentIndex]?.carousel}
+              alt={`${alt} - Imagem ${currentIndex + 1}`}
+              fill
+              className="object-cover"
+              priority={currentIndex === 0}
+              quality={90}
+            />          </div>
+            {/* Navigation Buttons - Only show if more than 1 image and not zoomed */}
+          {optimizedImages.length > 1 && !isZoomed && (
             <>
               <Button
                 variant="outline"
                 size="icon"
                 className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white/90 backdrop-blur-sm border-0 shadow-lg"
-                onClick={goToPrevious}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToPrevious();
+                }}
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-4 w-4 text-black" />
               </Button>
 
               <Button
                 variant="outline"
                 size="icon"
                 className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white/90 backdrop-blur-sm border-0 shadow-lg"
-                onClick={goToNext}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToNext();
+                }}
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-4 w-4 text-black" />
               </Button>
             </>
-          )}
-
-          {/* Zoom Button */}
+          )}{/* Zoom Button */}
           {showZoom && (
             <Button
               variant="outline"
               size="icon"
               className="absolute top-2 right-2 bg-white/80 hover:bg-white/90 backdrop-blur-sm border-0 shadow-lg"
-              onClick={() => setIsZoomed(!isZoomed)}
+              onClick={toggleZoom}
             >
-              <ZoomIn className="h-4 w-4" />
+              {isZoomed ? <ZoomOut className="h-4 w-4" /> : <ZoomIn className="h-4 w-4" />}
             </Button>
-          )}          {/* Image Counter */}
-          {optimizedImages.length > 1 && (
+          )}          {/* Zoom hint */}
+          {isZoomed && (
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs px-3 py-1 rounded-full backdrop-blur-sm">
+              Arraste para mover
+            </div>
+          )}
+
+          {/* Image Counter */}
+          {optimizedImages.length > 1 && !isZoomed && (
             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
               {currentIndex + 1} / {optimizedImages.length}
             </div>
