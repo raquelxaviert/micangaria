@@ -61,7 +61,60 @@ export default function ProductPage() {
   const [activeTab, setActiveTab] = useState<'description' | 'materials' | 'care'>('description');
   const [selectedShipping, setSelectedShipping] = useState<any>(null);
   const [shippingCost, setShippingCost] = useState(0);
-    const supabase = createClient();// Função para pré-carregar imagens
+  const supabase = createClient();
+  // Função para formatar a descrição respeitando quebras de linha e tópicos
+  const formatDescription = (description: string) => {
+    if (!description) return null;
+    
+    const lines = description.split('\n');
+    const elements: JSX.Element[] = [];
+    
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      
+      if (trimmedLine === '') {
+        // Linha vazia - adicionar espaçamento
+        elements.push(<div key={index} className="h-2" />);      } else if (trimmedLine.startsWith('*') && !trimmedLine.match(/^\*[^*]*\*$/)) {
+        // Linha com tópico (não é negrito)
+        const topicText = trimmedLine.substring(1).trim();
+        elements.push(
+          <div key={index} className="flex items-center gap-2">
+            <span className="text-primary font-bold flex-shrink-0">•</span>
+            <span className="flex-1">{formatTextWithBold(topicText)}</span>
+          </div>
+        );
+      } else {
+        // Linha normal
+        elements.push(
+          <p key={index} className="mb-2 last:mb-0">
+            {formatTextWithBold(trimmedLine)}
+          </p>
+        );
+      }
+    });
+    
+    return elements;
+  };
+
+  // Função auxiliar para processar texto com negrito (*texto*)
+  const formatTextWithBold = (text: string) => {
+    const parts = text.split(/(\*[^*]+\*)/g);
+    
+    return parts.map((part, index) => {
+      if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+        // Remove os asteriscos e aplica negrito
+        const boldText = part.substring(1, part.length - 1);
+        return (
+          <strong key={index} className="font-semibold">
+            {boldText}
+          </strong>
+        );
+      } else {
+        // Texto normal
+        return part;
+      }
+    });
+  };// Função para pré-carregar imagens
   const preloadImage = (url: string): Promise<void> => {
     if (preloadedImages.has(url)) return Promise.resolve();
     
@@ -507,13 +560,12 @@ export default function ProductPage() {
                     ))}
                   </nav>
                 </div>
-                
-                <div className="p-4">
+                  <div className="p-4">
                   {activeTab === 'description' && (
                     <div className="prose prose-sm max-w-none">
-                      <p className="text-muted-foreground leading-relaxed">
-                        {product.description}
-                      </p>
+                      <div className="text-muted-foreground leading-relaxed space-y-2">
+                        {formatDescription(product.description)}
+                      </div>
                     </div>
                   )}
 
@@ -540,12 +592,11 @@ export default function ProductPage() {
 
                   {activeTab === 'care' && (
                     <div>
-                      <h4 className="font-semibold mb-2">Cuidados Especiais:</h4>
-                      {product.care_instructions ? (
+                      <h4 className="font-semibold mb-2">Cuidados Especiais:</h4>                      {product.care_instructions ? (
                         <div className="prose prose-sm max-w-none">
-                          <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                            {product.care_instructions}
-                          </p>
+                          <div className="text-muted-foreground leading-relaxed space-y-2">
+                            {formatDescription(product.care_instructions)}
+                          </div>
                         </div>
                       ) : (
                         <div>
