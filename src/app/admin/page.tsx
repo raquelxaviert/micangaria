@@ -25,6 +25,7 @@ import { AdminImageCard, AdminImagePreview } from '@/components/ui/AdminImageCar
 import AdminProductCard from '@/components/ui/AdminProductCard';
 import { AdminProductGridSkeleton } from '@/components/ui/AdminProductSkeleton';
 import AdminPagination from '@/components/ui/AdminPagination';
+import { MobileCardPreview } from '@/components/ui/MobileCardPreview';
 import { MultiSelectInput } from '@/components/ui/MultiSelectInput';
 import { SelectInput } from '@/components/ui/SelectInput';
 import SmartSelect from '@/components/SmartSelect';
@@ -597,7 +598,9 @@ function ProductForm({
       show_materials_section: true,
       show_care_section: true,
       alt_text: '',
-      category_id: null
+      category_id: null,
+      image_position_x: 50,
+      image_position_y: 50
     };
 
     // Se há um produto para edição, mesclar com os dados padrão
@@ -630,6 +633,12 @@ function ProductForm({
   const [galleryData, setGalleryData] = useState<{ urls: string[]; files: File[] }>({
     urls: product?.gallery_urls || [],
     files: []
+  });
+
+  // Estado para o posicionamento da imagem de capa no card mobile
+  const [imagePosition, setImagePosition] = useState({ 
+    x: product?.image_position_x || 50, 
+    y: product?.image_position_y || 50 
   });
 
   // Hook para metadados de produtos (tipos e estilos inteligentes)
@@ -1221,6 +1230,53 @@ function ProductForm({
             value={formData.alt_text || ''}
             onChange={(e) => setFormData({ ...formData, alt_text: e.target.value })}
             placeholder="Descrição das imagens para acessibilidade"
+          />
+        </div>
+      </div>
+
+      {/* Preview Mobile Card */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">📱 Preview Mobile Card</h3>
+          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Preview em tempo real</span>
+        </div>
+        
+        <div className="bg-blue-50/30 p-4 rounded-lg">
+          <p className="text-sm text-muted-foreground mb-4">
+            Veja como seu produto aparecerá nos cards mobile e ajuste o posicionamento da imagem de capa para destacar a melhor parte do produto.
+          </p>
+          
+          <MobileCardPreview
+            product={{
+              name: formData.name || 'Nome do Produto',
+              price: formData.price || 0,
+              image_url: (() => {
+                const allImages = [
+                  ...(imageData.url ? [imageData.url] : []),
+                  ...galleryData.urls
+                ];
+                return allImages[0] || '';
+              })(),
+              type: formData.type,
+              style: formData.style,
+              materials: formData.materials,
+              is_new_arrival: formData.is_new_arrival,
+              is_on_sale: formData.is_on_sale,
+              promotion_text: formData.promotion_text
+            }}
+            initialPosition={{
+              x: formData.image_position_x || 50,
+              y: formData.image_position_y || 50
+            }}
+            onPositionChange={(position) => {
+              setImagePosition(position);
+              setFormData(prev => ({
+                ...prev,
+                image_position_x: position.x,
+                image_position_y: position.y
+              }));
+              console.log('📱 Image position updated:', position);
+            }}
           />
         </div>
       </div>{/* Inventário e Controle - Seção opcional */}

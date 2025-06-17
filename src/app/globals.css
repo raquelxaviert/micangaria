@@ -427,10 +427,15 @@ html {
 
 /* Garantir corte uniforme e aspecto consistente das imagens dos cards */
 .product-card-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: var(--image-position-x, center) var(--image-position-y, center);
   transition: transform 0.7s ease;
 }
 
@@ -438,17 +443,16 @@ html {
 .product-card-image-container {
   position: relative;
   width: 100%;
-  padding-top: 100%; /* Square ratio */
+  padding-top: 100%; /* Square ratio (1:1) como na página do produto */
   overflow: hidden;
   background-color: #f5f5f5;
 }
 
-/* Responsividade mobile - proporção mais retangular */
+/* Responsividade mobile - mesma proporção quadrada do desktop */
 @media (max-width: 640px) {
   .product-card-image-container {
-    padding-top: 75%; /* More compact ratio on mobile */
+    padding-top: 100%; /* 1:1 ratio on mobile - same as desktop */
     height: 0;
-    padding-bottom: 75%;
   }
   
   .product-card-image {
@@ -460,21 +464,19 @@ html {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center;
+    object-position: var(--image-position-x, center) var(--image-position-y, center);
   }
 }
 
 /* Variante compacta */
 .product-card-image-container.compact {
-  padding-top: 100%; /* Square ratio for compact variant */
+  padding-top: 100%; /* Square ratio for compact variant - consistent with regular */
 }
 
 @media (max-width: 640px) {
   .product-card-image-container.compact {
-    padding-top: 75%; /* More compact ratio on mobile */
-    height: 0;
-    padding-bottom: 75%;
-  }
+    padding-top: 100%; /* 1:1 ratio on mobile - same as desktop */
+    height: 0;  }
   
   .product-card-image-container.compact .product-card-image {
     position: absolute;
@@ -484,7 +486,6 @@ html {
     bottom: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    object-position: center;
+    object-fit: cover;    object-position: var(--image-position-x, center) var(--image-position-y, center);
   }
 }

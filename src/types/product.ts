@@ -41,8 +41,10 @@ export type Product = {
   gallery_storage_paths: string[] | null;  care_instructions: string | null;
   show_colors_badge: boolean;
   show_materials_badge: boolean;
-  show_sizes_badge: boolean;
-  show_materials_section: boolean;
+  show_sizes_badge: boolean;  show_materials_section: boolean;
   show_care_section: boolean;
   images_optimized: boolean;
+  // Posicionamento da imagem de capa no card mobile
+  image_position_x: number | null;
+  image_position_y: number | null;
 };
