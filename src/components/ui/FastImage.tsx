@@ -38,9 +38,14 @@ export function FastImage({
   onLoad,
   onError,
   priority = false,
-}: FastImageProps) {
-  const [imageError, setImageError] = useState(false);
+}: FastImageProps) {  const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Reset loading state when src changes
+  useEffect(() => {
+    setIsLoading(true);
+    setImageError(false);
+  }, [src]);
 
   // Se for URL do Supabase, usar img direto para evitar timeout
   const useDirectImage = isSupabaseStorageUrl(src);
@@ -66,16 +71,6 @@ export function FastImage({
       }
     }
   };
-
-  // Placeholder enquanto carrega
-  if (isLoading && placeholder === 'blur') {
-    return (
-      <div className={`${className} bg-gray-200 animate-pulse flex items-center justify-center`}>
-        <div className="w-8 h-8 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
   // Se deu erro, mostrar placeholder
   if (imageError) {
     return (
@@ -96,8 +91,6 @@ export function FastImage({
           width: fill ? '100%' : width,
           height: fill ? '100%' : height,
           objectFit: 'cover',
-          transition: 'opacity 0.3s ease',
-          opacity: isLoading ? 0 : 1,
         }}
         onLoad={handleLoad}
         onError={handleError}

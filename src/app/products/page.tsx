@@ -506,8 +506,7 @@ function ProductsContent() {
                     ? "grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6" 
                     : "force-masonry-3-cols"
                 }
-              >
-                {filteredProducts.map(product => (
+              >                {filteredProducts.map((product, index) => (
                   <div 
                     key={product.id} 
                     style={
@@ -526,6 +525,7 @@ function ProductsContent() {
                       showRating={false}
                       showDescription={true}
                       className="hover:-translate-y-1 sm:hover:-translate-y-2 w-full"
+                      priority={index < 6} // Priorizar primeiras 6 imagens
                     />
                   </div>
                 ))}

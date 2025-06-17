@@ -3,7 +3,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FastImage } from '@/components/ui/FastImage';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Eye, ShoppingCart, Star, Check } from 'lucide-react';
 import { CartManager } from '@/lib/ecommerce';
@@ -44,6 +44,7 @@ interface ProductCardProps {
   showColors?: boolean;
   showRating?: boolean;
   className?: string;
+  priority?: boolean; // Para priorizar o carregamento das primeiras imagens
 }
 
 export function ProductCard({ 
@@ -53,7 +54,8 @@ export function ProductCard({
   showDescription = false,
   showColors = false,
   showRating = false,
-  className = ''
+  className = '',
+  priority = false
 }: ProductCardProps) {
   const [isInCart, setIsInCart] = useState(false);
   
@@ -84,13 +86,15 @@ export function ProductCard({
   
   return (
     <Card className={`group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95 w-full ${className}`}>      <div className="relative">
-        <Link href={`/products/${product.slug || product.id}`} className="block cursor-pointer">          <div className="relative overflow-hidden">            <div className={`product-card-image-container ${variant === 'compact' ? 'compact' : ''}`}>
-              <FastImage
+        <Link href={`/products/${product.slug || product.id}`} className="block cursor-pointer">          <div className="relative overflow-hidden">            <div className={`product-card-image-container ${variant === 'compact' ? 'compact' : ''} bg-gray-50`}>
+              <Image
                 src={optimizedImageUrl}
                 alt={product.name}
                 fill={true}
-                className="product-card-image group-hover:scale-110 transition-transform duration-700"
-                quality={85}
+                className="product-card-image group-hover:scale-110 transition-transform duration-700 object-cover"
+                quality={priority ? 85 : 80}
+                priority={priority}
+                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               />
             </div>
             
