@@ -101,8 +101,7 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-    ],
-    // Otimizações de performance
+    ],    // Otimizações de performance
     minimumCacheTTL: 60,
     formats: ['image/webp', 'image/avif'],
     dangerouslyAllowSVG: false,

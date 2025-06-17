@@ -48,25 +48,27 @@ export function getOptimizedGoogleDriveUrl(
     return url; // Retorna URL original se não for do Google Drive
   }
 
-  const { width = 800, height = 800, quality = 90 } = config;
+  const { width = 400, height = 400 } = config;
+  
+  // Para Google Drive, usar URLs mais rápidas com tamanhos específicos
+  const size = Math.max(width, height);
+  let driveSize = 400; // default
+  
+  if (size <= 150) driveSize = 150;
+  else if (size <= 250) driveSize = 250;
+  else if (size <= 400) driveSize = 400;
+  else if (size <= 800) driveSize = 800;
+  else driveSize = 1600;
 
-  const params = new URLSearchParams({
-    id: fileId,
-    export: 'view',
-    ...(width && { w: width.toString() }),
-    ...(height && { h: height.toString() }),
-    ...(quality && { q: quality.toString() })
-  });
-
-  return `https://drive.google.com/uc?${params.toString()}`;
+  return `https://drive.google.com/thumbnail?id=${fileId}&sz=s${driveSize}`;
 }
 
 /**
  * Configurações predefinidas para diferentes contextos
  */
 export const IMAGE_CONFIGS = {
-  thumbnail: { width: 80, height: 80, quality: 75 },
-  card: { width: 300, height: 300, quality: 80 },
+  thumbnail: { width: 80, height: 80, quality: 70 },
+  card: { width: 250, height: 250, quality: 75 },
   gallery: { width: 600, height: 600, quality: 85 },
   full: { width: 1200, height: 1200, quality: 95 }
 };

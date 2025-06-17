@@ -3,14 +3,85 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Eye, ShoppingCart, Star, Check } from 'lucide-react';
 import { CartManager } from '@/lib/ecommerce';
 import { getOptimizedImageUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
 import { useState, useEffect } from 'react';
+import { useImagePreload } from '@/hooks/useImagePreload';
 
-// Interface genérica para produto - suporta tanto Supabase quanto mock
+// Componente de imagem confiável com fallback
+const ReliableImage = ({ src, alt, className, priority = false }: {
+  src: string;
+  alt: string;
+  className?: string;
+  priority?: boolean;
+}) => {
+  const [imageSrc, setImageSrc] = useState(src);
+  const [imageError, setImageError] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+
+  // Reset quando src muda
+  useEffect(() => {
+    setImageSrc(src);
+    setImageError(false);
+    setLoading(true);
+    setRetryCount(0);
+  }, [src]);
+
+  // Fallback para imagem original se a otimizada falhar
+  const handleError = () => {
+    if (retryCount < 2) {
+      // Tentar novamente após um delay
+      setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+        setLoading(true);
+        setImageError(false);
+      }, 1000 * (retryCount + 1)); // Delay progressivo
+    } else {
+      // Após tentativas, mostrar erro
+      setImageError(true);
+      setLoading(false);
+    }
+  };
+
+  const handleLoad = () => {
+    setLoading(false);
+    setImageError(false);
+  };
+
+  if (imageError) {
+    return (
+      <div className={`${className} bg-gray-100 flex items-center justify-center`}>
+        <div className="text-center text-gray-400 p-4">
+          <div className="text-2xl mb-2">📷</div>
+          <div className="text-xs">Imagem indisponível</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`${className} bg-gray-50 relative overflow-hidden`}>
+      {loading && (
+        <div className="absolute inset-0 bg-gray-50 flex items-center justify-center z-10">
+          <div className="w-6 h-6 border-2 border-gray-300 border-t-primary rounded-full animate-spin"></div>
+        </div>
+      )}
+      <img
+        key={`${imageSrc}-${retryCount}`} // Force remount on retry
+        src={imageSrc}
+        alt={alt}
+        className="w-full h-full object-cover transition-opacity duration-300"
+        style={{ opacity: loading ? 0 : 1 }}
+        onLoad={handleLoad}
+        onError={handleError}
+        loading={priority ? 'eager' : 'lazy'}
+      />
+    </div>
+  );
+};
 export interface ProductData {
   id: string;
   name: string;
@@ -59,11 +130,21 @@ export function ProductCard({
 }: ProductCardProps) {
   const [isInCart, setIsInCart] = useState(false);
   
-  // Verificar se o produto está no carrinho
+  // Normalize product data to handle both formats
+  const imageUrl = product.image_url || product.imageUrl || (product.gallery_urls && product.gallery_urls[0]) || '/products/placeholder.jpg';
+  const isNewArrival = product.isNewArrival || product.is_new_arrival || false;
+  const isOnSale = product.isOnSale || product.is_on_sale || product.is_promotion || false;
+  const promotionDetails = product.promotion_details;
+  // Get total number of images for indicator
+  const totalImages = 1 + (Array.isArray(product.gallery_urls) ? product.gallery_urls.length : 0);
+  // Otimizar URL da imagem para o tamanho do card
+  const optimizedImageUrl = getOptimizedImageUrl(imageUrl, IMAGE_CONFIGS.card);
+    // Verificar se o produto está no carrinho
   useEffect(() => {
     setIsInCart(CartManager.isInCart(product.id));
   }, [product.id]);
-
+  // Preload da imagem se for prioritária
+  const { isPreloaded } = useImagePreload(optimizedImageUrl, priority);
   // Listener para mudanças no carrinho
   useEffect(() => {
     const handleCartChange = () => {
@@ -74,27 +155,14 @@ export function ProductCard({
     return () => window.removeEventListener('cartChanged', handleCartChange);
   }, [product.id]);
 
-  // Normalize product data to handle both formats
-  const imageUrl = product.image_url || product.imageUrl || (product.gallery_urls && product.gallery_urls[0]) || '/products/placeholder.jpg';
-  const isNewArrival = product.isNewArrival || product.is_new_arrival || false;
-  const isOnSale = product.isOnSale || product.is_on_sale || product.is_promotion || false;
-  const promotionDetails = product.promotion_details;
-    // Get total number of images for indicator
-  const totalImages = 1 + (Array.isArray(product.gallery_urls) ? product.gallery_urls.length : 0);
-    // Otimizar URL da imagem para o tamanho do card
-  const optimizedImageUrl = getOptimizedImageUrl(imageUrl, IMAGE_CONFIGS.card);
-  
   return (
     <Card className={`group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95 w-full ${className}`}>      <div className="relative">
-        <Link href={`/products/${product.slug || product.id}`} className="block cursor-pointer">          <div className="relative overflow-hidden">            <div className={`product-card-image-container ${variant === 'compact' ? 'compact' : ''} bg-gray-50`}>
-              <Image
+        <Link href={`/products/${product.slug || product.id}`} className="block cursor-pointer">          <div className="relative overflow-hidden">            <div className={`product-card-image-container ${variant === 'compact' ? 'compact' : ''}`}>
+              <ReliableImage
                 src={optimizedImageUrl}
                 alt={product.name}
-                fill={true}
-                className="product-card-image group-hover:scale-110 transition-transform duration-700 object-cover"
-                quality={priority ? 85 : 80}
+                className="product-card-image group-hover:scale-110 transition-transform duration-700 w-full h-full"
                 priority={priority}
-                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               />
             </div>
             
