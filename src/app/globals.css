@@ -136,26 +136,22 @@
   
   .animate-float {
     animation: float 3s ease-in-out infinite;
-  }
-
-  /* Updated for product card image on mobile */
-  @media (max-width: 640px) { /* Using 'sm' breakpoint for mobile */
+  }  /* Product card image on mobile */
+  @media (max-width: 640px) {
     .product-card-image-container {
       position: relative;
       width: 100%;
-      aspect-ratio: 1 / 1; /* Maintain a square aspect ratio */
-      overflow: hidden; /* Explicitly hide overflow */
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
     }
 
-    .product-card-image-container .product-card-image {
-      display: block;
+    .product-card-image {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      object-fit: contain; /* Changed from cover to contain */
-      object-position: center; /* Centering for contain */
+      object-fit: cover;
     }
   }
 }
@@ -448,9 +444,7 @@ html {
   box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--primary));
 }
 
-/* ========== PRODUCT CARDS - CORTE UNIFORME DAS IMAGENS ========== */
-
-/* Garantir corte uniforme e aspecto consistente das imagens dos cards */
+/* Product card image styling */
 .product-card-image {
   position: absolute;
   top: 0;
@@ -460,7 +454,6 @@ html {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: var(--image-position-x, center) var(--image-position-y, center);
   transition: transform 0.7s ease;
 }
 
@@ -468,15 +461,15 @@ html {
 .product-card-image-container {
   position: relative;
   width: 100%;
-  padding-top: 100%; /* Square ratio (1:1) como na página do produto */
+  padding-top: 100%; /* Square ratio (1:1) */
   overflow: hidden;
   background-color: #f5f5f5;
 }
 
-/* Responsividade mobile - mesma proporção quadrada do desktop */
+/* Responsividade mobile */
 @media (max-width: 640px) {
   .product-card-image-container {
-    padding-top: 100%; /* 1:1 ratio on mobile - same as desktop */
+    padding-top: 100%; /* 1:1 ratio on mobile */
     height: 0;
   }
   
@@ -489,19 +482,19 @@ html {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: var(--image-position-x, center) var(--image-position-y, center);
   }
 }
 
 /* Variante compacta */
 .product-card-image-container.compact {
-  padding-top: 100%; /* Square ratio for compact variant - consistent with regular */
+  padding-top: 100%; /* Square ratio for compact variant */
 }
 
 @media (max-width: 640px) {
   .product-card-image-container.compact {
-    padding-top: 100%; /* 1:1 ratio on mobile - same as desktop */
-    height: 0;  }
+    padding-top: 100%; /* 1:1 ratio on mobile */
+    height: 0;
+  }
   
   .product-card-image-container.compact .product-card-image {
     position: absolute;
@@ -511,6 +504,6 @@ html {
     bottom: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;    object-position: var(--image-position-x, center) var(--image-position-y, center);
+    object-fit: cover;
   }
 }

@@ -29,14 +29,10 @@ export interface ProductData {
   is_promotion?: boolean; // Supabase format  promotionDetails?: string;
   promotion_details?: string; // Supabase format
   slug?: string; // URL slug
-    // Badge display configuration
+  // Badge display configuration
   show_colors_badge?: boolean;
   show_materials_badge?: boolean;
   show_sizes_badge?: boolean;
-  
-  // Image positioning for mobile cards
-  image_position_x?: number;
-  image_position_y?: number;
 }
 
 interface ProductCardProps {
@@ -62,26 +58,17 @@ export function ProductCard({
   const isNewArrival = product.isNewArrival || product.is_new_arrival || false;
   const isOnSale = product.isOnSale || product.is_on_sale || product.is_promotion || false;
   const promotionDetails = product.promotion_details;
-  
-  // Get total number of images for indicator
+    // Get total number of images for indicator
   const totalImages = 1 + (Array.isArray(product.gallery_urls) ? product.gallery_urls.length : 0);
     // Otimizar URL da imagem para o tamanho do card
   const optimizedImageUrl = getOptimizedImageUrl(imageUrl, IMAGE_CONFIGS.card);
+  
   return (
     <Card className={`group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95 w-full ${className}`}>      <div className="relative">
-        <Link href={`/products/${product.slug || product.id}`} className="block cursor-pointer">          <div className="relative overflow-hidden">
-            <div 
-              className={`product-card-image-container ${variant === 'compact' ? 'compact' : ''}`}
-              style={{
-                '--image-position-x': `${product.image_position_x || 50}%`,
-                '--image-position-y': `${product.image_position_y || 50}%`
-              } as React.CSSProperties}
-            >
+        <Link href={`/products/${product.slug || product.id}`} className="block cursor-pointer">          <div className="relative overflow-hidden">            <div className={`product-card-image-container ${variant === 'compact' ? 'compact' : ''}`}>
               <FastImage
                 src={optimizedImageUrl}
                 alt={product.name}
-                width={400}
-                height={400}
                 fill={true}
                 className="product-card-image group-hover:scale-110 transition-transform duration-700"
                 quality={85}

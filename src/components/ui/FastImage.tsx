@@ -16,8 +16,7 @@ interface FastImageProps {
   placeholder?: 'blur' | 'empty';
   blurDataURL?: string;
   onLoad?: () => void;
-  onError?: () => void;
-  priority?: boolean;
+  onError?: () => void;  priority?: boolean;
 }
 
 /**
@@ -87,16 +86,13 @@ export function FastImage({
         </div>
       </div>
     );
-  }
-
-  // Para URLs do Supabase, usar img direto
+  }  // Para URLs do Supabase, usar img direto
   if (useDirectImage) {
     return (
       <img
         src={src}
         alt={alt}
-        className={className}
-        style={{
+        className={className}        style={{
           width: fill ? '100%' : width,
           height: fill ? '100%' : height,
           objectFit: 'cover',
