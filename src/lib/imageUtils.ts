@@ -65,6 +65,7 @@ export function getOptimizedGoogleDriveUrl(
  * Configurações predefinidas para diferentes contextos
  */
 export const IMAGE_CONFIGS = {
+  thumbnail: { width: 80, height: 80, quality: 80 },
   card: { width: 400, height: 400, quality: 85 },
   gallery: { width: 800, height: 800, quality: 90 },
   full: { width: 1200, height: 1200, quality: 95 }

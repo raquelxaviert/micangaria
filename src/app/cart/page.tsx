@@ -12,7 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Trash2, ShoppingCart, CreditCard, Truck } from 'lucide-react';
 import { CartManager, CartItem } from '@/lib/ecommerce';
-import Image from 'next/image';
+import { FastImage } from '@/components/ui/FastImage';
+import { getOptimizedImageUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
 import { useToast } from '@/hooks/use-toast';
 
 export default function CartPage() {
@@ -85,13 +86,15 @@ export default function CartPage() {
             {cartItems.map((item) => (
               <Card key={item.productId}>
                 <CardContent className="p-4">
-                  <div className="flex gap-4">
-                    <div className="w-20 h-20 relative rounded-lg overflow-hidden flex-shrink-0">
-                      <Image
-                        src={item.imageUrl}
+                  <div className="flex gap-4">                    <div className="w-20 h-20 relative rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
+                      <FastImage
+                        src={getOptimizedImageUrl(item.imageUrl, IMAGE_CONFIGS.thumbnail)}
                         alt={item.name}
                         fill
-                        className="object-cover"
+                        className="object-cover transition-opacity duration-300"
+                        quality={80}
+                        priority={true}
+                        placeholder="empty"
                       />
                     </div>
                     
