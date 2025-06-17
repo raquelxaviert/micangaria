@@ -9,9 +9,30 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRight, ShoppingBag, Heart, Star, Truck, CreditCard, Sparkles, Eye, ShoppingCart, Plus } from 'lucide-react';
 import CollectionSection from '@/components/CollectionSection';
 import CategoriesSection from '@/components/CategoriesSection';
-import { ReliableImage } from '@/components/ui/ReliableImage';
+import { Product } from '@/lib/placeholder-data';
+import { useState, useEffect } from 'react';
+import { ReliableImage } from '@/components/ui/FastReliableImage';
 
 export default function FullStorePage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/products');
+        const data = await response.json();
+        setProducts(data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   const benefits = [
     { 
       icon: Truck, 
@@ -22,34 +43,26 @@ export default function FullStorePage() {
       icon: CreditCard, 
       title: 'Pagamento Seguro', 
       description: 'Parcele em até 12x no cartão ou pague no PIX com desconto.' 
-    }  ];
-
-  const ProductCard = ({ product }: { product: any }) => (
-    <Card className="group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95">      <div className="relative overflow-hidden">
-        <div className="product-card-image-container">
+    }  ];  const ProductCard = ({ product }: { product: Product }) => (
+    <Card className="group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95">
+      <div className="relative overflow-hidden">        <div className="product-card-image-container">
           <ReliableImage
-            src={product.image}
+            src={product.imageUrl || product.image_url || '/products/placeholder.jpg'}
             alt={product.name}
-            className="product-card-image group-hover:scale-110 transition-transform duration-700 w-full h-full"
-            priority={false}
+            className="product-card-image group-hover:scale-110 transition-transform duration-700 w-full h-full object-cover"
           />
         </div>
         
         {/* Badges superior esquerdo */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
-          {product.isNew && (
+          {product.isNewArrival && (
             <Badge className="bg-green-500 text-white font-semibold px-3 py-1 shadow-lg">
               NOVO
             </Badge>
           )}
-          {product.isOffer && (
+          {product.isPromotion && (
             <Badge className="bg-red-500 text-white font-semibold px-3 py-1 shadow-lg">
-              OFERTA
-            </Badge>
-          )}
-          {product.discount && (
-            <Badge className="bg-primary text-white font-semibold px-3 py-1 shadow-lg">
-              -{product.discount}%
+              {product.promotionDetails || 'OFERTA'}
             </Badge>
           )}
         </div>
@@ -84,15 +97,6 @@ export default function FullStorePage() {
             </Button>
           </div>
         </div>
-
-        {/* Badge de estoque baixo */}
-        {product.lowStock && (
-          <div className="absolute bottom-3 left-3">
-            <Badge variant="destructive" className="bg-orange-500 text-white font-semibold">
-              Últimas unidades!
-            </Badge>
-          </div>
-        )}
       </div>
 
       <CardContent className="p-5 space-y-4">
@@ -125,50 +129,19 @@ export default function FullStorePage() {
           {product.description}
         </p>
 
-        {/* Avaliação */}
-        {product.rating && (
-          <div className="flex items-center gap-2">
-            <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <Star 
-                  key={i} 
-                  className={`w-3 h-3 ${i < Math.floor(product.rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} 
-                />
-              ))}
-            </div>
-            <span className="text-xs text-muted-foreground">
-              ({product.reviewCount || 0} avaliações)
-            </span>
-          </div>
-        )}
-
         {/* Preços */}
         <div className="space-y-2">
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold text-primary">
               R$ {product.price?.toFixed(2).replace('.', ',') || '0,00'}
             </span>
-            {product.originalPrice && product.originalPrice > product.price && (
+            {product.compare_at_price && product.compare_at_price > product.price && (
               <span className="text-sm text-muted-foreground line-through">
-                R$ {product.originalPrice.toFixed(2).replace('.', ',')}
+                R$ {product.compare_at_price.toFixed(2).replace('.', ',')}
               </span>
             )}
           </div>
-          
-          {/* Parcelamento */}
-          {product.installments && (
-            <p className="text-xs text-muted-foreground">
-              ou {product.installments}x de R$ {(product.price / product.installments).toFixed(2).replace('.', ',')}
-            </p>
-          )}
         </div>
-
-        {/* Texto da oferta */}
-        {product.offerText && (
-          <p className="text-sm font-medium text-red-600 bg-red-50 px-3 py-2 rounded-lg">
-            {product.offerText}
-          </p>
-        )}
 
         {/* Botões de ação */}
         <div className="flex gap-2 pt-2">
@@ -188,14 +161,6 @@ export default function FullStorePage() {
             Adicionar
           </Button>
         </div>
-
-        {/* Informações extras */}
-        {product.fastShipping && (
-          <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 px-3 py-2 rounded-lg">
-            <Truck className="w-3 h-3" />
-            <span>Entrega rápida disponível</span>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
@@ -333,6 +298,34 @@ export default function FullStorePage() {
               Não enviamos spam. Você pode cancelar a qualquer momento.
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* Seção de Produtos */}
+      <section className="py-12">
+        <div className="container mx-auto px-4">
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {Array.from({ length: 8 }).map((_, index) => (
+                <div key={index} className="animate-pulse">
+                  <div className="bg-gray-200 rounded-lg aspect-square"></div>
+                  <div className="mt-4 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {products.map((product) => (
+                <ProductCard 
+                  key={product.id} 
+                  product={product}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

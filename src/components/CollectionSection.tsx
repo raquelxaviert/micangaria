@@ -98,8 +98,13 @@ export default function CollectionSection({
             </p>
           )}
         </div>        <div className="columns-2 lg:columns-3 gap-4 sm:gap-6 space-y-4 sm:space-y-6 mb-12">
-          {products.map((product) => (            <div key={product.id} className="break-inside-avoid mb-4 sm:mb-6">
-              <ProductCard product={product} variant="compact" showDescription={true} />
+          {products.map((product, index) => (            <div key={product.id} className="break-inside-avoid mb-4 sm:mb-6">
+              <ProductCard 
+                product={product} 
+                variant="compact" 
+                showDescription={true} 
+                priority={index < 3} // Priorizar primeiras 3 imagens
+              />
             </div>
           ))}
         </div>

@@ -9,7 +9,7 @@ import { CartManager } from '@/lib/ecommerce';
 import { getOptimizedImageUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
 import { useState, useEffect } from 'react';
 import { useImagePreload } from '@/hooks/useImagePreload';
-import { ReliableImage } from '@/components/ui/ReliableImage';
+import { ReliableImage } from '@/components/ui/FastReliableImage';
 
 // Interface genérica para produto - suporta tanto Supabase quanto mock
 export interface ProductData {
