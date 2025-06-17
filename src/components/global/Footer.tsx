@@ -35,7 +35,7 @@ export function Footer() {
           {/* Copyright */}
           <div className="text-center">
             <p>&copy; {currentYear ?? new Date().getFullYear()} RÜGE. Todos os direitos reservados.</p>
-            <p className="text-sm mt-2">Inspirado na cultura, feito com amor.</p>
+            <p className="text-sm mt-2">We don't whisper. We RÜGE.</p>
           </div>
         </div>
       </div>

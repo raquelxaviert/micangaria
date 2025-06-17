@@ -6,54 +6,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, ShoppingBag, Heart, Star, Truck, Shield, CreditCard, RefreshCw, Sparkles, Eye, ShoppingCart, Plus } from 'lucide-react';
+import { ArrowRight, ShoppingBag, Heart, Star, Truck, CreditCard, Sparkles, Eye, ShoppingCart, Plus } from 'lucide-react';
 import CollectionSection from '@/components/CollectionSection';
 import CategoriesSection from '@/components/CategoriesSection';
 
 export default function FullStorePage() {
   const benefits = [
     { 
-      icon: Shield, 
-      title: 'Qualidade Garantida', 
-      description: 'Materiais selecionados e acabamento impecável em cada peça criada.' 
-    },
-    { 
       icon: Truck, 
       title: 'Entrega Rápida', 
       description: 'Frete grátis para todo Brasil e entrega expressa disponível.' 
     },
     { 
-      icon: RefreshCw, 
-      title: 'Troca Fácil', 
-      description: '30 dias para trocas e devoluções sem complicações.' 
-    },
-    { 
       icon: CreditCard, 
       title: 'Pagamento Seguro', 
       description: 'Parcele em até 12x no cartão ou pague no PIX com desconto.' 
-    }
-  ];
+    }  ];
 
-  const testimonials = [
-    {
-      name: 'Ana Beatriz',
-      location: 'São Paulo, SP',
-      product: 'Vestido Vintage Anos 80',
-      text: 'Maria Clara tem um olhar único para peças especiais! Encontrei o vestido perfeito para meu evento.'
-    },
-    {
-      name: 'Carolina Mendes', 
-      location: 'Rio de Janeiro, RJ',
-      product: 'Blusa Vintage Saint Laurent',
-      text: 'A curadoria é impecável. Cada peça tem história e personalidade. Simplesmente apaixonada!'
-    },
-    {
-      name: 'Juliana Santos',
-      location: 'Belo Horizonte, MG',
-      product: 'Consultoria de Styling',
-      text: 'Além das peças incríveis, a consultoria de styling transformou meu guarda-roupa. Recomendo demais!'
-    }
-  ];  const ProductCard = ({ product }: { product: any }) => (
+  const ProductCard = ({ product }: { product: any }) => (
     <Card className="group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95">
       <div className="relative overflow-hidden">
         <div className="product-card-image-container">
@@ -279,15 +249,14 @@ export default function FullStorePage() {
           </div>
         </section>
       </Link>
-      {/* Featured Products Section - Agora usando dados reais do Supabase */}
-      <CollectionSection 
+      {/* Featured Products Section - Agora usando dados reais do Supabase */}      <CollectionSection 
         collectionSlug="pecas-selecionadas"
         title="Peças Selecionadas"
         badgeText="Curadoria Especial"
         badgeColor="#780116" // Added badgeColor
         description="Tesouros únicos cuidadosamente garimpados para criar looks autênticos e atemporais."
         maxProducts={6}
-      />      {/* Categories Section - Agora usando dados reais do Supabase */}
+      />{/* Categories Section - Agora usando dados reais do Supabase */}
       <CategoriesSection />
 
       {/* Benefits Section */}
@@ -298,10 +267,10 @@ export default function FullStorePage() {
               Por que escolher a RÜGE?
             </Badge>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-headline mb-4 sm:mb-6">
-              Qualidade que Você Pode Confiar
+              Curadoria Autêntica
             </h2>
             <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
-              Cada peça é cuidadosamente selecionada com dedicação, materiais de qualidade e técnicas modernas.
+              Cada peça é escolhida a dedo com olhar atento para o que é único e estiloso com história.
             </p>
           </div>
           
@@ -325,48 +294,9 @@ export default function FullStorePage() {
         title="Recém-chegados!"
         badgeText="Novidades"
         badgeColor="#16a34a"
-        description="As últimas adições à nossa coleção cuidadosamente curada."
+        description="As últimas adições à nossa coleção."
         maxProducts={5}
-      />
-
-      {/* Testimonials Section */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-muted/30">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-headline mb-4 sm:mb-6">
-              Depoimentos
-            </h2>
-            <p className="text-lg sm:text-xl text-muted-foreground">
-              O que Nossos Clientes Dizem
-            </p>
-            <p className="text-muted-foreground mt-2">
-              A satisfação dos nossos clientes é nossa maior recompensa.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-0 bg-white/60 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <div className="flex items-center mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <blockquote className="text-sm text-muted-foreground mb-4">
-                    "{testimonial.text}"
-                  </blockquote>
-                  <div>
-                    <div className="font-semibold">{testimonial.name}</div>
-                    <div className="text-sm text-muted-foreground">{testimonial.location}</div>
-                    <div className="text-xs text-primary mt-1">{testimonial.product}</div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>      {/* Promotions Section - Agora usando dados reais do Supabase */}      <CollectionSection 
+      />      {/* Promotions Section - Agora usando dados reais do Supabase */}<CollectionSection 
         collectionSlug="promocoes-especiais"
         title="Ofertas imperdíveis por tempo limitado. Não perca!"
         badgeText="Promoções Especiais"

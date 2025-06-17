@@ -249,42 +249,6 @@ export const products: Product[] = [
   },
 ];
 
-// Dados dos testemunhos
-export const testimonials = [
-  {
-    id: '1',
-    name: 'Ana Beatriz',
-    age: 28,
-    text: 'A consultoria da Maria Clara transformou meu guarda-roupa! Agora sei exatamente como usar minhas peças vintage para criar looks únicos.',
-    avatar: '/testimonials/ana.jpg',
-    rating: 5,
-  },
-  {
-    id: '2',
-    name: 'Juliana Santos',
-    age: 35,
-    text: 'As peças da RÜGE são incríveis! Cada uma conta uma história. Meu vestido anos 80 é sempre elogiado onde vou.',
-    avatar: '/testimonials/juliana.jpg',
-    rating: 5,
-  },
-  {
-    id: '3',
-    name: 'Carla Mendes',
-    age: 42,
-    text: 'Finalmente encontrei um brechó que entende de moda! A curadoria é impecável e o atendimento é personalizado.',
-    avatar: '/testimonials/carla.jpg',
-    rating: 5,
-  },
-  {
-    id: '4',
-    name: 'Fernanda Lima',
-    age: 31,
-    text: 'A RÜGE mudou minha relação com a moda. Agora valorizo peças com história e personalidade. Recomendo de olhos fechados!',
-    avatar: '/testimonials/fernanda.jpg',
-    rating: 5,
-  },
-];
-
 // Categorias de produtos
 export const categories = [
   { name: 'acessórios', label: 'Acessórios', count: 17 },

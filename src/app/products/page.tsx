@@ -393,10 +393,10 @@ function ProductsContent() {
               Nossa Coleção Completa
             </Badge>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-headline text-primary mb-4">
-              Encontre Sua Preciosidade
+              Comece a garimpar...
             </h1>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
-              Explore nossa coleção cuidadosamente curada de acessórios únicos, cada peça conta uma história.
+              Descubra nossa coleção de produtos selecionados com carinho, cada peça é uma expressão única de estilo. Navegue, filtre e encontre o que mais combina com você.
             </p>
           </div>
 
