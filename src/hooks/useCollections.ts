@@ -22,6 +22,8 @@ export interface CollectionProduct {
   description: string;
   price: number;
   imageUrl: string;
+  image_url?: string; // Formato Supabase compatível
+  gallery_urls?: string[];
   type: string;
   style: string;
   colors: string[];
@@ -30,6 +32,7 @@ export interface CollectionProduct {
   isActive: boolean;
   isNewArrival?: boolean;
   isOnSale?: boolean;
+  slug?: string; // Adicionar slug
   // Badge display configuration
   show_colors_badge?: boolean;
   show_materials_badge?: boolean;
@@ -176,6 +179,7 @@ export function useCollections() {
           description: product.description,
           price: product.price,
           imageUrl: product.image_url,
+          image_url: product.image_url, // Formato Supabase compatível
           gallery_urls: product.gallery_urls || [],
           type: product.type,
           style: product.style,
@@ -185,6 +189,7 @@ export function useCollections() {
           isActive: product.is_active,
           isNewArrival: product.is_new_arrival,
           isOnSale: product.is_on_sale,
+          slug: product.slug || product.id, // Incluir slug com fallback para ID
           // Badge display configuration
           show_colors_badge: product.show_colors_badge,
           show_materials_badge: product.show_materials_badge,
