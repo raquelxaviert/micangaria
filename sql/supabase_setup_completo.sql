@@ -105,25 +105,9 @@ CREATE TRIGGER auto_generate_sku
 -- 7. FUNÇÃO PARA GERAR URL DE IMAGEM
 -- ==============================================
 
-CREATE OR REPLACE FUNCTION generate_image_url()
-RETURNS TRIGGER AS $$
-BEGIN
-  -- Se tem path do storage, gerar URL completa
-  IF NEW.image_storage_path IS NOT NULL AND NEW.image_storage_path != '' THEN
-    NEW.image_url = 'https://koduoglrfzronbcgqrjc.supabase.co/storage/v1/object/public/product-images/' || NEW.image_storage_path;
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Remover trigger existente se houver
+-- Remover função e trigger que não são mais necessários
 DROP TRIGGER IF EXISTS update_image_url ON products;
-
--- Criar trigger para URL de imagem
-CREATE TRIGGER update_image_url
-  BEFORE INSERT OR UPDATE ON products
-  FOR EACH ROW
-  EXECUTE FUNCTION generate_image_url();
+DROP FUNCTION IF EXISTS generate_image_url();
 
 -- ==============================================
 -- 8. RECRIAR VIEWS QUE DEPENDEM DE PRODUCTS

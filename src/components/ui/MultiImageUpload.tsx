@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Upload, X, Image as ImageIcon, Plus, Move, ArrowUp, ArrowDown, GripVertical } from 'lucide-react';
@@ -31,11 +31,14 @@ export function MultiImageUpload({
   accept = 'image/*',
   maxSize = 5 
 }: MultiImageUploadProps) {
-  const [imageItems, setImageItems] = useState<ImageItem[]>(
-    images.map(url => ({ url }))
-  );
+  const [imageItems, setImageItems] = useState<ImageItem[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Atualizar items quando images mudar
+  useEffect(() => {
+    setImageItems(images.map(url => ({ url })));
+  }, [images]);
 
   const updateParent = (items: ImageItem[]) => {
     const urls = items.map(item => item.url);
@@ -50,19 +53,11 @@ export function MultiImageUpload({
     const filesToProcess = newFiles.slice(0, remainingSlots);
 
     for (const file of filesToProcess) {
-      // Validar tipo de arquivo
-      if (!file.type.startsWith('image/')) {
-        alert('Por favor, selecione apenas arquivos de imagem.');
-        continue;
-      }
-
-      // Validar tamanho
       if (file.size > maxSize * 1024 * 1024) {
-        alert(`O arquivo ${file.name} deve ter no máximo ${maxSize}MB.`);
+        alert(`O arquivo ${file.name} excede o tamanho máximo de ${maxSize}MB`);
         continue;
       }
 
-      // Criar preview temporário
       const tempItem: ImageItem = {
         url: URL.createObjectURL(file),
         isUploading: true,
@@ -70,40 +65,38 @@ export function MultiImageUpload({
         file
       };
 
-      const newItems = [...imageItems, tempItem];
-      setImageItems(newItems);
+      setImageItems(prev => [...prev, tempItem]);
 
       try {
-        // Upload para Supabase
-        const uploadResult = await uploadImageToSupabase(file);
-          if (uploadResult.success && uploadResult.url) {
-          // Substituir item temporário pelo final
-          const updatedItems = imageItems.map(item => 
+        const supabase = createClient();
+        const { data, error } = await supabase.storage
+          .from('product-imgs')
+          .upload(`temp/${Date.now()}-${file.name}`, file, {
+            cacheControl: '3600',
+            upsert: true
+          });
+
+        if (error) throw error;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-imgs')
+          .getPublicUrl(data.path);
+
+        setImageItems(prev => 
+          prev.map(item => 
             item.url === tempItem.url 
-              ? { url: uploadResult.url!, isUploading: false, isTemp: false }
+              ? { ...item, url: publicUrl, isUploading: false, isTemp: false }
               : item
-          );
-          // Não duplicar - apenas atualizar o item existente
-          setImageItems(updatedItems);
-          updateParent(updatedItems);
-        } else {
-          // Upload falhou, usar imagem local
-          const fallbackUrl = `/products/${file.name}`;
-          const updatedItems = imageItems.map(item => 
-            item.url === tempItem.url 
-              ? { url: fallbackUrl, isUploading: false, isTemp: false }
-              : item
-          );
-          setImageItems(updatedItems);
-          updateParent(updatedItems);
-          alert(`Upload falhou: ${uploadResult.error}. Usando imagem local como fallback.`);
-        }
+          )
+        );
+
+        updateParent(imageItems.map(item => 
+          item.url === tempItem.url ? publicUrl : item.url
+        ));
+
       } catch (error) {
         console.error('Erro no upload:', error);
-        // Remover item que falhou
-        const filteredItems = imageItems.filter(item => item.url !== tempItem.url);
-        setImageItems(filteredItems);
-        updateParent(filteredItems);
+        setImageItems(prev => prev.filter(item => item.url !== tempItem.url));
         alert(`Erro ao fazer upload de ${file.name}`);
       }
     }
@@ -128,8 +121,9 @@ export function MultiImageUpload({
   const removeImage = (index: number) => {
     const newItems = imageItems.filter((_, i) => i !== index);
     setImageItems(newItems);
-    updateParent(newItems);
+    updateParent(newItems.map(item => item.url));
   };
+
   const moveImage = (fromIndex: number, toIndex: number) => {
     if (toIndex < 0 || toIndex >= imageItems.length) return;
     
@@ -138,7 +132,7 @@ export function MultiImageUpload({
     newItems.splice(toIndex, 0, movedItem);
     
     setImageItems(newItems);
-    updateParent(newItems);
+    updateParent(newItems.map(item => item.url));
   };
 
   const moveImageUp = (index: number) => {
@@ -165,127 +159,86 @@ export function MultiImageUpload({
   };
 
   return (
-    <div className="space-y-4">      {/* Existing Images */}
+    <div className="space-y-4">
+      {/* Lista de Imagens */}
       {imageItems.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-sm font-medium text-gray-700">
-              Imagens do Produto ({imageItems.length}/{maxImages})
-            </h4>
-            <div className="text-xs text-gray-500">
-              Arraste ou use as setas para reordenar
-            </div>
-          </div>
-          
-          <div className="space-y-3">
-            {imageItems.map((item, index) => (
-              <Card key={index} className="relative overflow-hidden">
-                <CardContent className="p-0">
-                  <div className="flex items-center gap-3 p-3">
-                    {/* Image Preview */}                    <div className="relative w-20 h-20 flex-shrink-0">
-                      <Image
-                        src={getOptimizedImageUrl(item.url, IMAGE_CONFIGS.thumbnail)}
-                        alt={`Produto ${index + 1}`}
-                        fill
-                        className="object-cover rounded-lg"
-                        sizes="80px"
-                        quality={75}
-                      />
-                      
-                      {/* Loading overlay */}
-                      {item.isUploading && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                        </div>
-                      )}
-
-                      {/* Primary image indicator */}
-                      {index === 0 && (
-                        <div className="absolute -top-1 -left-1 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full font-medium">
-                          Principal
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Image Info and Controls */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium truncate">
-                            Imagem {index + 1}
-                            {index === 0 && <span className="text-primary ml-1">(Principal)</span>}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {item.isUploading ? 'Enviando...' : 'Pronta'}
-                          </p>
-                        </div>
-
-                        {/* Move Controls */}
-                        <div className="flex items-center gap-1">
-                          {/* Drag handle */}
-                          <div className="p-1 cursor-move text-gray-400 hover:text-gray-600">
-                            <GripVertical className="h-4 w-4" />
-                          </div>
-
-                          {/* Up/Down buttons */}
-                          <div className="flex flex-col">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0"
-                              onClick={() => moveImageUp(index)}
-                              disabled={index === 0}
-                              title="Mover para cima"
-                            >
-                              <ArrowUp className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0"
-                              onClick={() => moveImageDown(index)}
-                              disabled={index === imageItems.length - 1}
-                              title="Mover para baixo"
-                            >
-                              <ArrowDown className="h-3 w-3" />
-                            </Button>
-                          </div>
-
-                          {/* Make primary button */}
-                          {index !== 0 && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 text-xs"
-                              onClick={() => makeImagePrimary(index)}
-                              title="Tornar principal"
-                            >
-                              Principal
-                            </Button>
-                          )}
-                          
-                          {/* Remove button */}
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onClick={() => removeImage(index)}
-                            title="Remover imagem"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {imageItems.map((item, index) => (
+            <Card key={item.url} className="relative group">
+              <CardContent className="p-2">
+                <div className="relative aspect-square">
+                  <Image
+                    src={getOptimizedImageUrl(item.url, IMAGE_CONFIGS.card)}
+                    alt={`Imagem ${index + 1}`}
+                    fill
+                    className="object-cover rounded-md"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                  />
+                  
+                  {/* Overlay com controles */}
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-white hover:text-white hover:bg-white/20"
+                      onClick={() => removeImage(index)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                    
+                    {index > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-white hover:text-white hover:bg-white/20"
+                        onClick={() => moveImageUp(index)}
+                      >
+                        <ArrowUp className="w-4 h-4" />
+                      </Button>
+                    )}
+                    
+                    {index < imageItems.length - 1 && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-white hover:text-white hover:bg-white/20"
+                        onClick={() => moveImageDown(index)}
+                      >
+                        <ArrowDown className="w-4 h-4" />
+                      </Button>
+                    )}
+                    
+                    {index > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-white hover:text-white hover:bg-white/20"
+                        onClick={() => makeImagePrimary(index)}
+                      >
+                        <Move className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  
+                  {/* Badge de carregamento */}
+                  {item.isUploading && (
+                    <div className="absolute inset-0 bg-black/50 rounded-md flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                    </div>
+                  )}
+                  
+                  {/* Badge de posição */}
+                  <div className="absolute top-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                    {index + 1}/{imageItems.length}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
 
-      {/* Upload Area */}
+      {/* Área de Upload */}
       {imageItems.length < maxImages && (
         <Card 
           className={`border-2 border-dashed transition-colors cursor-pointer ${
@@ -332,75 +285,6 @@ export function MultiImageUpload({
           </CardContent>
         </Card>
       )}
-
-      {/* Quick Select from Existing */}
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-gray-700">Ou selecione imagens existentes:</p>
-        <div className="grid grid-cols-4 gap-2">
-          {[
-            '/products/colar.jpg',
-            '/products/brinco.jpg',
-            '/products/pulseira.jpg',
-            '/products/anel.jpg',
-            '/products/conjunto_colares.jpg',
-            '/products/conjunto_pulseiras.jpg',
-            '/products/sandalia.jpg',
-            '/products/cinto.jpg'
-          ].map((imagePath, index) => (
-            <button
-              key={index}
-              type="button"
-              className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all hover:scale-105 ${
-                imageItems.some(item => item.url === imagePath)
-                  ? 'border-blue-400 ring-2 ring-blue-200' 
-                  : 'border-gray-200 hover:border-blue-300'
-              }`}
-              onClick={() => {
-                if (imageItems.length < maxImages && !imageItems.some(item => item.url === imagePath)) {
-                  const newItems = [...imageItems, { url: imagePath }];
-                  setImageItems(newItems);
-                  updateParent(newItems);
-                }
-              }}
-              disabled={imageItems.length >= maxImages}
-            >              <Image
-                src={getOptimizedImageUrl(imagePath, IMAGE_CONFIGS.thumbnail)}
-                alt={`Opção ${index + 1}`}
-                fill
-                className="object-cover"
-                sizes="80px"
-                quality={75}
-              />
-              {imageItems.some(item => item.url === imagePath) && (
-                <div className="absolute inset-0 bg-blue-400 bg-opacity-30 flex items-center justify-center">
-                  <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                    <div className="w-3 h-3 bg-white rounded-full"></div>
-                  </div>
-                </div>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-start gap-3">
-          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-            <ImageIcon className="w-3 h-3 text-white" />
-          </div>
-          <div>
-            <p className="text-sm text-blue-800 font-medium mb-1">
-              Múltiplas Imagens por Produto
-            </p>
-            <p className="text-xs text-blue-700">
-              • A primeira imagem será exibida como principal nos cards de produto<br />
-              • Use as setas para reordenar as imagens<br />
-              • Upload automático para Supabase Storage com URLs permanentes
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

@@ -37,7 +37,7 @@ export default function GoogleDrivePicker({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentSelection, setCurrentSelection] = useState<string[]>(selectedImages);
+  const [currentSelection, setCurrentSelection] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -47,6 +47,13 @@ export default function GoogleDrivePicker({
 
   const FOLDER_ID = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_FOLDER_ID || '1fp36hi2E9rLWIpW7AaegAi7i7MWn8Rvp';
   const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_API_KEY;
+
+  // Reset selection quando o modal abre/fecha
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentSelection(selectedImages);
+    }
+  }, [isOpen, selectedImages]);
 
   // Função para pré-carregar imagens
   const preloadImage = (url: string): Promise<void> => {
@@ -170,11 +177,6 @@ export default function GoogleDrivePicker({
     setCurrentSelection(selectedImages);
     setIsOpen(false);
   };
-
-  // Reset selection quando selectedImages mudam
-  useEffect(() => {
-    setCurrentSelection(selectedImages);
-  }, [selectedImages]);
 
   // Função para lidar com seleção de arquivos
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {

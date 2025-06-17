@@ -5,6 +5,8 @@ import { Footer } from '@/components/global/Footer';
 import { Toaster } from "@/components/ui/toaster";
 import { ClientProviders } from '@/components/providers/ClientProviders';
 import { headers } from 'next/headers';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export const metadata: Metadata = {
   title: 'RÜGE - Brechó Vintage & Styling',
@@ -38,6 +40,18 @@ export default async function RootLayout({
             {children}
             <Footer />
             <Toaster />
+            <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="light"
+            />
           </>
         ) : (
           <ClientProviders>
@@ -46,6 +60,18 @@ export default async function RootLayout({
               {children}
             </main>
             <Footer />
+            <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="light"
+            />
           </ClientProviders>
         )}
         <Toaster />

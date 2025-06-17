@@ -13,7 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Plus, Edit, Trash2, Save, Upload, Eye, ShoppingBag, Settings, BarChart3, Package, Users, Layers3, AlertCircle, X, Zap } from 'lucide-react';
-import { Product, products } from '@/lib/placeholder-data';
+import { products } from '@/lib/placeholder-data';
+import { Product } from '@/types/product';
 import OrdersManagement from '@/components/OrdersManagement';
 import ImageUploadTemp from '@/components/ImageUploadTemp';
 import { MultiImageUpload } from '@/components/ui/MultiImageUploadDragDropFixed';
@@ -31,6 +32,17 @@ import useProductMetadata from '@/hooks/useProductMetadata';
 import { createClient } from '@/lib/supabase/client';
 import { ImageOptimizer } from '@/components/ui/ImageOptimizer';
 import { ImageReorder } from '@/components/ui/ImageReorder';
+import { 
+  colorSuggestions,
+  materialSuggestions,
+  sizeSuggestions,
+  tagSuggestions,
+  typeSuggestions,
+  styleSuggestions,
+  collectionSuggestions,
+  vendorSuggestions
+} from '@/constants/productSuggestions';
+import { toast } from 'react-toastify';
 
 // Simulação de autenticação simples
 const ADMIN_PASSWORD = 'micangaria2024'; // Em produção, usar sistema de auth real
@@ -41,7 +53,7 @@ const supabase = createClient();
 export default function AdminPage() {  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
-  const [productList, setProductList] = useState<Product[]>(products);
+  const [productList, setProductList] = useState<Product[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -62,7 +74,8 @@ export default function AdminPage() {  const [isAuthenticated, setIsAuthenticate
         return;
       }
       
-      if (supabaseProducts && supabaseProducts.length > 0) {        // Converter produtos do Supabase para o formato local
+      if (supabaseProducts && supabaseProducts.length > 0) {
+        // Converter produtos do Supabase para o formato local
         const convertedProducts = supabaseProducts.map(p => ({
           id: p.id,
           name: p.name,
@@ -70,8 +83,7 @@ export default function AdminPage() {  const [isAuthenticated, setIsAuthenticate
           price: p.price,
           compare_at_price: p.compare_at_price,
           cost_price: p.cost_price,
-          imageUrl: p.image_url,
-          imageHint: p.name.toLowerCase(),
+          category_id: p.category_id,
           type: p.type,
           style: p.style,
           colors: p.colors || [],
@@ -89,24 +101,26 @@ export default function AdminPage() {  const [isAuthenticated, setIsAuthenticate
           meta_description: p.meta_description,
           is_active: p.is_active,
           is_featured: p.is_featured,
-          isNewArrival: p.is_new_arrival,
-          isPromotion: p.is_on_sale,
+          is_new_arrival: p.is_new_arrival,
+          is_on_sale: p.is_on_sale,
           sale_start_date: p.sale_start_date,
           sale_end_date: p.sale_end_date,
-          promotionDetails: p.promotion_text,
-          search_keywords: p.search_keywords,          vendor: p.vendor,
+          promotion_text: p.promotion_text,
+          search_keywords: p.search_keywords,
+          vendor: p.vendor,
           collection: p.collection,
           notes: p.notes,
           care_instructions: p.care_instructions,
-          gallery_urls: p.gallery_urls || [],            // Badge display configuration
+          image_url: p.image_url,
+          gallery_urls: p.gallery_urls || [],
           show_colors_badge: p.show_colors_badge,
           show_materials_badge: p.show_materials_badge,
           show_sizes_badge: p.show_sizes_badge,
-          
-          // Image optimization flag
-          images_optimized: p.images_optimized
+          created_at: p.created_at,
+          updated_at: p.updated_at
         }));
-          console.log('✅ Produtos carregados do Supabase:', convertedProducts.length);
+        
+        console.log('✅ Produtos carregados do Supabase:', convertedProducts.length);
         setProductList(convertedProducts);
       }
     } catch (error) {
@@ -296,7 +310,7 @@ export default function AdminPage() {  const [isAuthenticated, setIsAuthenticate
               products={productList.map(p => ({
                 id: p.id,
                 name: p.name,
-                image_url: p.imageUrl,
+                image_url: p.image_url,
                 gallery_urls: p.gallery_urls,
                 images_optimized: p.images_optimized
               }))}
@@ -536,22 +550,16 @@ function ProductForm({
   product?: Product; 
   onSave: (product: Product) => void; 
   onCancel?: () => void;
-}) {  // Hook para metadados de produtos (tipos e estilos inteligentes)
-  const { 
-    loading: metadataLoading, 
-    getAllTypes, 
-    getAllStyles, 
-    addCustomType, 
-    addCustomStyle 
-  } = useProductMetadata();  const [formData, setFormData] = useState<Partial<any>>(() => {
-    const defaultData = {
+}): JSX.Element {
+  const [formData, setFormData] = useState<Partial<Product>>(() => {
+    const defaultData: Partial<Product> = {
       name: '',
       description: '',
       price: 0,
       compare_at_price: 0,
       cost_price: 0,
-      type: 'colar',
-      style: 'vintage',
+      type: 'colar' as Product['type'],
+      style: 'vintage' as Product['style'],
       colors: [],
       materials: [],
       sizes: [],
@@ -577,14 +585,13 @@ function ProductForm({
       collection: '',
       notes: '',
       care_instructions: '',
-      imageUrl: '',
+      image_url: '',
       gallery_urls: [],
-      alt_text: '',
-      
-      // Badge display configuration - garantir que sempre existe
       show_colors_badge: true,
       show_materials_badge: true,
-      show_sizes_badge: true
+      show_sizes_badge: true,
+      alt_text: '',
+      category_id: null
     };
 
     // Se há um produto para edição, mesclar com os dados padrão
@@ -601,1044 +608,872 @@ function ProductForm({
         materials: product.materials || [],
         sizes: product.sizes || [],
         tags: product.tags || [],
-        gallery_urls: product.gallery_urls || []
-      };
-    }    return defaultData;
-  });
-
-  // Atualizar formData quando product muda (para casos de reutilização do componente)
-  useEffect(() => {
-    if (product) {
-      const defaultData = {
-        name: '',
-        description: '',
-        price: 0,
-        compare_at_price: 0,
-        cost_price: 0,
-        type: 'colar',
-        style: 'vintage',
-        colors: [],
-        materials: [],
-        sizes: [],
-        tags: [],
-        weight_grams: 0,
-        sku: '',
-        barcode: '',
-        track_inventory: false,
-        quantity: 0,
-        allow_backorder: false,
-        slug: '',
-        meta_title: '',
-        meta_description: '',
-        is_active: true,
-        is_featured: false,
-        is_new_arrival: false,
-        is_on_sale: false,
-        sale_start_date: '',
-        sale_end_date: '',
-        promotion_text: '',
-        search_keywords: '',
-        vendor: '',
-        collection: '',
-        notes: '',
-        care_instructions: '',
-        imageUrl: '',
-        gallery_urls: [],
-        alt_text: '',
-        show_colors_badge: true,
-        show_materials_badge: true,
-        show_sizes_badge: true
-      };      setFormData({
-        ...defaultData,
-        ...product,
-        show_colors_badge: product.show_colors_badge !== false,
-        show_materials_badge: product.show_materials_badge !== false,
-        show_sizes_badge: product.show_sizes_badge !== false,
-        colors: product.colors || [],
-        materials: product.materials || [],
-        sizes: product.sizes || [],
-        tags: product.tags || [],
         gallery_urls: product.gallery_urls || [],
-        imageUrl: product.imageUrl || '' // ✅ Garantir que imageUrl seja carregado
-      });
-    }
-  }, [product?.id]); // Apenas quando o ID do produto muda
-
-  // Função estável para atualizar imagens
-  const handleImagesChange = useCallback((images: string[]) => {
-    console.log('🖼️ === ATUALIZANDO IMAGENS ===');
-    console.log('📥 Novas imagens recebidas:', images);
-    
-    // Garantir que temos pelo menos uma imagem
-    if (images.length === 0) {
-      setFormData(prev => ({ 
-        ...prev, 
-        imageUrl: '',
-        gallery_urls: []
-      }));
-      return;
+        search_keywords: product.search_keywords || []
+      };
     }
 
-    // Separar imagem principal e galeria
-    const [primaryImage, ...galleryImages] = images;
-    
-    console.log('📸 Imagem principal:', primaryImage);
-    console.log('🖼️ Imagens da galeria:', galleryImages);
-    
-    setFormData(prev => ({ 
-      ...prev, 
-      imageUrl: primaryImage,
-      gallery_urls: galleryImages
-    }));
-  }, []);
-
-  // Função para lidar com a reordenação de imagens
-  const handleImageReorder = useCallback((newOrder: string[]) => {
-    console.log('🔄 === REORDENAÇÃO DE IMAGENS ===');
-    console.log('📥 Nova ordem recebida:', newOrder);
-    
-    // Atualizar o estado com a nova ordem
-    handleImagesChange(newOrder);
-    
-    console.log('✅ Estado atualizado com nova ordem');
-  }, [handleImagesChange]);
-
-  // Funções estáveis para checkboxes (evitar loop infinito)
-  const handleTrackInventoryChange = useCallback((checked: boolean) => {
-    setFormData(prev => ({ ...prev, track_inventory: checked }));
-  }, []);
-
-  const handleAllowBackorderChange = useCallback((checked: boolean) => {
-    setFormData(prev => ({ ...prev, allow_backorder: checked }));
-  }, []);
-
-  const handleIsActiveChange = useCallback((checked: boolean) => {
-    setFormData(prev => ({ ...prev, is_active: checked }));
-  }, []);
-
-  const handleIsFeaturedChange = useCallback((checked: boolean) => {
-    setFormData(prev => ({ ...prev, is_featured: checked }));
-  }, []);
-
-  const handleIsNewArrivalChange = useCallback((checked: boolean) => {
-    setFormData(prev => ({ ...prev, is_new_arrival: checked }));
-  }, []);
-  const handleIsOnSaleChange = useCallback((checked: boolean) => {
-    setFormData(prev => ({ ...prev, is_on_sale: checked }));  }, []);
-
-  // 🔍 DEBUG: Monitorar mudanças nas imagens
-  useEffect(() => {
-    console.log('🔍 === DEBUG FORMDATA IMAGES ===');
-    console.log('📸 imageUrl:', formData.imageUrl);
-    console.log('🖼️ gallery_urls:', formData.gallery_urls);
-    console.log('📊 Total imagens:', (formData.imageUrl ? 1 : 0) + (formData.gallery_urls?.length || 0));
-    console.log('🔍 === FIM DEBUG ===');
-  }, [formData.imageUrl, formData.gallery_urls]);
-
-  // Badge configuration checkboxes
-  const handleShowColorsBadgeChange = useCallback((checked: boolean) => {
-    setFormData(prev => ({ ...prev, show_colors_badge: checked }));
-  }, []);
-
-  const handleShowMaterialsBadgeChange = useCallback((checked: boolean) => {
-    setFormData(prev => ({ ...prev, show_materials_badge: checked }));
-  }, []);
-
-  const handleShowSizesBadgeChange = useCallback((checked: boolean) => {
-    setFormData(prev => ({ ...prev, show_sizes_badge: checked }));
-  }, []);
-
-  // Sugestões para os campos de array
-  const colorSuggestions = [
-    'preto', 'branco', 'dourado', 'prata', 'rose gold', 'bronze', 'cobre',
-    'vermelho', 'azul', 'verde', 'amarelo', 'roxo', 'rosa', 'laranja',
-    'marrom', 'bege', 'cinza', 'turquesa', 'coral', 'vinho'
-  ];
-
-  const materialSuggestions = [
-    'prata 925', 'ouro 18k', 'ouro folheado', 'aço inoxidável', 'bronze',
-    'cobre', 'alumínio', 'couro', 'algodão', 'seda', 'linho', 'poliéster',
-    'pérolas', 'cristais', 'pedras naturais', 'resina', 'madeira', 'bambu',
-    'cerâmica', 'vidro', 'acrílico', 'miçangas', 'strass'
-  ];
-
-  const sizeSuggestions = [
-    'PP', 'P', 'M', 'G', 'GG', 'XG', 'Único',
-    '34', '35', '36', '37', '38', '39', '40', '41', '42',
-    'Ajustável', '40cm', '45cm', '50cm', '60cm', '70cm'
-  ];
-
-  const tagSuggestions = [
-    'vintage', 'boho', 'minimalista', 'elegante', 'casual', 'festa',
-    'artesanal', 'handmade', 'exclusivo', 'limitado', 'sustentável',
-    'reciclado', 'étnico', 'tribal', 'moderno', 'clássico', 'romântico',
-    'rock', 'hippie', 'retrô', 'anos 80', 'anos 90', 'contemporâneo'
-  ];
-
-  const typeSuggestions = [
-    'colar', 'brinco', 'pulseira', 'anel', 'bolsa', 'cinto', 'sandalia',
-    'conjunto', 'broche', 'tornozeleira', 'tiara', 'presilha', 'carteira',
-    'nécessaire', 'clutch'
-  ];
-
-  const styleSuggestions = [
-    'vintage', 'retro', 'boho-vintage', 'anos-80', 'anos-90', 'moderno',
-    'minimalista', 'maximalista', 'étnico', 'tribal', 'gótico', 'punk',
-    'romântico', 'clássico', 'contemporâneo'
-  ];
-
-  const collectionSuggestions = [
-    'Verão 2024', 'Inverno 2024', 'Primavera 2024', 'Outono 2024',
-    'Edição Limitada', 'Coleção Especial', 'Básicos', 'Premium',
-    'Artesanal', 'Sustentável', 'Vintage Collection', 'Modern Boho'
-  ];
-
-  const vendorSuggestions = [
-    'RÜGE', 'Artesão Local', 'Fornecedor Nacional', 'Importado',
-    'Produção Própria', 'Parceiro Exclusivo'
-  ];
-  
-  // Estado para gerenciar upload de imagem
-  const [imageData, setImageData] = useState<{ url: string; file?: File; isTemp?: boolean }>({ 
-    url: product?.imageUrl || '' 
+    return defaultData;
   });
-  const [isUploading, setIsUploading] = useState(false);  const handleSubmit = async (e: React.FormEvent) => {
+
+  const [isUploading, setIsUploading] = useState(false);
+  const [imageData, setImageData] = useState<{ url: string; file?: File; isTemp?: boolean }>({
+    url: product?.image_url || '',
+    isTemp: false
+  });
+  const [galleryData, setGalleryData] = useState<{ urls: string[]; files: File[] }>({
+    urls: product?.gallery_urls || [],
+    files: []
+  });
+
+  // Hook para metadados de produtos (tipos e estilos inteligentes)
+  const { 
+    loading: metadataLoading, 
+    getAllTypes, 
+    getAllStyles, 
+    addCustomType, 
+    addCustomStyle 
+  } = useProductMetadata();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.name && formData.description && formData.price) {
-      setIsUploading(true);
-        try {        let finalImageUrl = formData.imageUrl || '';
-        let finalImageStoragePath = '';
-        
-        console.log('🔍 Imagem principal antes do processamento:', finalImageUrl);
-        console.log('🔍 É do Google Drive?', finalImageUrl.includes('drive.google.com'));
-        
-        // Se não há imagem principal e não há imagens na galeria, definir como null
-        if (!finalImageUrl && (!formData.gallery_urls || formData.gallery_urls.length === 0)) {
-          finalImageUrl = '';
-          console.log('📷 Nenhuma imagem encontrada, definindo image_url como vazio');
-        }
-        
-        // Se há arquivo temporário, fazer upload primeiro
-        if (imageData.file && imageData.isTemp) {
-          console.log('📤 Fazendo upload da imagem principal...');
-          const uploadResult = await uploadImageToSupabase(imageData.file);
-          
-          if (uploadResult.success && uploadResult.url) {
-            finalImageUrl = uploadResult.url;
-            finalImageStoragePath = uploadResult.path || '';
-            console.log('✅ Imagem principal enviada com sucesso:', finalImageUrl);
-            console.log('📁 Path de storage:', finalImageStoragePath);
-          } else {
-            // Se upload falhou, usar imagem local como fallback
-            finalImageUrl = `/products/${imageData.file.name}`;
-            console.log('⚠️ Usando fallback local:', finalImageUrl);
-            alert(`Aviso: Upload da imagem falhou (${uploadResult.error}). Usando imagem local como alternativa.`);
-          }
-        } else if (imageData.url && !imageData.isTemp) {
-          // Usar imagem local selecionada
-          finalImageUrl = imageData.url;
-          // Extrair storage path se for URL do Supabase
-          if (imageData.url.includes('supabase') && imageData.url.includes('product-images')) {
-            const match = imageData.url.match(/\/product-images\/(.+)$/);
-            finalImageStoragePath = match ? match[1] : '';
-          }
-        }        // Processar gallery_urls - PRESERVAR TODAS as URLs (Google Drive + Supabase)
-        // IMPORTANTE: Garantir que gallery_urls nunca contenha image_url para evitar duplicação
-        let finalGalleryUrls = (formData.gallery_urls || []).filter((url: string) => url !== finalImageUrl);
-        let finalGalleryStoragePaths: string[] = [];
-        
-        console.log('🔍 Gallery URLs antes do processamento:', formData.gallery_urls);
-        console.log('🔍 Gallery URLs após remover duplicata da image_url:', finalGalleryUrls);
-        console.log('🚫 Image URL removida da galeria (se presente):', finalImageUrl);
-        
-        // Filtrar apenas URLs blob que precisam ser processadas
-        const blobUrls = finalGalleryUrls.filter((url: string) => url.startsWith('blob:'));
-        
-        if (blobUrls.length > 0) {
-          console.log('⚠️ Encontradas URLs blob na galeria. Isso indica que as imagens ainda não foram processadas pelo MultiImageUpload.');
-          console.log('📋 URLs blob encontradas:', blobUrls);
-          
-          // Aguardar um pouco para que o MultiImageUpload processe as imagens
-          console.log('⏳ Aguardando processamento das imagens...');
-          await new Promise(resolve => setTimeout(resolve, 3000));
-          
-          // Verificar novamente se ainda há URLs blob
-          const stillBlobUrls = finalGalleryUrls.filter((url: string) => url.startsWith('blob:'));
-          if (stillBlobUrls.length > 0) {
-            alert('⚠️ Algumas imagens ainda estão sendo processadas. Aguarde um momento e tente salvar novamente.');
-            setIsUploading(false);
-            return;
-          }
-        }
+    setIsUploading(true);
 
-        // Extrair storage paths APENAS das URLs do Supabase (para tracking)
-        // MAS manter TODAS as URLs na gallery_urls (incluindo Google Drive)
-        finalGalleryStoragePaths = finalGalleryUrls
-          .filter((url: string) => url.includes('supabase') && url.includes('product-images'))
-          .map((url: string) => {
-            const match = url.match(/\/product-images\/(.+)$/);
-            return match ? match[1] : '';
-          })
-          .filter(Boolean);
+    try {
+      // Preservar a ordem das imagens conforme definido no formulário
+      // A primeira imagem é sempre a principal (imageData.url)
+      const allImages = [
+        imageData.url, // Imagem principal sempre primeiro
+        ...galleryData.urls // Galeria vem depois
+      ].filter(Boolean); // Remove URLs vazias/nulas
 
-        console.log('🖼️ URLs finais da galeria (TODAS):', finalGalleryUrls);
-        console.log('📁 Paths de storage da galeria (só Supabase):', finalGalleryStoragePaths);
-        console.log('🌐 URLs do Google Drive preservadas:', finalGalleryUrls.filter((url: string) => url.includes('drive.google.com')));
+      console.log('🖼️ Ordem das imagens:', {
+        principal: imageData.url,
+        galeria: galleryData.urls,
+        todas: allImages
+      });
 
-        // Conectar com Supabase
-        try {
-          const { createClient } = await import('@/lib/supabase/client');
-          const supabase = createClient();
-          
-          console.log('🔧 Verificando configuração Supabase...');
-          console.log('URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-          console.log('Key exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);          // Verificar se há imagens do Google Drive (não otimizadas)
-          const allImages = [finalImageUrl, ...finalGalleryUrls].filter(Boolean);
-          const hasGoogleDriveImages = allImages.some((url: string) => 
-            url && (url.includes('drive.google.com') || url.includes('googleusercontent.com'))
-          );
-          
-          // Se há imagens do Google Drive, marcar como não otimizado
-          const shouldMarkAsUnoptimized = hasGoogleDriveImages;
-          
-          console.log('🔍 Verificação de otimização:');
-          console.log('- Total de imagens:', allImages.length);
-          console.log('- Imagens do Google Drive:', hasGoogleDriveImages);
-          console.log('- Deve marcar como não otimizado:', shouldMarkAsUnoptimized);
-          
-          const productData = {
-            name: formData.name,
-            description: formData.description,
-            price: formData.price,
-            compare_at_price: formData.compare_at_price || null,
-            cost_price: formData.cost_price || null,
-            type: formData.type,
-            style: formData.style,
-            colors: formData.colors || [],
-            materials: formData.materials || [],
-            sizes: formData.sizes || [],
-            weight_grams: formData.weight_grams || null,
-            barcode: formData.barcode || null,
-            track_inventory: formData.track_inventory || false,
-            quantity: formData.quantity || 0,
-            allow_backorder: formData.allow_backorder || false,
-            slug: formData.slug || null,
-            meta_title: formData.meta_title || null,
-            meta_description: formData.meta_description || null,
-            is_active: formData.is_active !== false,
-            is_featured: formData.is_featured || false,
-            is_new_arrival: formData.is_new_arrival || false,
-            is_on_sale: formData.is_on_sale || false,
-            sale_start_date: formData.sale_start_date || null,
-            sale_end_date: formData.sale_end_date || null,
-            promotion_text: formData.promotion_text || null,
-            tags: formData.tags || [],
-            search_keywords: formData.search_keywords || null,
-            vendor: formData.vendor || null,
-            collection: formData.collection || null,
-            notes: formData.notes || null,
-            care_instructions: formData.care_instructions || null,
-            image_url: finalImageUrl || null,
-            image_storage_path: finalImageStoragePath || null,
-            gallery_urls: finalGalleryUrls,
-            gallery_storage_paths: finalGalleryStoragePaths.length > 0 ? finalGalleryStoragePaths : null,
-            images_optimized: shouldMarkAsUnoptimized ? false : (product?.images_optimized || false),
-              // Badge display configuration
-            show_colors_badge: formData.show_colors_badge !== false,
-            show_materials_badge: formData.show_materials_badge !== false,
-            show_sizes_badge: formData.show_sizes_badge !== false
-            // SKU será gerado automaticamente (#20xx)
-          };
-          
-          console.log('📦 Dados do produto antes de salvar:');
-          console.log('- Image URL:', productData.image_url);
-          console.log('- Gallery URLs:', productData.gallery_urls);
-          console.log('- URLs do Google Drive na galeria:', productData.gallery_urls?.filter((url: string) => url.includes('drive.google.com')));
-          console.log('- Images Optimized:', productData.images_optimized);
-          
-          if (product?.id) {
-            // Verificar se o ID é um UUID válido
-            const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(product.id);
-            
-            if (isValidUUID) {
-              // Atualizar produto existente no Supabase
-              const { data, error } = await supabase
-                .from('products')
-                .update(productData)
-                .eq('id', product.id)
-                .select();
-                
-              if (error) {
-                console.error('❌ Erro detalhado (UPDATE):', error);
-                throw error;
-              }
-              console.log('✅ Produto atualizado no Supabase:', data);
-            } else {
-              // ID não é UUID válido, criar novo produto
-              console.log('⚠️ ID não é UUID válido, criando novo produto no Supabase');
-              const { data, error } = await supabase
-                .from('products')
-                .insert([productData])
-                .select();
-                
-              if (error) {
-                console.error('❌ Erro detalhado (INSERT):', error);
-                throw error;
-              }
-              console.log('✅ Novo produto criado no Supabase:', data);
-            }
-          } else {
-            // Criar novo produto
-            const { data, error } = await supabase
-              .from('products')
-              .insert([productData])
-              .select();
-              
-            if (error) {
-              console.error('❌ Erro detalhado (INSERT):', error);
-              throw error;
-            }
-            console.log('✅ Produto criado no Supabase:', data);
-          }
-        } catch (supabaseError: any) {
-          console.error('❌ Erro ao salvar no Supabase:', supabaseError);
-          console.error('❌ Stack trace:', supabaseError?.stack);
-          console.error('❌ Error details:', {
-            message: supabaseError?.message,
-            code: supabaseError?.code,
-            details: supabaseError?.details,
-            hint: supabaseError?.hint
-          });
-          
-          // Mostrar erro mais detalhado para o usuário
-          alert(`Erro ao salvar no Supabase: ${supabaseError?.message || 'Erro desconhecido'}`);
-          // Continua com o fluxo local mesmo se Supabase falhar
+      // A primeira imagem é sempre a principal
+      const optimizedImageUrl = allImages[0] || null;
+      
+      // As demais vão para a galeria
+      const optimizedGalleryUrls = allImages.slice(1);
+
+      // Preparar dados do produto
+      const productData: Partial<Product> = {
+        // Campos obrigatórios
+        name: formData.name,
+        price: formData.price,
+        
+        // Campos opcionais
+        description: formData.description || null,
+        compare_at_price: formData.compare_at_price || null,
+        cost_price: formData.cost_price || null,
+        category_id: formData.category_id || null,
+        type: formData.type || null,
+        style: formData.style || null,
+        image_url: optimizedImageUrl,
+        image_alt: formData.alt_text || null,
+        gallery_urls: optimizedGalleryUrls,
+        colors: formData.colors || [],
+        materials: formData.materials || [],
+        sizes: formData.sizes || [],
+        weight_grams: formData.weight_grams || null,
+        sku: formData.sku || null, // Será gerado automaticamente se null
+        barcode: formData.barcode || null,
+        track_inventory: formData.track_inventory ?? false,
+        quantity: formData.quantity ?? 0,
+        allow_backorder: formData.allow_backorder ?? false,
+        slug: formData.slug || null,
+        meta_title: formData.meta_title || null,
+        meta_description: formData.meta_description || null,
+        is_active: formData.is_active ?? true,
+        is_featured: formData.is_featured ?? false,
+        is_new_arrival: formData.is_new_arrival ?? false,
+        is_on_sale: formData.is_on_sale ?? false,
+        sale_start_date: formData.sale_start_date || null,
+        sale_end_date: formData.sale_end_date || null,
+        promotion_text: formData.promotion_text || null,
+        tags: formData.tags || [],
+        search_keywords: formData.search_keywords || null,
+        vendor: formData.vendor || null,
+        collection: formData.collection || null,
+        notes: formData.notes || null,
+        care_instructions: formData.care_instructions || null,
+        show_colors_badge: formData.show_colors_badge ?? true,
+        show_materials_badge: formData.show_materials_badge ?? true,
+        show_sizes_badge: formData.show_sizes_badge ?? true,
+        images_optimized: false, // Sempre começa como false
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('📦 Dados do produto:', {
+        image_url: productData.image_url,
+        gallery_urls: productData.gallery_urls
+      });
+
+      let result;
+
+      if (product?.id) {
+        // Update existing product
+        console.log('Updating existing product:', product.id);
+        const { data: updatedProduct, error } = await supabase
+          .from('products')
+          .update(productData)
+          .eq('id', product.id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error updating product:', error);
+          throw error;
         }
-          // Para desenvolvimento, usar dados mock com imagem final
-        onSave({ ...formData, imageUrl: finalImageUrl } as Product);
-        onCancel?.();
-      } catch (error) {
-        console.error('Erro ao salvar produto:', error);
-        alert('Erro ao salvar produto. Tente novamente.');
-      } finally {
-        setIsUploading(false);
+        result = updatedProduct;
+      } else {
+        // Create new product
+        console.log('Creating new product');
+        const { data: newProduct, error } = await supabase
+          .from('products')
+          .insert(productData)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error creating product:', error);
+          throw error;
+        }
+        result = newProduct;
       }
-    }
-  };  return (
-    <div className="w-full">
-      <form onSubmit={handleSubmit} className="space-y-6 p-4 sm:p-6">
-        {/* Informações Básicas */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">📝 Informações Básicas</h3>
-            <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">Essencial</span>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="name">Nome do Produto *</Label>
-              <Input
-                id="name"
-                value={formData.name || ''}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Ex: Colar Lua Cheia"
-                required
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="slug">URL Amigável (Slug)</Label>
-              <Input
-                id="slug"
-                value={formData.slug || ''}
-                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                placeholder="colar-lua-cheia"
-              />
-            </div>
-          </div>
 
+      console.log('Product saved successfully:', result);
+
+      // Create image mappings for all images
+      if (result && allImages.length > 0) {
+        console.log('Creating image mappings for', allImages.length, 'images');
+        const imageMappings = allImages.map((url, index) => ({
+          product_id: result.id,
+          google_drive_url: url,
+          display_order: index,
+          is_optimized: false
+        }));
+
+        const { error: mappingError } = await supabase
+          .from('image_mappings')
+          .insert(imageMappings);
+
+        if (mappingError) {
+          console.error('Error creating image mappings:', mappingError);
+          // Don't throw here, as the product was created/updated successfully
+        } else {
+          console.log('Image mappings created successfully');
+        }
+      }
+
+      onSave(result);
+      toast.success(product?.id ? 'Produto atualizado com sucesso!' : 'Produto criado com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao salvar produto:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      toast.error(`Erro ao salvar produto: ${error.message || 'Erro desconhecido'}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Corrigir os handlers de checkbox para garantir boolean
+  const handleCheckboxChange = (field: keyof Product, checked: boolean) => {
+    setFormData(prev => ({ ...prev, [field]: checked }));
+  };
+
+  // Corrigir os handlers de tipo e estilo para usar os tipos corretos
+  const handleTypeChange = (value: Product['type']) => {
+    setFormData(prev => ({ ...prev, type: value }));
+  };
+
+  const handleStyleChange = (value: Product['style']) => {
+    setFormData(prev => ({ ...prev, style: value }));
+  };
+
+  // Corrigir os handlers de array para garantir arrays
+  const handleArrayChange = (field: keyof Product, value: string[]) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Corrigir os handlers de string para garantir string
+  const handleStringChange = (field: keyof Product, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Handle image optimization
+  const handleOptimizeImages = async () => {
+    try {
+      const images = [formData.image_url, ...(formData.gallery_urls || [])].filter(Boolean);
+      
+      for (let i = 0; i < images.length; i++) {
+        const response = await fetch('/api/proxy-image', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            googleDriveUrl: images[i],
+            productId: formData.id,
+            displayOrder: i
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to optimize image ${i + 1}`);
+        }
+      }
+
+      // Update product to mark images as optimized
+      const { error } = await supabase
+        .from('products')
+        .update({ images_optimized: true })
+        .eq('id', formData.id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Images optimized successfully');
+    } catch (error) {
+      console.error('Error optimizing images:', error);
+      toast.error('Failed to optimize images');
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Informações Básicas */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">📝 Informações Básicas</h3>
+          <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">Essencial</span>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="description">Descrição *</Label>
-            <Textarea
-              id="description"
-              value={formData.description || ''}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Descreva o produto, materiais, inspiração..."
-              rows={3}
+            <Label htmlFor="name">Nome do Produto *</Label>
+            <Input
+              id="name"
+              value={formData.name || ''}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Ex: Colar Lua Cheia"
               required
             />
           </div>
-
+          
           <div>
-            <Label htmlFor="price">Preço de Venda (R$) *</Label>
+            <Label htmlFor="slug">URL Amigável (Slug)</Label>
             <Input
-              id="price"
+              id="slug"
+              value={formData.slug || ''}
+              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+              placeholder="colar-lua-cheia"
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="description">Descrição *</Label>
+          <Textarea
+            id="description"
+            value={formData.description || ''}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            placeholder="Descreva o produto, materiais, inspiração..."
+            rows={3}
+            required
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="price">Preço de Venda (R$) *</Label>
+          <Input
+            id="price"
+            type="number"
+            step="0.01"
+            value={formData.price || ''}
+            onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+            placeholder="0.00"
+            required
+            className="max-w-xs"
+          />
+        </div>
+      </div>      {/* Categorização - Campos mais flexíveis */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">📂 Categorização</h3>
+          <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">Organize seu produto</span>
+        </div>
+        
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+          <p className="text-sm text-amber-800">
+            <strong>💡 Dica:</strong> Digite qualquer categoria que não esteja na lista para criá-la automaticamente. 
+            Suas categorias personalizadas ficarão salvas para uso futuro.
+          </p>
+        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SmartSelect
+            label="Tipo de Produto"
+            value={formData.type || ''}
+            onChange={(type) => setFormData({ ...formData, type })}
+            options={getAllTypes()}
+            onAddNew={addCustomType}
+            placeholder="Selecione ou crie um tipo"
+            allowCustom={true}
+          />
+
+          <SmartSelect
+            label="Estilo"
+            value={formData.style || ''}
+            onChange={(style) => setFormData({ ...formData, style })}
+            options={getAllStyles()}
+            onAddNew={addCustomStyle}
+            placeholder="Selecione ou crie um estilo"
+            allowCustom={true}
+          />
+
+          <SelectInput
+            label="Fornecedor/Marca"
+            value={formData.vendor || ''}
+            onChange={(vendor) => setFormData({ ...formData, vendor })}
+            options={vendorSuggestions}
+            placeholder="Selecione ou crie um fornecedor"
+            allowCustom={true}
+          />
+
+          <SelectInput
+            label="Coleção"
+            value={formData.collection || ''}
+            onChange={(collection) => setFormData({ ...formData, collection })}
+            options={collectionSuggestions}
+            placeholder="Selecione ou crie uma coleção"
+            allowCustom={true}
+          />
+        </div>
+      </div>
+
+      {/* Preços Adicionais - Seção opcional */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">💰 Preços Adicionais</h3>
+          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="compare_at_price">Preço Original (R$)</Label>
+            <Input
+              id="compare_at_price"
               type="number"
               step="0.01"
-              value={formData.price || ''}
-              onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-              placeholder="0.00"
-              required
-              className="max-w-xs"
+              value={formData.compare_at_price || ''}
+              onChange={(e) => setFormData({ ...formData, compare_at_price: parseFloat(e.target.value) || 0 })}
+              placeholder="Para mostrar desconto"
             />
           </div>
-        </div>      {/* Categorização - Campos mais flexíveis */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">📂 Categorização</h3>
-            <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">Organize seu produto</span>
-          </div>
-          
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-            <p className="text-sm text-amber-800">
-              <strong>💡 Dica:</strong> Digite qualquer categoria que não esteja na lista para criá-la automaticamente. 
-              Suas categorias personalizadas ficarão salvas para uso futuro.
-            </p>
-          </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <SmartSelect
-              label="Tipo de Produto"
-              value={formData.type || ''}
-              onChange={(type) => setFormData({ ...formData, type })}
-              options={getAllTypes()}
-              onAddNew={addCustomType}
-              placeholder="Selecione ou crie um tipo"
-              allowCustom={true}
-            />
 
-            <SmartSelect
-              label="Estilo"
-              value={formData.style || ''}
-              onChange={(style) => setFormData({ ...formData, style })}
-              options={getAllStyles()}
-              onAddNew={addCustomStyle}
-              placeholder="Selecione ou crie um estilo"
-              allowCustom={true}
-            />
-
-            <SelectInput
-              label="Fornecedor/Marca"
-              value={formData.vendor || ''}
-              onChange={(vendor) => setFormData({ ...formData, vendor })}
-              options={vendorSuggestions}
-              placeholder="Selecione ou crie um fornecedor"
-              allowCustom={true}
-            />
-
-            <SelectInput
-              label="Coleção"
-              value={formData.collection || ''}
-              onChange={(collection) => setFormData({ ...formData, collection })}
-              options={collectionSuggestions}
-              placeholder="Selecione ou crie uma coleção"
-              allowCustom={true}
+          <div>
+            <Label htmlFor="cost_price">Custo (R$)</Label>
+            <Input
+              id="cost_price"
+              type="number"
+              step="0.01"
+              value={formData.cost_price || ''}
+              onChange={(e) => setFormData({ ...formData, cost_price: parseFloat(e.target.value) || 0 })}
+              placeholder="Seu custo interno"
             />
           </div>
         </div>
+      </div>      {/* Características do Produto */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">🎨 Características</h3>
+          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+        </div>
+        
+        <div className="space-y-6">
+          <MultiSelectInput
+            label="Cores"
+            value={formData.colors || []}
+            onChange={(colors) => setFormData({ ...formData, colors })}
+            suggestions={colorSuggestions}
+            placeholder="Digite uma cor e pressione Enter"
+            maxItems={8}
+          />
 
-        {/* Preços Adicionais - Seção opcional */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">💰 Preços Adicionais</h3>
-            <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="compare_at_price">Preço Original (R$)</Label>
-              <Input
-                id="compare_at_price"
-                type="number"
-                step="0.01"
-                value={formData.compare_at_price || ''}
-                onChange={(e) => setFormData({ ...formData, compare_at_price: parseFloat(e.target.value) || 0 })}
-                placeholder="Para mostrar desconto"
-              />
-            </div>
+          <MultiSelectInput
+            label="Materiais"
+            value={formData.materials || []}
+            onChange={(materials) => setFormData({ ...formData, materials })}
+            suggestions={materialSuggestions}
+            placeholder="Digite um material e pressione Enter"
+            maxItems={10}
+          />
 
-            <div>
-              <Label htmlFor="cost_price">Custo (R$)</Label>
-              <Input
-                id="cost_price"
-                type="number"
-                step="0.01"
-                value={formData.cost_price || ''}
-                onChange={(e) => setFormData({ ...formData, cost_price: parseFloat(e.target.value) || 0 })}
-                placeholder="Seu custo interno"
-              />
-            </div>
-          </div>
-        </div>      {/* Características do Produto */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">🎨 Características</h3>
-            <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
-          </div>
-          
-          <div className="space-y-6">
-            <MultiSelectInput
-              label="Cores"
-              value={formData.colors || []}
-              onChange={(colors) => setFormData({ ...formData, colors })}
-              suggestions={colorSuggestions}
-              placeholder="Digite uma cor e pressione Enter"
-              maxItems={8}
-            />
+          <MultiSelectInput
+            label="Tamanhos"
+            value={formData.sizes || []}
+            onChange={(sizes) => setFormData({ ...formData, sizes })}
+            suggestions={sizeSuggestions}
+            placeholder="Digite um tamanho e pressione Enter"
+            maxItems={6}
+          />
 
-            <MultiSelectInput
-              label="Materiais"
-              value={formData.materials || []}
-              onChange={(materials) => setFormData({ ...formData, materials })}
-              suggestions={materialSuggestions}
-              placeholder="Digite um material e pressione Enter"
-              maxItems={10}
-            />
+          <MultiSelectInput
+            label="Tags/Palavras-chave"
+            value={formData.tags || []}
+            onChange={(tags) => setFormData({ ...formData, tags })}
+            suggestions={tagSuggestions}
+            placeholder="Digite uma tag e pressione Enter"
+            maxItems={12}
+          />
+        </div>
 
-            <MultiSelectInput
-              label="Tamanhos"
-              value={formData.sizes || []}
-              onChange={(sizes) => setFormData({ ...formData, sizes })}
-              suggestions={sizeSuggestions}
-              placeholder="Digite um tamanho e pressione Enter"
-              maxItems={6}
-            />
-
-            <MultiSelectInput
-              label="Tags/Palavras-chave"
-              value={formData.tags || []}
-              onChange={(tags) => setFormData({ ...formData, tags })}
-              suggestions={tagSuggestions}
-              placeholder="Digite uma tag e pressione Enter"
-              maxItems={12}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="weight_grams">Peso (gramas)</Label>
+            <Input
+              id="weight_grams"
+              type="number"
+              value={formData.weight_grams || ''}
+              onChange={(e) => setFormData({ ...formData, weight_grams: parseInt(e.target.value) || 0 })}
+              placeholder="0"
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="weight_grams">Peso (gramas)</Label>
-              <Input
-                id="weight_grams"
-                type="number"
-                value={formData.weight_grams || ''}
-                onChange={(e) => setFormData({ ...formData, weight_grams: parseInt(e.target.value) || 0 })}
-                placeholder="0"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="search_keywords">Palavras-chave para busca</Label>
-              <Input
-                id="search_keywords"
-                value={formData.search_keywords || ''}
-                onChange={(e) => setFormData({ ...formData, search_keywords: e.target.value })}
-                placeholder="colar vintage dourado bohemio"
-              />
-            </div>
-          </div>
-        </div>        {/* Imagens - Múltiplas imagens com carrossel */}
-        <div className="space-y-4">          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">🖼️ Imagens do Produto</h3>
-          </div>
-            {/* Google Drive Picker */}
-          <div className="space-y-2">
-            <Label>Adicionar Imagens</Label>
-            <div className="text-xs text-muted-foreground mb-2">
-              Debug: {formData.imageUrl ? 'Com imagem principal' : 'Sem imagem principal'} | 
-              Galeria: {(formData.gallery_urls || []).length} imagens
-            </div>            <GoogleDrivePicker              onSelect={(selectedImages: string[]) => {
-                console.log('🎯 === GOOGLE DRIVE PICKER SELEÇÃO ===');
-                console.log('📸 Imagens selecionadas do Drive:', selectedImages);
-                
-                // Obter todas as imagens atuais
-                const allCurrentImages = [
-                  ...(formData.imageUrl ? [formData.imageUrl] : []),
-                  ...(formData.gallery_urls || [])
-                ];
-                
-                console.log('📂 Imagens atuais antes da adição:', allCurrentImages);
-                
-                // Adicionar as novas imagens
-                const allNewImages = [...allCurrentImages, ...selectedImages];
-                
-                // Remover duplicatas
-                const uniqueImages = Array.from(new Set(allNewImages));
-                
-                console.log('🔗 Imagens únicas após adição:', uniqueImages);
-                
-                // Usar handleImagesChange para manter consistência
-                handleImagesChange(uniqueImages);
-                  console.log('✅ FormData atualizado via GoogleDrive e handleImagesChange');
-                console.log('📊 Total de imagens:', uniqueImages.length);
-                console.log('🎯 === FIM GOOGLE DRIVE PICKER ===');
-              }}
-              selectedImages={(() => {
-                // Mostrar as imagens atuais como já selecionadas
-                const allImages = [
-                  ...(formData.imageUrl ? [formData.imageUrl] : []),
-                  ...(formData.gallery_urls || [])
-                ];
-                return Array.from(new Set(allImages));
-              })()}
-              maxImages={10 - (() => {
-                const allImages = [
-                  ...(formData.imageUrl ? [formData.imageUrl] : []),
-                  ...(formData.gallery_urls || [])
-                ];
-                return Array.from(new Set(allImages)).length;
-              })()} // Limite dinâmico baseado nas imagens já adicionadas
+          <div>
+            <Label htmlFor="search_keywords">Palavras-chave para busca</Label>
+            <Input
+              id="search_keywords"
+              value={formData.search_keywords || ''}
+              onChange={(e) => setFormData({ ...formData, search_keywords: e.target.value })}
+              placeholder="colar vintage dourado bohemio"
             />
-          </div>          {/* Preview das imagens selecionadas */}
-          <AdminImagePreview
-            images={(() => {
-              // Combinar todas as imagens e remover duplicatas
-              const allImages = [
-                ...(formData.imageUrl ? [formData.imageUrl] : []),
-                ...(formData.gallery_urls || [])
-              ];
-              return Array.from(new Set(allImages)); // Remove duplicatas
-            })()}
-            onRemove={(index) => {
-              const allImages = [
-                ...(formData.imageUrl ? [formData.imageUrl] : []),
-                ...(formData.gallery_urls || [])
+          </div>
+        </div>
+      </div>      {/* Imagens - Múltiplas imagens com carrossel */}
+      <div className="space-y-4">        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">🖼️ Imagens do Produto</h3>
+        </div>
+          {/* Google Drive Picker */}
+        <div className="space-y-2">
+          <Label>Adicionar Imagens</Label>
+          <div className="text-xs text-muted-foreground mb-2">
+            Debug: {imageData.url ? 'Com imagem principal' : 'Sem imagem principal'} | 
+            Galeria: {galleryData.urls.length} imagens
+          </div>          <GoogleDrivePicker              onSelect={(selectedImages: string[]) => {
+              console.log('🎯 === GOOGLE DRIVE PICKER SELEÇÃO ===');
+              console.log('📸 Imagens selecionadas do Drive:', selectedImages);
+              
+              // Obter todas as imagens atuais
+              const allCurrentImages = [
+                ...(imageData.url ? [imageData.url] : []),
+                ...galleryData.urls
               ];
               
-              console.log('🗑️ Removendo imagem:', index, 'de', allImages.length);
+              console.log('📂 Imagens atuais antes da adição:', allCurrentImages);
               
-              // Remover a imagem específica
-              const imageToRemove = allImages[index];
-              let newImageUrl = formData.imageUrl;
-              let newGalleryUrls = [...(formData.gallery_urls || [])];
+              // Adicionar as novas imagens
+              const allNewImages = [...allCurrentImages, ...selectedImages];
               
-              if (index === 0 && formData.imageUrl) {
-                // Removendo a imagem principal
-                newImageUrl = '';
-                console.log('🧹 Removendo imagem principal');
-              } else {
-                // Removendo da galeria
-                const galleryIndex = formData.imageUrl ? index - 1 : index;
-                newGalleryUrls = newGalleryUrls.filter((_, i) => i !== galleryIndex);
-                console.log('🗑️ Removendo da galeria, índice:', galleryIndex);
-              }
+              // Remover duplicatas
+              const uniqueImages = Array.from(new Set(allNewImages));
               
-              setFormData({ 
-                ...formData, 
-                imageUrl: newImageUrl,
-                gallery_urls: newGalleryUrls
-              });
+              console.log('🔗 Imagens únicas após adição:', uniqueImages);
+              
+              // Usar handleImagesChange para manter consistência
+              setGalleryData(prev => ({ ...prev, urls: uniqueImages }));
+                console.log('✅ FormData atualizado via GoogleDrive e handleImagesChange');
+              console.log('📊 Total de imagens:', uniqueImages.length);
+              console.log('🎯 === FIM GOOGLE DRIVE PICKER ===');
             }}
-            maxImages={5}
-          />          {/* Reordenação de imagens */}
-          {(() => {
+            selectedImages={(() => {
+              // Mostrar as imagens atuais como já selecionadas
+              const allImages = [
+                ...(imageData.url ? [imageData.url] : []),
+                ...galleryData.urls
+              ];
+              return Array.from(new Set(allImages));
+            })()}
+            maxImages={10 - (() => {
+              const allImages = [
+                ...(imageData.url ? [imageData.url] : []),
+                ...galleryData.urls
+              ];
+              return Array.from(new Set(allImages)).length;
+            })()} // Limite dinâmico baseado nas imagens já adicionadas
+          />
+        </div>        {/* Preview das imagens selecionadas */}
+        <AdminImagePreview
+          images={(() => {
+            // Combinar todas as imagens e remover duplicatas
             const allImages = [
-              ...(formData.imageUrl ? [formData.imageUrl] : []),
-              ...(formData.gallery_urls || [])
+              ...(imageData.url ? [imageData.url] : []),
+              ...galleryData.urls
             ];
-            const uniqueImages = Array.from(new Set(allImages));
-            return uniqueImages.length > 1;
-          })() && (
-            <div className="space-y-2">
-              <Label>Reordenar Imagens</Label>              <ImageReorder
-                images={(() => {
-                  const allImages = [
-                    ...(formData.imageUrl ? [formData.imageUrl] : []),
-                    ...(formData.gallery_urls || [])
-                  ];
-                  const uniqueImages = Array.from(new Set(allImages));
-                  console.log('🖼️ === IMAGES PARA REORDENAR ===');
-                  console.log('📊 Estado atual do formData:');
-                  console.log('  - imageUrl:', formData.imageUrl);
-                  console.log('  - gallery_urls:', formData.gallery_urls);
-                  console.log('📋 Todas as imagens combinadas:', allImages);
-                  console.log('🔗 Imagens únicas:', uniqueImages);
-                  console.log('🖼️ === FIM DEBUG IMAGES ===');
-                  return uniqueImages;
-                })()}
-                onReorder={handleImageReorder}
-                onRemove={(imageUrl) => {
-                  console.log('🗑️ === REMOÇÃO DE IMAGEM ===');
-                  console.log('🗑️ Removendo imagem:', imageUrl);
-                  
-                  const allImages = [
-                    ...(formData.imageUrl ? [formData.imageUrl] : []),
-                    ...(formData.gallery_urls || [])
-                  ];
-                  
-                  // Filtrar a imagem removida e usar handleImagesChange
-                  const newImages = allImages.filter(url => url !== imageUrl);
-                  handleImagesChange(newImages);
-                  
-                  console.log('✅ Imagem removida via handleImagesChange');
-                  console.log('🗑️ === REMOÇÃO CONCLUÍDA ===');
-                }}
-              />
-            </div>
-          )}
-
-          <div>
-            <Label htmlFor="alt_text">Texto Alternativo (ALT)</Label>
-            <Input
-              id="alt_text"
-              value={formData.alt_text || ''}
-              onChange={(e) => setFormData({ ...formData, alt_text: e.target.value })}
-              placeholder="Descrição das imagens para acessibilidade"
+            return Array.from(new Set(allImages)); // Remove duplicatas
+          })()}
+          onRemove={(index) => {
+            const allImages = [
+              ...(imageData.url ? [imageData.url] : []),
+              ...galleryData.urls
+            ];
+            
+            console.log('🗑️ Removendo imagem:', index, 'de', allImages.length);
+            
+            // Remover a imagem específica
+            const imageToRemove = allImages[index];
+            let newImage_url = imageData.url;
+            let newGalleryUrls = [...galleryData.urls];
+            
+            if (index === 0 && imageData.url) {
+              // Removendo a imagem principal
+              newImage_url = '';
+              console.log('🧹 Removendo imagem principal');
+            } else {
+              // Removendo da galeria
+              const galleryIndex = imageData.url ? index - 1 : index;
+              newGalleryUrls = newGalleryUrls.filter((_, i) => i !== galleryIndex);
+              console.log('🗑️ Removendo da galeria, índice:', galleryIndex);
+            }
+            
+            setGalleryData({ 
+              ...galleryData, 
+              urls: newGalleryUrls
+            });
+          }}
+          maxImages={5}
+        />        {/* Reordenação de imagens */}
+        {(() => {
+          const allImages = [
+            ...(imageData.url ? [imageData.url] : []),
+            ...galleryData.urls
+          ];
+          const uniqueImages = Array.from(new Set(allImages));
+          return uniqueImages.length > 1;
+        })() && (
+          <div className="space-y-2">
+            <Label>Reordenar Imagens</Label>              <ImageReorder
+              images={(() => {
+                const allImages = [
+                  ...(imageData.url ? [imageData.url] : []),
+                  ...galleryData.urls
+                ];
+                const uniqueImages = Array.from(new Set(allImages));
+                console.log('🖼️ === IMAGES PARA REORDENAR ===');
+                console.log('📊 Estado atual do formData:');
+                console.log('  - image_url:', imageData.url);
+                console.log('  - gallery_urls:', galleryData.urls);
+                console.log('📋 Todas as imagens combinadas:', allImages);
+                console.log('🔗 Imagens únicas:', uniqueImages);
+                console.log('🖼️ === FIM DEBUG IMAGES ===');
+                return uniqueImages;
+              })()}
+              onReorder={(newOrder) => {
+                setGalleryData(prev => ({ ...prev, urls: newOrder }));
+              }}
+              onRemove={(image_url) => {
+                console.log('🗑️ === REMOÇÃO DE IMAGEM ===');
+                console.log('🗑️ Removendo imagem:', image_url);
+                
+                const allImages = [
+                  ...(imageData.url ? [imageData.url] : []),
+                  ...galleryData.urls
+                ];
+                
+                // Filtrar a imagem removida e usar handleImagesChange
+                const newImages = allImages.filter(url => url !== image_url);
+                setGalleryData(prev => ({ ...prev, urls: newImages }));
+                
+                console.log('✅ Imagem removida via handleImagesChange');
+                console.log('🗑️ === REMOÇÃO CONCLUÍDA ===');
+              }}
             />
           </div>
-        </div>{/* Inventário e Controle - Seção opcional */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">📦 Inventário</h3>
-            <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+        )}
+
+        <div>
+          <Label htmlFor="alt_text">Texto Alternativo (ALT)</Label>
+          <Input
+            id="alt_text"
+            value={formData.alt_text || ''}
+            onChange={(e) => setFormData({ ...formData, alt_text: e.target.value })}
+            placeholder="Descrição das imagens para acessibilidade"
+          />
+        </div>
+      </div>{/* Inventário e Controle - Seção opcional */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">📦 Inventário</h3>
+          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div>
+            <Label htmlFor="sku">SKU (Código)</Label>
+            <Input
+              id="sku"
+              value={formData.sku || ''}
+              onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+              placeholder="Ex: COL-001"
+            />
           </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+          <div>
+            <Label htmlFor="barcode">Código de Barras</Label>
+            <Input
+              id="barcode"
+              value={formData.barcode || ''}
+              onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+              placeholder="7891234567890"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="quantity">Quantidade em Estoque</Label>
+            <Input
+              id="quantity"
+              type="number"
+              value={formData.quantity || ''}
+              onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
+              placeholder="0"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-4">
+          <div className="flex items-center space-x-2">            <Checkbox
+              id="track_inventory"
+              checked={formData.track_inventory || false}
+              onCheckedChange={(checked) => setFormData({ ...formData, track_inventory: checked })}
+            />
+            <Label htmlFor="track_inventory">Controlar Estoque</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">            <Checkbox
+              id="allow_backorder"
+              checked={formData.allow_backorder || false}
+              onCheckedChange={(checked) => setFormData({ ...formData, allow_backorder: checked })}
+            />
+            <Label htmlFor="allow_backorder">Permitir Encomenda</Label>
+          </div>
+        </div>
+      </div>      {/* Status e Promoções - Seção opcional */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">🏷️ Status e Promoções</h3>
+          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+        </div>
+        
+        <div className="flex flex-wrap gap-4">          <div className="flex items-center space-x-2">            <Checkbox
+              id="is_active"
+              checked={Boolean(formData.is_active ?? true)}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+            />
+            <Label htmlFor="is_active">Produto Ativo</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">            <Checkbox
+              id="is_featured"
+              checked={formData.is_featured || false}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_featured: checked })}
+            />
+            <Label htmlFor="is_featured">Produto em Destaque</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">            <Checkbox
+              id="is_new_arrival"
+              checked={formData.is_new_arrival || false}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_new_arrival: checked })}
+            />
+            <Label htmlFor="is_new_arrival">Produto Novo</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">            <Checkbox
+              id="is_on_sale"
+              checked={formData.is_on_sale || false}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_on_sale: checked })}
+            />
+            <Label htmlFor="is_on_sale">Em Promoção</Label>
+          </div>
+        </div>
+
+        {formData.is_on_sale && (
+          <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
             <div>
-              <Label htmlFor="sku">SKU (Código)</Label>
+              <Label htmlFor="promotion_text">Texto da Promoção</Label>
               <Input
-                id="sku"
-                value={formData.sku || ''}
-                onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                placeholder="Ex: COL-001"
+                id="promotion_text"
+                value={formData.promotion_text || ''}
+                onChange={(e) => setFormData({ ...formData, promotion_text: e.target.value })}
+                placeholder="Ex: 20% OFF por tempo limitado"
               />
             </div>
 
-            <div>
-              <Label htmlFor="barcode">Código de Barras</Label>
-              <Input
-                id="barcode"
-                value={formData.barcode || ''}
-                onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                placeholder="7891234567890"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="quantity">Quantidade em Estoque</Label>
-              <Input
-                id="quantity"
-                type="number"
-                value={formData.quantity || ''}
-                onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
-                placeholder="0"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-4">
-            <div className="flex items-center space-x-2">            <Checkbox
-                id="track_inventory"
-                checked={formData.track_inventory || false}
-                onCheckedChange={handleTrackInventoryChange}
-              />
-              <Label htmlFor="track_inventory">Controlar Estoque</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">            <Checkbox
-                id="allow_backorder"
-                checked={formData.allow_backorder || false}
-                onCheckedChange={handleAllowBackorderChange}
-              />
-              <Label htmlFor="allow_backorder">Permitir Encomenda</Label>
-            </div>
-          </div>
-        </div>      {/* Status e Promoções - Seção opcional */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">🏷️ Status e Promoções</h3>
-            <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
-          </div>
-          
-          <div className="flex flex-wrap gap-4">            <div className="flex items-center space-x-2">              <Checkbox
-                id="is_active"
-                checked={Boolean(formData.is_active ?? true)}
-                onCheckedChange={handleIsActiveChange}
-              />
-              <Label htmlFor="is_active">Produto Ativo</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">              <Checkbox
-                id="is_featured"
-                checked={formData.is_featured || false}
-                onCheckedChange={handleIsFeaturedChange}
-              />
-              <Label htmlFor="is_featured">Produto em Destaque</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">              <Checkbox
-                id="is_new_arrival"
-                checked={formData.is_new_arrival || false}
-                onCheckedChange={handleIsNewArrivalChange}
-              />
-              <Label htmlFor="is_new_arrival">Produto Novo</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">              <Checkbox
-                id="is_on_sale"
-                checked={formData.is_on_sale || false}
-                onCheckedChange={handleIsOnSaleChange}
-              />
-              <Label htmlFor="is_on_sale">Em Promoção</Label>
-            </div>
-          </div>
-
-          {formData.is_on_sale && (
-            <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="promotion_text">Texto da Promoção</Label>
+                <Label htmlFor="sale_start_date">Data de Início</Label>
                 <Input
-                  id="promotion_text"
-                  value={formData.promotion_text || ''}
-                  onChange={(e) => setFormData({ ...formData, promotion_text: e.target.value })}
-                  placeholder="Ex: 20% OFF por tempo limitado"
+                  id="sale_start_date"
+                  type="datetime-local"
+                  value={formData.sale_start_date || ''}
+                  onChange={(e) => setFormData({ ...formData, sale_start_date: e.target.value })}
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="sale_start_date">Data de Início</Label>
-                  <Input
-                    id="sale_start_date"
-                    type="datetime-local"
-                    value={formData.sale_start_date || ''}
-                    onChange={(e) => setFormData({ ...formData, sale_start_date: e.target.value })}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="sale_end_date">Data de Fim</Label>
-                  <Input
-                    id="sale_end_date"
-                    type="datetime-local"
-                    value={formData.sale_end_date || ''}
-                    onChange={(e) => setFormData({ ...formData, sale_end_date: e.target.value })}
-                  />
-                </div>
-              </div>
-            </div>          )}
-        </div>
-
-        {/* Configuração de Badges - Seção nova */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">🏷️ Configuração de Badges</h3>
-            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Controla a exibição</span>
-          </div>
-          
-          <div className="p-4 bg-blue-50/50 rounded-lg space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Configure quais badges serão exibidos nos cards de produto nas páginas de produtos, favoritos e full-store.
-            </p>
-            
-            <div className="flex flex-wrap gap-4">              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="show_colors_badge"
-                  checked={Boolean(formData.show_colors_badge)}
-                  onCheckedChange={handleShowColorsBadgeChange}
+              <div>
+                <Label htmlFor="sale_end_date">Data de Fim</Label>
+                <Input
+                  id="sale_end_date"
+                  type="datetime-local"
+                  value={formData.sale_end_date || ''}
+                  onChange={(e) => setFormData({ ...formData, sale_end_date: e.target.value })}
                 />
-                <Label htmlFor="show_colors_badge">Mostrar Badge de Cores</Label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="show_materials_badge"
-                  checked={Boolean(formData.show_materials_badge)}
-                  onCheckedChange={handleShowMaterialsBadgeChange}
-                />
-                <Label htmlFor="show_materials_badge">Mostrar Badge de Materiais</Label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="show_sizes_badge"
-                  checked={Boolean(formData.show_sizes_badge)}
-                  onCheckedChange={handleShowSizesBadgeChange}
-                />
-                <Label htmlFor="show_sizes_badge">Mostrar Badge de Tamanhos</Label>
               </div>
             </div>
-            
-            <div className="text-xs text-muted-foreground mt-2">
-              💡 <strong>Dica:</strong> Os badges ajudam os clientes a identificar rapidamente as características dos produtos. 
-              Desmarque para produtos onde essas informações não são relevantes.
+          </div>        )}
+      </div>
+
+      {/* Configuração de Badges - Seção nova */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">🏷️ Configuração de Badges</h3>
+          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Controla a exibição</span>
+        </div>
+        
+        <div className="p-4 bg-blue-50/50 rounded-lg space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Configure quais badges serão exibidos nos cards de produto nas páginas de produtos, favoritos e full-store.
+          </p>
+          
+          <div className="flex flex-wrap gap-4">            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="show_colors_badge"
+                checked={Boolean(formData.show_colors_badge)}
+                onCheckedChange={(checked) => setFormData({ ...formData, show_colors_badge: checked })}
+              />
+              <Label htmlFor="show_colors_badge">Mostrar Badge de Cores</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="show_materials_badge"
+                checked={Boolean(formData.show_materials_badge)}
+                onCheckedChange={(checked) => setFormData({ ...formData, show_materials_badge: checked })}
+              />
+              <Label htmlFor="show_materials_badge">Mostrar Badge de Materiais</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="show_sizes_badge"
+                checked={Boolean(formData.show_sizes_badge)}
+                onCheckedChange={(checked) => setFormData({ ...formData, show_sizes_badge: checked })}
+              />
+              <Label htmlFor="show_sizes_badge">Mostrar Badge de Tamanhos</Label>
             </div>
           </div>
-        </div>      {/* SEO - Seção opcional */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">🔍 SEO</h3>
-            <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
-          </div>
           
-          <div>
-            <Label htmlFor="meta_title">Título SEO</Label>
-            <Input
-              id="meta_title"
-              value={formData.meta_title || ''}
-              onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
-              placeholder="Título para mecanismos de busca"
-              maxLength={60}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="meta_description">Descrição SEO</Label>
-            <Textarea
-              id="meta_description"
-              value={formData.meta_description || ''}
-              onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
-              placeholder="Descrição para mecanismos de busca"
-              maxLength={160}
-              rows={2}
-            />
+          <div className="text-xs text-muted-foreground mt-2">
+            💡 <strong>Dica:</strong> Os badges ajudam os clientes a identificar rapidamente as características dos produtos. 
+            Desmarque para produtos onde essas informações não são relevantes.
           </div>
         </div>
-
-        {/* Notas Internas - Seção opcional */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">📝 Notas Internas</h3>
-            <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
-          </div>
-            <div>
-            <Label htmlFor="notes">Observações</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes || ''}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Anotações internas sobre o produto..."
-              rows={3}
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="care_instructions">🧼 Instruções de Cuidados</Label>
-            <Textarea
-              id="care_instructions"
-              value={formData.care_instructions || ''}
-              onChange={(e) => setFormData({ ...formData, care_instructions: e.target.value })}
-              placeholder="Ex: Lavar à mão com água fria, não usar alvejante, secar à sombra..."
-              rows={4}
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Instruções para conservação e manutenção do produto (aparecerá na página do produto)
-            </p>
-          </div>
+      </div>      {/* SEO - Seção opcional */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">🔍 SEO</h3>
+          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+        </div>
+        
+        <div>
+          <Label htmlFor="meta_title">Título SEO</Label>
+          <Input
+            id="meta_title"
+            value={formData.meta_title || ''}
+            onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
+            placeholder="Título para mecanismos de busca"
+            maxLength={60}
+          />
         </div>
 
-        {/* Botões de Ação */}
-        <div className="flex gap-2 pt-6 border-t">
-          <Button type="submit" className="flex-1" disabled={isUploading}>
-            <Save className="w-4 h-4 mr-2" />
-            {isUploading ? 'Salvando...' : 'Salvar Produto'}
+        <div>
+          <Label htmlFor="meta_description">Descrição SEO</Label>
+          <Textarea
+            id="meta_description"
+            value={formData.meta_description || ''}
+            onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
+            placeholder="Descrição para mecanismos de busca"
+            maxLength={160}
+            rows={2}
+          />
+        </div>
+      </div>
+
+      {/* Notas Internas - Seção opcional */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">📝 Notas Internas</h3>
+          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">Opcional</span>
+        </div>
+          <div>
+          <Label htmlFor="notes">Observações</Label>
+          <Textarea
+            id="notes"
+            value={formData.notes || ''}
+            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            placeholder="Anotações internas sobre o produto..."
+            rows={3}
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="care_instructions">🧼 Instruções de Cuidados</Label>
+          <Textarea
+            id="care_instructions"
+            value={formData.care_instructions || ''}
+            onChange={(e) => setFormData({ ...formData, care_instructions: e.target.value })}
+            placeholder="Ex: Lavar à mão com água fria, não usar alvejante, secar à sombra..."
+            rows={4}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Instruções para conservação e manutenção do produto (aparecerá na página do produto)
+          </p>
+        </div>
+      </div>
+
+      {/* Image Optimization Tab */}
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Image Optimization</h2>
+        <button
+          onClick={handleOptimizeImages}
+          disabled={!formData.id || formData.images_optimized}
+          className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 disabled:opacity-50"
+        >
+          {formData.images_optimized ? 'Images Optimized' : 'Optimize Images'}
+        </button>
+      </div>
+
+      {/* Botões de Ação */}
+      <div className="flex gap-2 pt-6 border-t">
+        <Button type="submit" className="flex-1" disabled={isUploading}>
+          <Save className="w-4 h-4 mr-2" />
+          {isUploading ? 'Salvando...' : 'Salvar Produto'}
+        </Button>
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isUploading}>
+            Cancelar
           </Button>
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isUploading}>
-              Cancelar
-            </Button>
-          )}
-        </div>
-      </form>
-    </div>
+        )}
+      </div>
+    </form>
   );
 }
 
@@ -1656,7 +1491,7 @@ interface Collection {
 }
 
 // Componente de Gerenciamento de Coleções
-function CollectionsManagement({ products }: { products: Product[] }) {
+function CollectionsManagement({ products }: { products: Product[] }): JSX.Element {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -2095,9 +1930,9 @@ function CollectionsManagement({ products }: { products: Product[] }) {
                                 alt={product.name}
                                 className="w-8 h-8"
                               />
-                            ) : product.imageUrl ? (
+                            ) : product.image_url ? (
                               <AdminImageCard
-                                src={product.imageUrl}
+                                src={product.image_url}
                                 alt={product.name}
                                 className="w-8 h-8"
                               />
@@ -2162,7 +1997,7 @@ function CollectionForm({
   collection?: Collection;
   onSave: (data: Partial<Collection>) => void;
   onCancel: () => void;
-}) {
+}): JSX.Element {
   const [formData, setFormData] = useState({
     name: collection?.name || '',
     description: collection?.description || '',
@@ -2252,11 +2087,11 @@ function CollectionForm({
 }
 
 // Componentes de placeholder para outras abas
-function AnalyticsDashboard({ products }: { products: Product[] }) {
+function AnalyticsDashboard({ products }: { products: Product[] }): JSX.Element {
   const totalProducts = products.length;
   const totalValue = products.reduce((sum, p) => sum + p.price, 0);
-  const newProducts = products.filter(p => p.isNewArrival).length;
-  const promotions = products.filter(p => p.isPromotion).length;
+  const newProducts = products.filter(p => p.is_new_arrival).length;
+  const promotions = products.filter(p => p.is_on_sale).length;
 
   return (
     <div className="space-y-6">
@@ -2334,7 +2169,7 @@ function AnalyticsDashboard({ products }: { products: Product[] }) {
   );
 }
 
-function CustomerManagement() {
+function CustomerManagement(): JSX.Element {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold">Gerenciar Clientes</h2>
@@ -2351,7 +2186,7 @@ function CustomerManagement() {
   );
 }
 
-function SiteSettings() {
+function SiteSettings(): JSX.Element {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold">Configurações do Site</h2>
@@ -2367,3 +2202,4 @@ function SiteSettings() {
     </div>
   );
 }
+

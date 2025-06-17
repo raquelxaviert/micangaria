@@ -2,11 +2,12 @@
  * Utilitários para otimização de imagens, especialmente Google Drive
  */
 
+import { createClient } from './supabase/client';
+
 export interface ImageSizeConfig {
   width?: number;
   height?: number;
   quality?: number;
-  crop?: boolean;
 }
 
 /**
@@ -47,42 +48,27 @@ export function getOptimizedGoogleDriveUrl(
     return url; // Retorna URL original se não for do Google Drive
   }
 
-  const { width = 800, height = 800, quality = 90, crop = true } = config;
+  const { width = 800, height = 800, quality = 90 } = config;
 
-  // Para thumbnails pequenos (miniaturas)
-  if (width <= 100) {
-    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w100-h100-c`;
-  }
+  const params = new URLSearchParams({
+    id: fileId,
+    export: 'view',
+    ...(width && { w: width.toString() }),
+    ...(height && { h: height.toString() }),
+    ...(quality && { q: quality.toString() })
+  });
 
-  // Para miniaturas médias (cards)
-  if (width <= 400) {
-    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w400-h400-c`;
-  }
-
-  // Para imagens grandes (visualização principal)
-  if (width <= 800) {
-    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w800-h800-c`;
-  }
-
-  // Para imagens muito grandes (zoom)
-  if (width > 800) {
-    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200-h1200-c`;
-  }
-
-  // Fallback para URL original otimizada
-  return `https://drive.google.com/uc?export=view&id=${fileId}`;
+  return `https://drive.google.com/uc?${params.toString()}`;
 }
 
 /**
  * Configurações predefinidas para diferentes contextos
  */
 export const IMAGE_CONFIGS = {
-  thumbnail: { width: 100, height: 100, crop: true },
-  card: { width: 400, height: 400, crop: true },
-  carousel: { width: 800, height: 800, crop: true },
-  zoom: { width: 1200, height: 1200, crop: true },
-  hero: { width: 1600, height: 1200, crop: false },
-} as const;
+  card: { width: 400, height: 400, quality: 85 },
+  gallery: { width: 800, height: 800, quality: 90 },
+  full: { width: 1200, height: 1200, quality: 95 }
+};
 
 /**
  * Pré-carrega uma imagem para melhorar a performance
@@ -130,7 +116,7 @@ export function generateBlurDataUrl(width: number = 10, height: number = 10): st
  * Verifica se uma URL é do Supabase Storage
  */
 export function isSupabaseStorageUrl(url: string): boolean {
-  return url.includes('.supabase.co/storage/v1/object/public/');
+  return url.includes('supabase.co/storage');
 }
 
 /**
@@ -139,11 +125,122 @@ export function isSupabaseStorageUrl(url: string): boolean {
  * Se for do Google Drive, aplica otimizações
  */
 export function getOptimizedImageUrl(url: string, config: ImageSizeConfig): string {
-  // Se for URL do Supabase Storage, usar diretamente (já é otimizada)
+  if (!url) return '/products/placeholder.jpg';
+  
+  // Se for URL do Supabase Storage, usar diretamente
   if (isSupabaseStorageUrl(url)) {
     return url;
   }
   
   // Se for do Google Drive, aplicar otimizações
-  return getOptimizedGoogleDriveUrl(url, config);
+  if (isGoogleDriveUrl(url)) {
+    return getOptimizedGoogleDriveUrl(url, config);
+  }
+  
+  // Se for outra URL, retornar como está
+  return url;
+}
+
+function isGoogleDriveUrl(url: string): boolean {
+  return url.includes('drive.google.com');
+}
+
+export async function transferImageFromGoogleDrive(driveUrl: string): Promise<string> {
+  const supabase = createClient();
+  
+  try {
+    // Verificar se já existe no Supabase
+    const fileId = extractGoogleDriveFileId(driveUrl);
+    if (!fileId) {
+      console.error('❌ URL do Google Drive inválida:', driveUrl);
+      return driveUrl;
+    }
+
+    const { data: existingFiles } = await supabase.storage
+      .from('product-imgs')
+      .list('products', {
+        search: fileId
+      });
+    
+    if (existingFiles && existingFiles.length > 0) {
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-imgs')
+        .getPublicUrl(`products/${existingFiles[0].name}`);
+      return publicUrl;
+    }
+    
+    // Se não existe, baixar e fazer upload
+    const response = await fetch(driveUrl);
+    if (!response.ok) throw new Error('Falha ao baixar imagem do Drive');
+    
+    const blob = await response.blob();
+    const fileExt = blob.type.split('/')[1] || 'jpg';
+    const fileName = `${fileId}.${fileExt}`;
+    const filePath = `products/${fileName}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('product-imgs')
+      .upload(filePath, blob, {
+        contentType: blob.type,
+        cacheControl: '3600',
+        upsert: true
+      });
+    
+    if (uploadError) throw uploadError;
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('product-imgs')
+      .getPublicUrl(filePath);
+    
+    return publicUrl;
+  } catch (error) {
+    console.error('❌ Erro ao transferir imagem:', error);
+    return driveUrl;
+  }
+}
+
+export async function transferMultipleImages(urls: string[]): Promise<string[]> {
+  return Promise.all(
+    urls.map(url => isGoogleDriveUrl(url) ? transferImageFromGoogleDrive(url) : url)
+  );
+}
+
+export async function optimizeProductImages(product: any): Promise<any> {
+  const supabase = createClient();
+  
+  try {
+    // Preservar a ordem das imagens conforme definido no formulário
+    const allImages = [
+      product.image_url,
+      ...(product.gallery_urls || [])
+    ].filter(Boolean); // Remove URLs vazias/nulas
+
+    // Transferir todas as imagens mantendo a ordem
+    const optimizedUrls = await transferMultipleImages(allImages);
+
+    // A primeira imagem é sempre a principal
+    const optimizedImageUrl = optimizedUrls[0] || null;
+    
+    // As demais vão para a galeria
+    const optimizedGalleryUrls = optimizedUrls.slice(1);
+
+    // Atualizar produto mantendo a ordem
+    const { data: updatedProduct, error } = await supabase
+      .from('products')
+      .update({
+        image_url: optimizedImageUrl,
+        gallery_urls: optimizedGalleryUrls,
+        images_optimized: true,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', product.id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return updatedProduct;
+  } catch (error) {
+    console.error('❌ Erro ao otimizar imagens do produto:', error);
+    return product;
+  }
 }
