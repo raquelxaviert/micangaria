@@ -93,7 +93,8 @@ export function Header() {
           Navegação
         </h3>
         <div className="space-y-2">
-          <SheetClose asChild>            <Link href="/products" onClick={handleAllProductsClick} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+          <SheetClose asChild>
+            <Link href="/products" onClick={handleAllProductsClick} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
               <ShoppingBag size={18} />
               <span>Todos os Produtos</span>
             </Link>
@@ -127,7 +128,8 @@ export function Header() {
                 <div className="h-4 bg-muted rounded flex-1 animate-pulse"></div>
                 <div className="w-6 h-3 bg-muted rounded animate-pulse"></div>
               </div>
-            ))          ) : (
+            ))
+          ) : (
             categories.map((category) => {
               const IconComponent = category.icon;
               return (
@@ -153,7 +155,8 @@ export function Header() {
       <div>
         <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
           Coleções
-        </h3>        <div className="space-y-2">
+        </h3>
+        <div className="space-y-2">
           {menuCollections.map((collection) => {
             const IconComponent = collection.icon;
             return (
