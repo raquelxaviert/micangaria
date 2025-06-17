@@ -336,58 +336,6 @@ export default function FullStorePage() {
           </div>
         </div>
       </section>
-
-      {/* CTA Section */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4 sm:px-6 text-center">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-headline mb-4 sm:mb-6">
-            Consultoria Personalizada
-          </h2>
-          <p className="text-lg sm:text-xl mb-8 sm:mb-12 opacity-90 max-w-3xl mx-auto">
-            Transforme Seu Estilo com Maria Clara
-          </p>
-          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Consultoria de imagem personalizada para descobrir seu estilo único com acessórios vintage cuidadosamente selecionados.
-          </p>
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">
-            <Button 
-              asChild 
-              size="lg"
-              variant="secondary"
-              className="bg-white text-primary hover:bg-white/90 px-8 py-4 text-lg font-semibold rounded-full"
-            >
-              <Link href="/style-advisor">
-                Agendar Consultoria de Styling
-                <Sparkles className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            
-            <Button 
-              asChild 
-              variant="outline" 
-              size="lg"
-              className="border-2 border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground px-8 py-4 text-lg font-semibold rounded-full"
-            >
-              <Link href="/about">
-                Sobre Maria Clara
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            
-            <Button 
-              asChild 
-              variant="outline" 
-              size="sm"
-              className="border border-white/30 text-white/70 hover:bg-white/10 hover:text-white px-4 py-2 text-sm rounded-full"
-            >
-              <Link href="/checkout-demo">
-                Demo Checkout
-                <ShoppingBag className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

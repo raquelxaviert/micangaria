@@ -65,6 +65,20 @@ export async function transferImageFromGoogleDrive(
 }
 
 /**
+ * Verifica se a URL é do Google Drive
+ */
+function isGoogleDriveUrl(url: string): boolean {
+  return url.includes('drive.google.com');
+}
+
+/**
+ * Verifica se a URL já é do Supabase Storage (já otimizada)
+ */
+function isSupabaseStorageUrl(url: string): boolean {
+  return url.includes('supabase.co/storage/');
+}
+
+/**
  * Transfere múltiplas imagens do Google Drive para o Supabase Storage
  */
 export async function transferMultipleImages(
@@ -75,13 +89,28 @@ export async function transferMultipleImages(
   supabaseUrls: string[];
   errors: string[];
 }> {
-  console.log(`🔄 Transferindo ${googleDriveUrls.length} imagens para o Supabase...`);
+  console.log(`🔄 Processando ${googleDriveUrls.length} imagens...`);
   
   const supabaseUrls: string[] = [];
   const errors: string[] = [];
   
   for (let i = 0; i < googleDriveUrls.length; i++) {
     const url = googleDriveUrls[i];
+    
+    // Verificar se a URL já foi otimizada (Supabase) ou precisa ser transferida (Google Drive)
+    if (isSupabaseStorageUrl(url)) {
+      console.log(`✅ Imagem já otimizada (Supabase): ${url}`);
+      supabaseUrls.push(url);
+      continue;
+    }
+    
+    if (!isGoogleDriveUrl(url)) {
+      console.log(`⚠️ URL não é do Google Drive, mantendo como está: ${url}`);
+      supabaseUrls.push(url);
+      continue;
+    }
+    
+    // Transferir apenas URLs do Google Drive
     const result = await transferImageFromGoogleDrive(url, productId, `image-${i + 1}`);
     
     if (result.success && result.supabaseUrl) {
@@ -163,12 +192,16 @@ export async function optimizeProductImages(productId: string): Promise<{
     if (fetchError || !product) {
       return { success: false, message: 'Produto não encontrado' };
     }
+      // Verificar se já foi otimizado (mas permitir re-otimização para produtos com imagens mistas)
+    const hasGoogleDriveImages = [
+      product.image_url,
+      ...(product.gallery_urls || [])
+    ].some(url => url && isGoogleDriveUrl(url));
     
-    // Verificar se já foi otimizado
-    if (product.images_optimized) {
+    if (product.images_optimized && !hasGoogleDriveImages) {
       return { 
         success: true, 
-        message: 'Produto já possui imagens otimizadas',
+        message: 'Produto já possui todas as imagens otimizadas',
         optimizedUrls: {
           mainImage: product.image_url,
           gallery: product.gallery_urls || []

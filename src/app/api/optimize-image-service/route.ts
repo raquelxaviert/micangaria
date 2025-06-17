@@ -44,6 +44,20 @@ function generateUniqueFileName(originalName: string, productId: string): string
   return `products/${productId}/${timestamp}-${random}.${extension}`;
 }
 
+/**
+ * Verifica se a URL é do Google Drive
+ */
+function isGoogleDriveUrl(url: string): boolean {
+  return url.includes('drive.google.com');
+}
+
+/**
+ * Verifica se a URL já é do Supabase Storage (já otimizada)
+ */
+function isSupabaseStorageUrl(url: string): boolean {
+  return url.includes('supabase.co/storage/');
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body: OptimizeImageRequest = await request.json();
@@ -56,6 +70,28 @@ export async function POST(request: NextRequest) {
         { success: false, error: 'URL do Google Drive e ID do produto são obrigatórios' },
         { status: 400 }
       );
+    }
+
+    // Verificar se já é URL do Supabase (já otimizada)
+    if (isSupabaseStorageUrl(googleDriveUrl)) {
+      console.log('✅ Imagem já está no Supabase, retornando URL original:', googleDriveUrl);
+      return NextResponse.json({
+        success: true,
+        supabaseUrl: googleDriveUrl,
+        originalUrl: googleDriveUrl,
+        message: 'Imagem já otimizada (Supabase Storage)'
+      });
+    }
+
+    // Verificar se é URL do Google Drive
+    if (!isGoogleDriveUrl(googleDriveUrl)) {
+      console.log('⚠️ URL não é do Google Drive, retornando URL original:', googleDriveUrl);
+      return NextResponse.json({
+        success: true,
+        supabaseUrl: googleDriveUrl,
+        originalUrl: googleDriveUrl,
+        message: 'URL não é do Google Drive, mantendo como está'
+      });
     }
 
     // Extrair ID do Google Drive
