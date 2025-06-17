@@ -47,6 +47,8 @@ interface Product {
   created_at: string;
   is_active: boolean;
   slug: string; // Slug for URL
+  show_materials_section: boolean;
+  show_care_section: boolean;
 }
 
 export default function ProductPage() {
@@ -57,11 +59,26 @@ export default function ProductPage() {
   const [loading, setLoading] = useState(true);
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
   const [selectedSize, setSelectedSize] = useState<string>('');
-  const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState<'description' | 'materials' | 'care'>('description');
+  const [quantity, setQuantity] = useState(1);  const [activeTab, setActiveTab] = useState<'description' | 'materials' | 'care'>('description');
   const [selectedShipping, setSelectedShipping] = useState<any>(null);
   const [shippingCost, setShippingCost] = useState(0);
   const supabase = createClient();
+
+  // Atualizar aba ativa quando o produto carrega, garantindo que seja uma aba visível
+  useEffect(() => {
+    if (product) {
+      const availableTabs = [
+        { id: 'description', show: true },
+        { id: 'materials', show: product.show_materials_section && product.materials && product.materials.length > 0 },
+        { id: 'care', show: product.show_care_section }
+      ].filter(tab => tab.show);
+
+      // Se a aba atual não está disponível, mudar para a primeira disponível
+      if (!availableTabs.some(tab => tab.id === activeTab)) {
+        setActiveTab(availableTabs[0]?.id as any || 'description');
+      }
+    }
+  }, [product, activeTab]);
   // Função para formatar a descrição respeitando quebras de linha e tópicos
   const formatDescription = (description: string) => {
     if (!description) return null;
@@ -534,18 +551,16 @@ export default function ProductPage() {
                 <MessageCircle className="mr-2 h-5 w-5" />
                 Dúvidas? Fale Conosco
               </Button>
-            </div>
-
-            {/* Informações Detalhadas */}
+            </div>            {/* Informações Detalhadas */}
             <Card>
               <CardContent className="p-0">
                 <div className="border-b">
                   <nav className="flex">
                     {[
-                      { id: 'description', label: 'Descrição' },
-                      { id: 'materials', label: 'Materiais' },
-                      { id: 'care', label: 'Cuidados' }
-                    ].map((tab) => (
+                      { id: 'description', label: 'Descrição', show: true },
+                      { id: 'materials', label: 'Materiais', show: product.show_materials_section && product.materials && product.materials.length > 0 },
+                      { id: 'care', label: 'Cuidados', show: product.show_care_section }
+                    ].filter(tab => tab.show).map((tab) => (
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
@@ -567,20 +582,19 @@ export default function ProductPage() {
                         {formatDescription(product.description)}
                       </div>
                     </div>
-                  )}
-
-                  {activeTab === 'materials' && (
+                  )}                  {activeTab === 'materials' && product.show_materials_section && (
                     <div>
                       {product.materials && product.materials.length > 0 ? (
                         <div>
                           <h4 className="font-semibold mb-2">Composição:</h4>
-                          <ul className="space-y-1">
+                          <div className="space-y-1">
                             {product.materials.map((material, index) => (
-                              <li key={index} className="text-sm text-muted-foreground">
-                                • {material}
-                              </li>
+                              <div key={index} className="flex items-center gap-2">
+                                <span className="text-primary font-bold flex-shrink-0">•</span>
+                                <span className="flex-1 text-sm text-muted-foreground">{material}</span>
+                              </div>
                             ))}
-                          </ul>
+                          </div>
                         </div>
                       ) : (
                         <p className="text-sm text-muted-foreground">
@@ -590,7 +604,7 @@ export default function ProductPage() {
                     </div>
                   )}
 
-                  {activeTab === 'care' && (
+                  {activeTab === 'care' && product.show_care_section && (
                     <div>
                       <h4 className="font-semibold mb-2">Cuidados Especiais:</h4>                      {product.care_instructions ? (
                         <div className="prose prose-sm max-w-none">

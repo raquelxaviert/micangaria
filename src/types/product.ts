@@ -38,10 +38,11 @@ export type Product = {
   collection: string | null;
   notes: string | null;
   image_storage_path: string | null;
-  gallery_storage_paths: string[] | null;
-  care_instructions: string | null;
+  gallery_storage_paths: string[] | null;  care_instructions: string | null;
   show_colors_badge: boolean;
   show_materials_badge: boolean;
   show_sizes_badge: boolean;
+  show_materials_section: boolean;
+  show_care_section: boolean;
   images_optimized: boolean;
-}; 
+};

@@ -109,13 +109,18 @@ export default function AdminPage() {  const [isAuthenticated, setIsAuthenticate
           search_keywords: p.search_keywords,
           vendor: p.vendor,
           collection: p.collection,
-          notes: p.notes,
-          care_instructions: p.care_instructions,
+          notes: p.notes,          care_instructions: p.care_instructions,
           image_url: p.image_url,
+          image_alt: p.image_alt,
           gallery_urls: p.gallery_urls || [],
+          image_storage_path: p.image_storage_path,
+          gallery_storage_paths: p.gallery_storage_paths || [],
           show_colors_badge: p.show_colors_badge,
           show_materials_badge: p.show_materials_badge,
           show_sizes_badge: p.show_sizes_badge,
+          show_materials_section: p.show_materials_section ?? true,
+          show_care_section: p.show_care_section ?? true,
+          images_optimized: p.images_optimized || false,
           created_at: p.created_at,
           updated_at: p.updated_at
         }));
@@ -583,13 +588,14 @@ function ProductForm({
       search_keywords: '',
       vendor: '',
       collection: '',
-      notes: '',
-      care_instructions: '',
+      notes: '',      care_instructions: '',
       image_url: '',
       gallery_urls: [],
       show_colors_badge: true,
       show_materials_badge: true,
       show_sizes_badge: true,
+      show_materials_section: true,
+      show_care_section: true,
       alt_text: '',
       category_id: null
     };
@@ -698,11 +704,12 @@ function ProductForm({
         search_keywords: formData.search_keywords || null,
         vendor: formData.vendor || null,
         collection: formData.collection || null,
-        notes: formData.notes || null,
-        care_instructions: formData.care_instructions || null,
+        notes: formData.notes || null,        care_instructions: formData.care_instructions || null,
         show_colors_badge: formData.show_colors_badge ?? true,
         show_materials_badge: formData.show_materials_badge ?? true,
         show_sizes_badge: formData.show_sizes_badge ?? true,
+        show_materials_section: formData.show_materials_section ?? true,
+        show_care_section: formData.show_care_section ?? true,
         images_optimized: false, // Sempre começa como false
         updated_at: new Date().toISOString()
       };
@@ -1453,6 +1460,41 @@ function ProductForm({
           />
           <p className="text-xs text-muted-foreground mt-1">
             Instruções para conservação e manutenção do produto (aparecerá na página do produto)
+          </p>
+        </div>
+      </div>
+
+      {/* Controles de Exibição de Seções */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
+        <div className="flex items-center space-x-2">
+          <input
+            id="show_materials_section"
+            type="checkbox"
+            checked={formData.show_materials_section !== false}
+            onChange={(e) => setFormData({ ...formData, show_materials_section: e.target.checked })}
+            className="rounded border-gray-300"
+          />
+          <Label htmlFor="show_materials_section" className="text-sm font-medium">
+            🧵 Mostrar seção "Materiais"
+          </Label>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <input
+            id="show_care_section"
+            type="checkbox"
+            checked={formData.show_care_section !== false}
+            onChange={(e) => setFormData({ ...formData, show_care_section: e.target.checked })}
+            className="rounded border-gray-300"
+          />
+          <Label htmlFor="show_care_section" className="text-sm font-medium">
+            🧼 Mostrar seção "Cuidados"
+          </Label>
+        </div>
+        
+        <div className="col-span-full">
+          <p className="text-xs text-muted-foreground">
+            Controle quais seções aparecerão na página do produto. A seção "Descrição" sempre será exibida.
           </p>
         </div>
       </div>
