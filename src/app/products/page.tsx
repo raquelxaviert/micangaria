@@ -386,7 +386,7 @@ function ProductsContent() {
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
-      <div className="container mx-auto px-2 sm:px-6 py-4 sm:py-8 max-w-full overflow-hidden">        {/* Header */}
+      <div className="container mx-auto px-2 sm:px-6 py-4 sm:py-8">        {/* Header */}
         <div className="mb-6 sm:mb-12">
           <div className="text-center mb-4 sm:mb-8">
             <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">
@@ -477,14 +477,14 @@ function ProductsContent() {
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
                 <p className="text-muted-foreground">Carregando produtos...</p>
               </div>            ) : filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+              <div className="columns-2 lg:columns-3" style={{ columnGap: '1rem', columnFill: 'balance' }}>
                 {filteredProducts.map(product => (
-                  <div key={product.id}>
+                  <div key={product.id} style={{ breakInside: 'avoid', marginBottom: '1rem', display: 'inline-block', width: '100%' }}>
                     <ProductCard 
                       product={convertProductToProductData(product)}
                       variant="compact"
                       showRating={false}
-                      className="hover:-translate-y-1 sm:hover:-translate-y-2 w-full h-full"
+                      className="hover:-translate-y-1 sm:hover:-translate-y-2 w-full"
                     />
                   </div>
                 ))}

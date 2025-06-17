@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Sparkles, Info, ShoppingBag, Search, Menu, User, LogOut, ShoppingCart } from 'lucide-react'; 
+import { Sparkles, Info, ShoppingBag, Search, Menu, User, LogOut, ShoppingCart, Star, Tag, TrendingUp, Gem } from 'lucide-react'; 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet';
@@ -59,13 +59,12 @@ export function Header() {
       console.error('Erro ao fazer logout:', error);
     }
   };
-
   // Coleções para o menu lateral
   const menuCollections = [
-    { name: 'Novidades', href: '/products?filter=new' },
-    { name: 'Promoções', href: '/products?filter=promotions' },
-    { name: 'Mais Vendidos', href: '/products?filter=bestsellers' },
-    { name: 'Vintage Collection', href: '/products?collection=vintage' },
+    { name: 'Novidades', href: '/products?filter=new', icon: Sparkles },
+    { name: 'Promoções', href: '/products?filter=promotions', icon: Tag },
+    { name: 'Mais Vendidos', href: '/products?filter=bestsellers', icon: TrendingUp },
+    { name: 'Vintage Collection', href: '/products?collection=vintage', icon: Gem },
   ];
   const MenuSidebar = () => (
     <div className="mt-6 space-y-6 pb-6">
@@ -151,16 +150,17 @@ export function Header() {
       <div>
         <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
           Coleções
-        </h3>
-        <div className="space-y-2">
-          {menuCollections.map((collection) => (
-            <SheetClose key={collection.name} asChild>
-              <Link href={collection.href} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
-                <div className="w-4 h-4 rounded-full bg-primary/20"></div>
-                <span>{collection.name}</span>
-              </Link>
-            </SheetClose>
-          ))}
+        </h3>        <div className="space-y-2">
+          {menuCollections.map((collection) => {
+            const IconComponent = collection.icon;
+            return (              <SheetClose key={collection.name} asChild>
+                <Link href={collection.href} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+                  <IconComponent size={18} className="text-foreground" />
+                  <span>{collection.name}</span>
+                </Link>
+              </SheetClose>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -170,10 +170,9 @@ export function Header() {
         {/* Layout desktop */}
         <div className="hidden md:flex items-center justify-between gap-4">
           {/* Menu Hamburger + Logo à esquerda */}
-          <div className="flex items-center gap-4">
-            <Sheet>
+          <div className="flex items-center gap-4">            <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+                <Button variant="ghost" size="icon" className="hover:bg-primary hover:text-[#F5F0EB]">
                   <Menu size={20} />
                 </Button>
               </SheetTrigger>
@@ -267,15 +266,13 @@ export function Header() {
               </li>
             </ul>
           </nav>
-        </div>
-
-        {/* Layout mobile */}
+        </div>        {/* Layout mobile */}
         <div className="md:hidden space-y-4">
           {/* Primeira linha: Menu hamburger, Logo e ações */}
           <div className="flex items-center justify-between gap-3">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+                <Button variant="ghost" size="icon" className="hover:bg-primary hover:text-[#F5F0EB]">
                   <Menu size={20} />
                 </Button>
               </SheetTrigger>
@@ -327,16 +324,16 @@ export function Header() {
                 >
                   <User size={20} />
                 </Button>
-              )}
-
-              {/* Botão de Sacolinha - Todos os Produtos */}
+              )}              {/* Botão de Sacolinha - Todos os Produtos */}
               <Link href="/products">
-                <Button variant="ghost" size="icon" className="hover:bg-primary/10" title="Todos os Produtos">
+                <Button variant="ghost" size="icon" className="hover:bg-primary hover:text-[#F5F0EB]" title="Todos os Produtos">
                   <ShoppingBag size={20} />
                 </Button>
-              </Link>              {/* Botão de Carrinho no Mobile */}
+              </Link>
+
+              {/* Botão de Carrinho no Mobile */}
               <Link href="/cart" className="relative">
-                <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+                <Button variant="ghost" size="icon" className="hover:bg-primary hover:text-[#F5F0EB]">
                   <ShoppingCart size={20} />
                   <ClientOnly fallback={null}>
                     {cartCount > 0 && (

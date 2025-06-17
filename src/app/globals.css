@@ -156,6 +156,71 @@
   }
 }
 
+/* Masonry layout personalizado para produtos */
+.products-masonry {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .products-masonry {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .products-masonry {
+    gap: 1rem;
+  }
+}
+
+/* Força alinhamento no topo de cada coluna */
+.products-masonry > * {
+  justify-self: stretch;
+  align-self: start;
+}
+
+/* Fallback com columns para browsers que não suportam bem grid masonry */
+@supports not (grid-template-rows: masonry) {
+  .products-masonry-fallback {
+    columns: 2;
+    column-gap: 0.75rem;
+  }
+  
+  @media (min-width: 1024px) {
+    .products-masonry-fallback {
+      columns: 3;
+      column-gap: 1.5rem;
+    }
+  }
+  
+  @media (min-width: 640px) and (max-width: 1023px) {
+    .products-masonry-fallback {
+      column-gap: 1rem;
+    }
+  }
+  
+  .products-masonry-fallback > * {
+    break-inside: avoid;
+    margin-bottom: 0.75rem;
+  }
+  
+  @media (min-width: 1024px) {
+    .products-masonry-fallback > * {
+      margin-bottom: 1.5rem;
+    }
+  }
+  
+  @media (min-width: 640px) and (max-width: 1023px) {
+    .products-masonry-fallback > * {
+      margin-bottom: 1rem;
+    }
+  }
+}
+
 @keyframes gradient-x {
   0%, 100% {
     background-position: 0% 50%;
