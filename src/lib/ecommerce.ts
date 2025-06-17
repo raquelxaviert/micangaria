@@ -35,40 +35,31 @@ export class CartManager {
     const stored = localStorage.getItem(this.STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
   }
-
-  static addItem(item: Omit<CartItem, 'quantity'>): void {
+  static addItem(item: Omit<CartItem, 'quantity'>): boolean {
     const cart = this.getCart();
     const existingIndex = cart.findIndex(i => i.productId === item.productId);
     
+    // Se o produto já existe no carrinho, não adiciona (peças únicas)
     if (existingIndex >= 0) {
-      cart[existingIndex].quantity += 1;
+      return false; // Retorna false indicando que não foi adicionado
     } else {
       cart.push({ ...item, quantity: 1 });
     }
     
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(cart));
     this.notifyCartChange();
+    return true; // Retorna true indicando que foi adicionado com sucesso
   }
 
+  // Função para verificar se um produto já está no carrinho
+  static isInCart(productId: string): boolean {
+    const cart = this.getCart();
+    return cart.some(item => item.productId === productId);
+  }
   static removeItem(productId: string): void {
     const cart = this.getCart().filter(item => item.productId !== productId);
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(cart));
     this.notifyCartChange();
-  }
-
-  static updateQuantity(productId: string, quantity: number): void {
-    const cart = this.getCart();
-    const itemIndex = cart.findIndex(i => i.productId === productId);
-    
-    if (itemIndex >= 0) {
-      if (quantity <= 0) {
-        cart.splice(itemIndex, 1);
-      } else {
-        cart[itemIndex].quantity = quantity;
-      }
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(cart));
-      this.notifyCartChange();
-    }
   }
 
   static clearCart(): void {
@@ -77,11 +68,11 @@ export class CartManager {
   }
 
   static getTotal(): number {
-    return this.getCart().reduce((total, item) => total + (item.price * item.quantity), 0);
+    return this.getCart().reduce((total, item) => total + item.price, 0); // Sempre quantidade 1
   }
 
   static getItemCount(): number {
-    return this.getCart().reduce((total, item) => total + item.quantity, 0);
+    return this.getCart().length; // Sempre quantidade 1 por item
   }
 
   private static notifyCartChange(): void {

@@ -35,13 +35,12 @@ export function OrderSummary() {
               <div className="flex-grow min-w-0">
                 <h4 className="font-medium text-sm leading-tight truncate">
                   {item.name}
-                </h4>
-                <div className="flex items-center justify-between mt-1">
+                </h4>                <div className="flex items-center justify-between mt-1">
                   <span className="text-xs text-muted-foreground">
-                    Qtd: {item.quantity}
+                    Peça única
                   </span>
                   <span className="font-medium text-sm">
-                    R$ {(item.price * item.quantity).toFixed(2)}
+                    R$ {item.price.toFixed(2)}
                   </span>
                 </div>
               </div>

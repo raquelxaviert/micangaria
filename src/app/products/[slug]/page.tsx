@@ -57,9 +57,9 @@ export default function ProductPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<ProductData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
-  const [selectedSize, setSelectedSize] = useState<string>('');
-  const [quantity, setQuantity] = useState(1);  const [activeTab, setActiveTab] = useState<'description' | 'materials' | 'care'>('description');
+  const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());  const [selectedSize, setSelectedSize] = useState<string>('');
+  const [isInCart, setIsInCart] = useState(false);
+  const [activeTab, setActiveTab] = useState<'description' | 'materials' | 'care'>('description');
   const [selectedShipping, setSelectedShipping] = useState<any>(null);
   const [shippingCost, setShippingCost] = useState(0);
   const supabase = createClient();
@@ -301,25 +301,31 @@ export default function ProductPage() {
 
     fetchProduct();
   }, [params.slug, supabase, router]);
-
   const handleAddToCart = () => {
     if (!product) return;
     
     try {
-      // Adicionar ao carrinho usando CartManager
-      for (let i = 0; i < quantity; i++) {
-        CartManager.addItem({
-          productId: product.id,
-          name: product.name,
-          price: product.price,
-          imageUrl: product.image_url
-        });
+      // Verificar se já está no carrinho
+      if (CartManager.isInCart(product.id)) {
+        alert('Este produto já está no seu carrinho!');
+        return;
       }
+
+      // Adicionar ao carrinho (sempre quantidade 1 para peças únicas)
+      const success = CartManager.addItem({
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        imageUrl: product.image_url
+      });
       
-      console.log('✅ Produto adicionado ao carrinho:', product.name, 'Quantidade:', quantity);
-      
-      // Feedback visual
-      alert(`${product.name} foi adicionado ao carrinho!${quantity > 1 ? ` (${quantity}x)` : ''}`);
+      if (success) {
+        console.log('✅ Produto adicionado ao carrinho:', product.name);
+        setIsInCart(true);
+        alert(`${product.name} foi adicionado ao carrinho!`);
+      } else {
+        alert('Este produto já está no seu carrinho!');
+      }
     } catch (error) {
       console.error('❌ Erro ao adicionar ao carrinho:', error);
       alert('Erro ao adicionar produto ao carrinho. Tente novamente.');
@@ -359,6 +365,25 @@ export default function ProductPage() {
       }
     }
   };
+
+  // Verificar se o produto está no carrinho quando carrega
+  useEffect(() => {
+    if (product) {
+      setIsInCart(CartManager.isInCart(product.id));
+    }
+  }, [product]);
+
+  // Listener para mudanças no carrinho
+  useEffect(() => {
+    const handleCartChange = () => {
+      if (product) {
+        setIsInCart(CartManager.isInCart(product.id));
+      }
+    };
+    
+    window.addEventListener('cartChanged', handleCartChange);
+    return () => window.removeEventListener('cartChanged', handleCartChange);
+  }, [product]);
 
   if (loading) {
     return (
@@ -516,10 +541,9 @@ export default function ProductPage() {
                   </p>
                   <p className="text-sm text-green-600">
                     R$ {shippingCost.toFixed(2).replace('.', ',')} • {selectedShipping.delivery_time} dias úteis
-                  </p>
-                  <div className="mt-2 pt-2 border-t border-green-200">
+                  </p>                  <div className="mt-2 pt-2 border-t border-green-200">
                     <p className="text-sm font-medium text-green-700">
-                      Total: R$ {(product.price * quantity + shippingCost).toFixed(2).replace('.', ',')}
+                      Total: R$ {(product.price + shippingCost).toFixed(2).replace('.', ',')}
                     </p>
                   </div>
                 </div>
@@ -528,28 +552,27 @@ export default function ProductPage() {
 
             {/* Calculadora de Frete - Melhor Envio */}
             <div>
-              <ShippingCalculator
-                products={[{
+              <ShippingCalculator                products={[{
                   id: product.id,
                   name: product.name,
                   type: product.type,
                   price: product.price,
-                  quantity: quantity
+                  quantity: 1
                 }]}
                 onShippingSelect={handleShippingSelect}
               />
             </div>
 
             {/* Botões de Ação */}
-            <div className="space-y-3">
-              <Button 
+            <div className="space-y-3">              <Button 
                 size="lg" 
                 className="w-full text-base font-semibold h-12 hidden md:flex md:items-center md:justify-center"
                 onClick={handleAddToCart}
+                disabled={isInCart}
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
-                Adicionar ao Carrinho
-              </Button>              {/* Botões secundários - Desktop */}
+                {isInCart ? 'Produto já no Carrinho' : 'Adicionar ao Carrinho'}
+              </Button>{/* Botões secundários - Desktop */}
               <div className="hidden md:flex gap-3">
                 <Button 
                   variant="outline" 
@@ -705,15 +728,15 @@ export default function ProductPage() {
                 R$ {product.price.toFixed(2).replace('.', ',')}
               </div>
             </div>
-            
-            {/* Botão Adicionar - direita */}
+              {/* Botão Adicionar - direita */}
             <Button 
               size="lg" 
               className="h-12 px-6 font-semibold"
               onClick={handleAddToCart}
+              disabled={isInCart}
             >
               <ShoppingCart className="mr-2 h-4 w-4" />
-              Adicionar
+              {isInCart ? 'No Carrinho' : 'Adicionar'}
             </Button>
           </div>
         </div>

@@ -44,15 +44,14 @@ type CheckoutAction =
 function checkoutReducer(state: any, action: CheckoutAction) {
   switch (action.type) {
     case 'LOAD_CART': {
-      const cartItems = CartManager.getCart();
-      const items = cartItems.map(item => ({
+      const cartItems = CartManager.getCart();      const items = cartItems.map(item => ({
         id: item.productId,
         name: item.name,
         price: item.price,
-        quantity: item.quantity,
+        quantity: 1, // Sempre 1 para peças únicas
         imageUrl: item.imageUrl,
       }));
-      const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const subtotal = items.reduce((sum, item) => sum + item.price, 0); // Sempre quantidade 1
       return {
         ...state,
         data: {

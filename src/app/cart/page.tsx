@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Trash2, Plus, Minus, ShoppingCart, CreditCard, Truck } from 'lucide-react';
+import { Trash2, ShoppingCart, CreditCard, Truck } from 'lucide-react';
 import { CartManager, CartItem } from '@/lib/ecommerce';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
@@ -25,14 +25,9 @@ export default function CartPage() {
     const handleCartChange = () => {
       setCartItems(CartManager.getCart());
     };
-    
-    window.addEventListener('cartChanged', handleCartChange);
+      window.addEventListener('cartChanged', handleCartChange);
     return () => window.removeEventListener('cartChanged', handleCartChange);
   }, []);
-
-  const updateQuantity = (productId: string, quantity: number) => {
-    CartManager.updateQuantity(productId, quantity);
-  };
 
   const removeItem = (productId: string) => {
     CartManager.removeItem(productId);
@@ -40,7 +35,7 @@ export default function CartPage() {
       title: "Produto removido",
       description: "Item removido do carrinho com sucesso.",
     });
-  };  const handleCheckout = async () => {
+  };const handleCheckout = async () => {
     if (cartItems.length === 0) {
       toast({
         title: "Carrinho vazio",
@@ -105,25 +100,9 @@ export default function CartPage() {
                       <p className="text-xl font-bold text-primary">
                         R$ {item.price.toFixed(2)}
                       </p>
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                            disabled={item.quantity <= 1}
-                          >
-                            <Minus className="w-4 h-4" />
-                          </Button>
-                          <span className="font-medium px-2">{item.quantity}</span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </Button>
+                        <div className="flex items-center justify-between">
+                        <div className="text-sm text-muted-foreground">
+                          Peça única
                         </div>
                         
                         <Button
