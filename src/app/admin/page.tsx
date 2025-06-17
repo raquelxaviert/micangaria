@@ -1177,7 +1177,15 @@ function ProductForm({
                 return uniqueImages;
               })()}
               onReorder={(newOrder) => {
-                setGalleryData(prev => ({ ...prev, urls: newOrder }));
+                // Se a primeira imagem mudou, atualiza a imagem principal
+                if (newOrder[0] !== imageData.url) {
+                  setImageData(prev => ({ ...prev, url: newOrder[0] }));
+                  // Remove a primeira imagem da galeria
+                  setGalleryData(prev => ({ ...prev, urls: newOrder.slice(1) }));
+                } else {
+                  // Se a primeira imagem não mudou, apenas atualiza a galeria
+                  setGalleryData(prev => ({ ...prev, urls: newOrder.slice(1) }));
+                }
               }}
               onRemove={(image_url) => {
                 console.log('🗑️ === REMOÇÃO DE IMAGEM ===');

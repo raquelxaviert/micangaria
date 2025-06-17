@@ -34,10 +34,7 @@ const AdminProductCard = memo(({
   
   // Determinar a imagem principal prioritariamente
   const getMainImage = () => {
-    if (product.gallery_urls && product.gallery_urls.length > 0) {
-      return product.gallery_urls[0];
-    }
-    return product.imageUrl || product.image_url || '/products/placeholder.jpg';
+    return product.image_url || product.imageUrl || (product.gallery_urls && product.gallery_urls[0]) || '/products/placeholder.jpg';
   };
 
   const mainImage = getMainImage();
