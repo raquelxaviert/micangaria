@@ -11,22 +11,41 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Trash2, ShoppingCart, CreditCard, Truck } from 'lucide-react';
-import { CartManager, CartItem } from '@/lib/ecommerce';
+import { CartManager, CartItem } from '@/lib/cart';
 import { FastImage } from '@/components/ui/FastImage';
 import { getOptimizedImageUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import { AuthModal } from '@/components/AuthModal_centered';
+import { useAuth } from '@/contexts/AuthContext';
+
+interface ShippingOption {
+  name: string;
+  price: number;
+  deadline: string;
+  company: string;
+  service: string;
+  error?: string;
+}
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
+  const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
+  const [zipCode, setZipCode] = useState('');
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
+  const { user } = useAuth();
 
   useEffect(() => {
-    setCartItems(CartManager.getCart());
+    const items = CartManager.getItems();
+    setCartItems(items);
     
     const handleCartChange = () => {
-      setCartItems(CartManager.getCart());
+      setCartItems(CartManager.getItems());
     };
-      window.addEventListener('cartChanged', handleCartChange);
+    window.addEventListener('cartChanged', handleCartChange);
     return () => window.removeEventListener('cartChanged', handleCartChange);
   }, []);
 
@@ -36,7 +55,9 @@ export default function CartPage() {
       title: "Produto removido",
       description: "Item removido do carrinho com sucesso.",
     });
-  };const handleCheckout = async () => {
+  };
+
+  const handleCheckout = async () => {
     if (cartItems.length === 0) {
       toast({
         title: "Carrinho vazio",
@@ -46,13 +67,80 @@ export default function CartPage() {
       return;
     }
 
-    // Redirecionar para o novo checkout
-    window.location.href = '/checkout';
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    // Redirecionar para o checkout
+    router.push('/checkout');
+  };
+
+  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cep = e.target.value.replace(/\D/g, '');
+    setZipCode(cep);
+    
+    if (cep.length === 8) {
+      try {
+        // Buscar opções de frete do Melhor Envio
+        const shippingResponse = await fetch('/api/shipping/calculate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: {
+              postal_code: '01001000', // CEP da loja
+            },
+            to: {
+              postal_code: cep,
+            },
+            products: cartItems.map(item => ({
+              id: item.productId,
+              width: 20, // Dimensões padrão para simulação
+              height: 20,
+              length: 20,
+              weight: 1,
+              insurance_value: item.price,
+              quantity: item.quantity,
+            })),
+          }),
+        });
+
+        const shippingData = await shippingResponse.json();
+        
+        // Filtrar opções de frete e adicionar frete grátis para compras acima de R$ 300
+        const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+        const options = shippingData
+          .filter((option: any) => option.error === undefined) // Remover opções com erro
+          .map((option: any) => ({
+            name: option.name,
+            price: total >= 300 ? 0 : Number(option.price) || 0,
+            deadline: `${option.delivery_time} dias úteis`,
+            company: option.company?.name || 'Transportadora',
+            service: option.service,
+            error: option.error,
+          }))
+          .sort((a: any, b: any) => a.price - b.price); // Ordenar por preço
+
+        console.log('Opções de frete:', options); // Debug
+        setShippingOptions(options);
+        if (options.length > 0) {
+          setSelectedShipping(options[0]);
+        }
+      } catch (error) {
+        toast({
+          title: 'Erro ao calcular frete',
+          description: 'Não foi possível calcular o frete. Tente novamente.',
+          variant: 'destructive',
+        });
+      }
+    }
   };
 
   const total = CartManager.getTotal();
-  const shipping = total > 150 ? 0 : 15.90;
-  const finalTotal = total + shipping;
+  const shippingCost = selectedShipping?.price || 0;
+  const finalTotal = total + shippingCost;
 
   if (cartItems.length === 0) {
     return (
@@ -86,7 +174,8 @@ export default function CartPage() {
             {cartItems.map((item) => (
               <Card key={item.productId}>
                 <CardContent className="p-4">
-                  <div className="flex gap-4">                    <div className="w-20 h-20 relative rounded-lg overflow-hidden flex-shrink-0 bg-gray-50">
+                  <div className="flex gap-4">
+                    <div className="w-20 h-20 relative rounded-lg overflow-hidden flex-shrink-0 bg-gray-50">
                       <FastImage
                         src={getOptimizedImageUrl(item.imageUrl, IMAGE_CONFIGS.thumbnail)}
                         alt={item.name}
@@ -102,7 +191,7 @@ export default function CartPage() {
                       <p className="text-xl font-bold text-primary">
                         R$ {item.price.toFixed(2)}
                       </p>
-                        <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between">
                         <div className="text-sm text-muted-foreground">
                           Peça única
                         </div>
@@ -121,7 +210,9 @@ export default function CartPage() {
                 </CardContent>
               </Card>
             ))}
-          </div>          {/* Checkout Summary */}
+          </div>
+
+          {/* Checkout Summary */}
           <div className="space-y-6">
             {/* Order Summary */}
             <Card>
@@ -133,27 +224,57 @@ export default function CartPage() {
                   <span>Subtotal:</span>
                   <span>R$ {total.toFixed(2)}</span>
                 </div>
-                
-                <div className="flex justify-between items-center">
-                  <span className="flex items-center gap-2">
-                    <Truck className="w-4 h-4" />
-                    Frete:
-                  </span>
-                  <div className="text-right">
-                    {shipping === 0 ? (
-                      <div>
-                        <span className="line-through text-muted-foreground">R$ 15,90</span>
-                        <Badge className="ml-2 bg-green-100 text-green-800">GRÁTIS</Badge>
-                      </div>
-                    ) : (
-                      <span>R$ {shipping.toFixed(2)}</span>
-                    )}
+
+                {/* Shipping Calculator */}
+                <div className="space-y-2">
+                  <Label htmlFor="cep">Calcular Frete</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="cep"
+                      placeholder="Digite seu CEP"
+                      value={zipCode}
+                      onChange={handleCepChange}
+                      maxLength={8}
+                    />
                   </div>
                 </div>
+
+                {shippingOptions.length > 0 && (
+                  <div className="space-y-4">
+                    <Label>Opções de Entrega</Label>
+                    <div className="space-y-2">
+                      {shippingOptions.map((option, index) => (
+                        <div
+                          key={index}
+                          className={`p-4 border rounded-lg cursor-pointer ${
+                            selectedShipping === option ? 'border-primary' : 'border-border'
+                          }`}
+                          onClick={() => setSelectedShipping(option)}
+                        >
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="font-medium">{option.name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {option.company} • {option.deadline}
+                              </p>
+                            </div>
+                            <p className="font-medium">
+                              {option.price === 0 ? (
+                                <span className="text-green-600">GRÁTIS</span>
+                              ) : (
+                                `R$ ${option.price.toFixed(2)}`
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 
-                {shipping > 0 && (
+                {total < 300 && !selectedShipping && (
                   <p className="text-xs text-muted-foreground">
-                    💡 Frete grátis para compras acima de R$ 150,00
+                    💡 Frete grátis para compras acima de R$ 300,00
                   </p>
                 )}
                 
@@ -180,6 +301,11 @@ export default function CartPage() {
           </div>
         </div>
       </div>
+      
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+      />
     </div>
   );
 }

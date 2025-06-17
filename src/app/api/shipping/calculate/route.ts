@@ -12,6 +12,9 @@ import { NextRequest, NextResponse } from 'next/server';
  * - Tokens diferentes para cada ambiente
  */
 
+const MELHOR_ENVIO_API = 'https://sandbox.melhorenvio.com.br/api/v2/me/shipment/calculate';
+const MELHOR_ENVIO_TOKEN = process.env.MELHOR_ENVIO_TOKEN;
+
 export async function POST(request: NextRequest) {
   let body: any;
   
@@ -70,94 +73,46 @@ export async function POST(request: NextRequest) {
     };
 
     // Fazer requisição para a API do Melhor Envio
-    const response = await fetch(`${melhorEnvioConfig.apiUrl}/me/shipment/calculate`, {
+    const response = await fetch(MELHOR_ENVIO_API, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Authorization': `Bearer ${melhorEnvioConfig.token}`,
-        'User-Agent': 'RUGE Vintage Store (contato@ruge.com.br)'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${MELHOR_ENVIO_TOKEN}`,
       },
-      body: JSON.stringify(requestData)    });    if (!response.ok) {
-      const errorData = await response.text();
-      console.error('[MELHOR ENVIO] Erro na API:', errorData);
-      console.error('[MELHOR ENVIO] Ambiente atual:', isSandbox ? 'SANDBOX' : 'PRODUÇÃO');
-      console.error('[MELHOR ENVIO] URL utilizada:', melhorEnvioConfig.apiUrl);      
-      // Se não conseguir usar o Melhor Envio, calcular frete básico dos Correios
-      return NextResponse.json({
-        data: await calculateBasicShipping(body.from, body.to, body.products, isSandbox)
-      });
-    }    const data = await response.json();
-      // Filtrar e formatar os resultados
-    let formattedResults = Object.values(data).map((option: any) => {
-      // Tratar preços que podem ser null, undefined, 0 ou string vazia
-      const rawPrice = option.price || option.custom_price || 0;
-      const rawCustomPrice = option.custom_price || option.price || 0;
-      
-      // Converter para número e verificar se é válido
-      const price = parseFloat(rawPrice.toString()) || 0;
-      const customPrice = parseFloat(rawCustomPrice.toString()) || 0;
-      
-      // Verificar se é gratuito
-      const isFree = price === 0;
-      
-      console.log(`[SHIPPING] ${option.name}: price=${price}, custom_price=${customPrice}, isFree=${isFree}`);
-      
-      return {
-        id: option.id,
+      body: JSON.stringify({
+        from: {
+          postal_code: body.from.postal_code,
+        },
+        to: {
+          postal_code: body.to.postal_code,
+        },
+        products: body.products,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao calcular frete');
+    }
+
+    const data = await response.json();    // Filtrar apenas as opções de frete que queremos mostrar
+    const shippingOptions = data
+      .filter((option: any) => 
+        ['PAC', 'SEDEX', 'PAC MINI', 'Correios PAC', 'Correios SEDEX'].includes(option.name)
+      )
+      .map((option: any) => ({
         name: option.name,
-        company: {
-          id: option.company?.id || 0,
-          name: option.company?.name || 'Transportadora',
-          picture: option.company?.picture || '/images/default-shipping.svg'
-        },
-        price: price.toFixed(2),
-        custom_price: customPrice.toFixed(2),
-        discount: option.discount || '0',
-        currency: option.currency || 'BRL',
-        delivery_time: option.delivery_time || 5,
-        delivery_range: option.delivery_range || { min: 3, max: 7 },
-        custom_delivery_time: option.custom_delivery_time || option.delivery_time,
-        custom_delivery_range: option.custom_delivery_range || option.delivery_range,
-        packages: option.packages || [],
-        additional_services: {
-          receipt: false,
-          own_hand: false,
-          collect: false
-        },
-        isFree: isFree
-      };
-    });    // Ordenar por preço (mais barato primeiro)
-    formattedResults.sort((a, b) => {
-      const priceA = parseFloat(a.custom_price || a.price || '0');
-      const priceB = parseFloat(b.custom_price || b.price || '0');
-      
-      // Se um dos preços é NaN, colocar no final
-      if (isNaN(priceA)) return 1;
-      if (isNaN(priceB)) return -1;
-      
-      return priceA - priceB;
-    });
+        price: parseFloat(option.price || option.custom_price || '15.00'),
+        delivery_time: parseInt(option.delivery_time || option.custom_delivery_time || '5'),
+      }));
 
-    console.log(`[MELHOR ENVIO] ${formattedResults.length} opções de frete encontradas e ordenadas por preço`);
-    console.log('[PREÇOS]', formattedResults.map(r => ({ name: r.name, price: r.price, custom_price: r.custom_price })));
-
-    return NextResponse.json({
-      data: formattedResults
-    });  } catch (error) {
-    console.error('[MELHOR ENVIO] Erro ao calcular frete:', error);
-    
-    // Fallback: retornar opções básicas de frete
-    const fallbackOptions = await calculateBasicShipping(
-      body?.from || { postal_code: '01310100' },
-      body?.to || { postal_code: '00000000' },
-      body?.products || [],
-      isSandbox
+    return NextResponse.json(shippingOptions);
+  } catch (error) {
+    console.error('Erro ao calcular frete:', error);
+    return NextResponse.json(
+      { error: 'Erro ao calcular frete' },
+      { status: 500 }
     );
-    
-    return NextResponse.json({
-      data: fallbackOptions
-    });
   }
 }
 
@@ -180,9 +135,8 @@ async function calculateBasicShipping(from: any, to: any, products: any[], isSan
         id: 1,
         name: 'Correios',
         picture: 'https://static.melhorenvio.com.br/images/shipping-companies/correios.png'
-      },
-      price: (basePrice * 1.2).toFixed(2),
-      custom_price: (basePrice * 1.2).toFixed(2),
+      },      price: parseFloat((basePrice * 1.2).toFixed(2)),
+      custom_price: parseFloat((basePrice * 1.2).toFixed(2)),
       discount: '0',
       currency: 'BRL',
       delivery_time: 8,
@@ -228,9 +182,8 @@ async function calculateBasicShipping(from: any, to: any, products: any[], isSan
       id: 2,
       name: 'Jadlog',
       picture: 'https://static.melhorenvio.com.br/images/shipping-companies/jadlog.png'
-    },
-    price: (basePrice * 1.5).toFixed(2),
-    custom_price: (basePrice * 1.5).toFixed(2),
+    },    price: parseFloat((basePrice * 1.5).toFixed(2)),
+    custom_price: parseFloat((basePrice * 1.5).toFixed(2)),
     discount: '0',
     currency: 'BRL',
     delivery_time: 5,

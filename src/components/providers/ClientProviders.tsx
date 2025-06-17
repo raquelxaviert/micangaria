@@ -1,7 +1,6 @@
 'use client';
 
 import { AuthProvider } from '@/contexts/AuthContext';
-import { LikesProvider } from '@/contexts/LikesContextSupabase';
 
 interface ClientProvidersProps {
   children: React.ReactNode;
@@ -10,9 +9,7 @@ interface ClientProvidersProps {
 export function ClientProviders({ children }: ClientProvidersProps) {
   return (
     <AuthProvider>
-      <LikesProvider>
-        {children}
-      </LikesProvider>
+      {children}
     </AuthProvider>
   );
 }

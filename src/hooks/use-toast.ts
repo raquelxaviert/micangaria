@@ -2,6 +2,7 @@
 
 // Inspired by react-hot-toast library
 import * as React from "react"
+import { toast as sonnerToast } from 'sonner';
 
 import type {
   ToastActionElement,
@@ -171,24 +172,26 @@ function toast({ ...props }: Toast) {
   }
 }
 
-function useToast() {
-  const [state, setState] = React.useState<State>(memoryState)
-
-  React.useEffect(() => {
-    listeners.push(setState)
-    return () => {
-      const index = listeners.indexOf(setState)
-      if (index > -1) {
-        listeners.splice(index, 1)
-      }
-    }
-  }, [state])
-
-  return {
-    ...state,
-    toast,
-    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
-  }
+interface ToastOptions {
+  title?: string;
+  description?: string;
+  variant?: 'default' | 'destructive';
 }
 
-export { useToast, toast }
+export function useToast() {
+  const toast = ({ title, description, variant = 'default' }: ToastOptions) => {
+    if (variant === 'destructive') {
+      sonnerToast.error(title, {
+        description,
+      });
+    } else {
+      sonnerToast(title, {
+        description,
+      });
+    }
+  };
+
+  return { toast };
+}
+
+export { toast }
