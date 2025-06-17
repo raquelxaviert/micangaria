@@ -309,13 +309,35 @@ function ProductsContent() {
     };
 
     fetchProducts();
-  }, [supabase]);
-  // Set initial filters based on URL params
+  }, [supabase]);  // Set initial filters based on URL params
   useEffect(() => {
     const filter = searchParams.get('filter');
     const search = searchParams.get('search');
     const category = searchParams.get('category');
     const type = searchParams.get('type');
+    
+    // Se não há parâmetros, limpar todos os filtros
+    if (!filter && !search && !category && !type) {
+      setFilters({
+        type: null,
+        style: null,
+        colors: [],
+        searchTerm: '',
+        showNew: false,
+        showPromotions: false,
+      });
+      return;
+    }
+    
+    // Resetar filtros antes de aplicar novos
+    setFilters(prev => ({
+      type: null,
+      style: null,
+      colors: [],
+      searchTerm: '',
+      showNew: false,
+      showPromotions: false,
+    }));
     
     if (filter === 'new') {
       setFilters(prev => ({ ...prev, showNew: true }));
@@ -477,9 +499,28 @@ function ProductsContent() {
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
                 <p className="text-muted-foreground">Carregando produtos...</p>
               </div>            ) : filteredProducts.length > 0 ? (
-              <div className="columns-2 lg:columns-3" style={{ columnGap: '1rem', columnFill: 'balance' }}>
+              <div 
+                key={`masonry-${JSON.stringify(filters)}`}
+                className={
+                  filteredProducts.length <= 6 
+                    ? "grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6" 
+                    : "force-masonry-3-cols"
+                }
+              >
                 {filteredProducts.map(product => (
-                  <div key={product.id} style={{ breakInside: 'avoid', marginBottom: '1rem', display: 'inline-block', width: '100%' }}>
+                  <div 
+                    key={product.id} 
+                    style={
+                      filteredProducts.length > 6 
+                        ? { 
+                            breakInside: 'avoid', 
+                            marginBottom: '1rem', 
+                            display: 'inline-block', 
+                            width: '100%' 
+                          }
+                        : {}
+                    }
+                  >
                     <ProductCard 
                       product={convertProductToProductData(product)}
                       variant="compact"

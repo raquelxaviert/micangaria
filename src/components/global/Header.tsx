@@ -41,15 +41,19 @@ export function Header() {
       // Redireciona para a página de produtos com query de pesquisa
       window.location.href = `/products?search=${encodeURIComponent(searchQuery.trim())}`;
     }
-  };
-
-  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+  };  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       if (searchQuery.trim()) {
         window.location.href = `/products?search=${encodeURIComponent(searchQuery.trim())}`;
       }
     }
+  };
+
+  const handleAllProductsClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Limpar qualquer filtro na URL e ir para todos os produtos
+    window.location.href = '/products';
   };
 
   const handleSignOut = async () => {
@@ -89,8 +93,7 @@ export function Header() {
           Navegação
         </h3>
         <div className="space-y-2">
-          <SheetClose asChild>
-            <Link href="/products" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+          <SheetClose asChild>            <Link href="/products" onClick={handleAllProductsClick} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
               <ShoppingBag size={18} />
               <span>Todos os Produtos</span>
             </Link>
@@ -153,7 +156,8 @@ export function Header() {
         </h3>        <div className="space-y-2">
           {menuCollections.map((collection) => {
             const IconComponent = collection.icon;
-            return (              <SheetClose key={collection.name} asChild>
+            return (
+              <SheetClose key={collection.name} asChild>
                 <Link href={collection.href} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
                   <IconComponent size={18} className="text-foreground" />
                   <span>{collection.name}</span>
@@ -218,13 +222,12 @@ export function Header() {
           </form>
             {/* Navegação rápida à direita */}
           <nav>
-            <ul className="flex items-center space-x-6">
-              <li>
-                <Link href="/products" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap">
+            <ul className="flex items-center space-x-6">              <li>
+                <Link href="/products" onClick={handleAllProductsClick} className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap">
                   <ShoppingBag size={20} />
                   <span>Produtos</span>
                 </Link>
-              </li>              <li>
+              </li><li>
                 <Link href="/cart" className="hover:text-primary transition-colors flex items-center space-x-1 whitespace-nowrap relative">
                   <ShoppingCart size={20} />
                   <span>Carrinho</span>
@@ -325,7 +328,7 @@ export function Header() {
                   <User size={20} />
                 </Button>
               )}              {/* Botão de Sacolinha - Todos os Produtos */}
-              <Link href="/products">
+              <Link href="/products" onClick={handleAllProductsClick}>
                 <Button variant="ghost" size="icon" className="hover:bg-primary hover:text-[#F5F0EB]" title="Todos os Produtos">
                   <ShoppingBag size={20} />
                 </Button>

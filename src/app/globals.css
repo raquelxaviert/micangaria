@@ -216,8 +216,21 @@
   
   @media (min-width: 640px) and (max-width: 1023px) {
     .products-masonry-fallback > * {
-      margin-bottom: 1rem;
-    }
+      margin-bottom: 1rem;    }
+  }
+}
+
+/* CSS para forçar masonry 3 colunas no desktop */
+.force-masonry-3-cols {
+  columns: 2;
+  column-gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .force-masonry-3-cols {
+    columns: 3 !important;
+    column-gap: 1rem !important;
+    column-fill: balance !important;
   }
 }
 
