@@ -856,7 +856,7 @@ function ProductForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 pb-24">
       {/* Informações Básicas */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
@@ -1509,19 +1509,19 @@ function ProductForm({
         >
           {formData.images_optimized ? 'Images Optimized' : 'Optimize Images'}
         </button>
-      </div>
-
-      {/* Botões de Ação */}
-      <div className="flex gap-2 pt-6 border-t">
-        <Button type="submit" className="flex-1" disabled={isUploading}>
-          <Save className="w-4 h-4 mr-2" />
-          {isUploading ? 'Salvando...' : 'Salvar Produto'}
-        </Button>
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isUploading}>
-            Cancelar
+      </div>      {/* Botões de Ação - Sticky */}
+      <div className="sticky bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 z-10">
+        <div className="flex gap-2">
+          <Button type="submit" className="flex-1" disabled={isUploading}>
+            <Save className="w-4 h-4 mr-2" />
+            {isUploading ? 'Salvando...' : 'Salvar Produto'}
           </Button>
-        )}
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel} disabled={isUploading}>
+              Cancelar
+            </Button>
+          )}
+        </div>
       </div>
     </form>
   );

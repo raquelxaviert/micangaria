@@ -587,17 +587,17 @@ export default function ProductPage() {
                       {product.materials && product.materials.length > 0 ? (
                         <div>
                           <h4 className="font-semibold mb-2">Composição:</h4>
-                          <div className="space-y-1">
+                          <div className="text-muted-foreground leading-relaxed space-y-1">
                             {product.materials.map((material, index) => (
                               <div key={index} className="flex items-center gap-2">
                                 <span className="text-primary font-bold flex-shrink-0">•</span>
-                                <span className="flex-1 text-sm text-muted-foreground">{material}</span>
+                                <span className="flex-1">{material}</span>
                               </div>
                             ))}
                           </div>
                         </div>
                       ) : (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-muted-foreground">
                           Informações de materiais não disponíveis.
                         </p>
                       )}
