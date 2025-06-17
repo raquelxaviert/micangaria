@@ -520,11 +520,11 @@ function ProductsContent() {
                           }
                         : {}
                     }
-                  >
-                    <ProductCard 
+                  >                    <ProductCard 
                       product={convertProductToProductData(product)}
                       variant="compact"
                       showRating={false}
+                      showDescription={true}
                       className="hover:-translate-y-1 sm:hover:-translate-y-2 w-full"
                     />
                   </div>

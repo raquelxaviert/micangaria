@@ -5,9 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FastImage } from '@/components/ui/FastImage';
 import Link from 'next/link';
-import { Eye, ShoppingCart, Star } from 'lucide-react';
+import { Eye, ShoppingCart, Star, Check } from 'lucide-react';
 import { CartManager } from '@/lib/ecommerce';
 import { getOptimizedImageUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
+import { useState, useEffect } from 'react';
 
 // Interface genérica para produto - suporta tanto Supabase quanto mock
 export interface ProductData {
@@ -49,11 +50,29 @@ export function ProductCard({
   product, 
   variant = 'default',
   showActions = true,
-  showDescription = true,
-  showColors = true,
+  showDescription = false,
+  showColors = false,
   showRating = false,
-  className = ""
-}: ProductCardProps) {  // Normalize product data to handle both formats
+  className = ''
+}: ProductCardProps) {
+  const [isInCart, setIsInCart] = useState(false);
+  
+  // Verificar se o produto está no carrinho
+  useEffect(() => {
+    setIsInCart(CartManager.isInCart(product.id));
+  }, [product.id]);
+
+  // Listener para mudanças no carrinho
+  useEffect(() => {
+    const handleCartChange = () => {
+      setIsInCart(CartManager.isInCart(product.id));
+    };
+    
+    window.addEventListener('cartChanged', handleCartChange);
+    return () => window.removeEventListener('cartChanged', handleCartChange);
+  }, [product.id]);
+
+  // Normalize product data to handle both formats
   const imageUrl = product.image_url || product.imageUrl || (product.gallery_urls && product.gallery_urls[0]) || '/products/placeholder.jpg';
   const isNewArrival = product.isNewArrival || product.is_new_arrival || false;
   const isOnSale = product.isOnSale || product.is_on_sale || product.is_promotion || false;
@@ -195,28 +214,54 @@ export function ProductCard({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                
-                try {
-                  CartManager.addItem({
+                  try {
+                  // Se já está no carrinho, remover
+                  if (CartManager.isInCart(product.id)) {
+                    CartManager.removeItem(product.id);
+                    setIsInCart(false);
+                    return;
+                  }
+
+                  const success = CartManager.addItem({
                     productId: product.id,
                     name: product.name,
                     price: product.price,
                     imageUrl: imageUrl
                   });
                   
-                  console.log('✅ Produto adicionado ao carrinho:', product.name);
+                  if (success) {
+                    console.log('✅ Produto adicionado ao carrinho:', product.name);
+                    setIsInCart(true);
+                  }
                 } catch (error) {
                   console.error('❌ Erro ao adicionar ao carrinho:', error);
                 }
-              }}
-              className={`w-full bg-black hover:bg-black/90 transition-colors duration-300 ${
+              }}              className={`w-full transition-colors duration-300 ${
+                isInCart 
+                  ? 'bg-green-600 hover:bg-green-700 text-white' 
+                  : 'bg-black hover:bg-black/90'
+              } ${
                 variant === 'compact' ? 'text-xs px-2 py-1 h-8' : 'text-xs px-3 py-2'
               }`}
-              style={{ color: '#F5F0EB' }}
-            >
-              <ShoppingCart className="w-3 h-3 mr-1" style={{ color: '#F5F0EB' }} />
-              <span className="hidden sm:inline">Adicionar</span>
-              <span className="sm:hidden">+</span>
+              style={isInCart ? {} : { color: '#F5F0EB' }}
+            >              {isInCart ? (
+                <>
+                  <div className="flex items-center justify-center sm:hidden">
+                    <ShoppingCart className="w-3 h-3" />
+                    <Check className="w-3 h-3 ml-0.5" />
+                  </div>
+                  <div className="hidden sm:flex items-center justify-center">
+                    <Check className="w-3 h-3 mr-1" />
+                    <span>Ver no carrinho</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="w-3 h-3 mr-1" style={{ color: '#F5F0EB' }} />
+                  <span className="hidden sm:inline">Adicionar</span>
+                  <span className="sm:hidden">+</span>
+                </>
+              )}
             </Button>
           )}
         </div>

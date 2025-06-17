@@ -11,16 +11,16 @@ import { Separator } from '@/components/ui/separator';
 import { 
   ArrowLeft, 
   ShoppingCart, 
-  Share2, 
-  Star,
-  Shield,
+  Share2,   Star,  Shield,
   Truck,
   RotateCcw,
   MessageCircle,
   ChevronRight,
   Minus,
   Plus,
-  Info
+  Info,
+  Check,
+  X
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { ProductCard, ProductData } from '@/components/ui/ProductCard';
@@ -300,14 +300,15 @@ export default function ProductPage() {
       }    };
 
     fetchProduct();
-  }, [params.slug, supabase, router]);
-  const handleAddToCart = () => {
+  }, [params.slug, supabase, router]);  const handleAddToCart = () => {
     if (!product) return;
     
     try {
-      // Verificar se já está no carrinho
+      // Se já está no carrinho, remover do carrinho
       if (CartManager.isInCart(product.id)) {
-        alert('Este produto já está no seu carrinho!');
+        CartManager.removeItem(product.id);
+        setIsInCart(false);
+        alert(`${product.name} foi removido do carrinho!`);
         return;
       }
 
@@ -565,13 +566,23 @@ export default function ProductPage() {
 
             {/* Botões de Ação */}
             <div className="space-y-3">              <Button 
-                size="lg" 
-                className="w-full text-base font-semibold h-12 hidden md:flex md:items-center md:justify-center"
+                size="lg"                className={`w-full text-base font-semibold h-12 hidden md:flex md:items-center md:justify-center ${
+                  isInCart 
+                    ? 'bg-green-600 hover:bg-green-700 text-white' 
+                    : 'bg-primary hover:bg-primary/90'
+                }`}
                 onClick={handleAddToCart}
-                disabled={isInCart}
-              >
-                <ShoppingCart className="mr-2 h-5 w-5" />
-                {isInCart ? 'Produto já no Carrinho' : 'Adicionar ao Carrinho'}
+              >                {isInCart ? (
+                  <>
+                    <Check className="mr-2 h-5 w-5" />
+                    Ver no Carrinho
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="mr-2 h-5 w-5" />
+                    Adicionar ao Carrinho
+                  </>
+                )}
               </Button>{/* Botões secundários - Desktop */}
               <div className="hidden md:flex gap-3">
                 <Button 
@@ -704,12 +715,12 @@ export default function ProductPage() {
             </div>
             
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-              {relatedProducts.map((relatedProduct) => (
-                <ProductCard
+              {relatedProducts.map((relatedProduct) => (                <ProductCard
                   key={relatedProduct.id}
                   product={relatedProduct}
                   variant="compact"
                   showRating={false}
+                  showDescription={true}
                 />
               ))}
             </div>
@@ -727,16 +738,25 @@ export default function ProductPage() {
               <div className="text-lg font-bold">
                 R$ {product.price.toFixed(2).replace('.', ',')}
               </div>
-            </div>
-              {/* Botão Adicionar - direita */}
+            </div>            {/* Botão Adicionar - direita */}
             <Button 
-              size="lg" 
-              className="h-12 px-6 font-semibold"
+              size="lg"              className={`h-12 px-6 font-semibold ${
+                isInCart 
+                  ? 'bg-green-600 hover:bg-green-700 text-white' 
+                  : 'bg-primary hover:bg-primary/90'
+              }`}
               onClick={handleAddToCart}
-              disabled={isInCart}
-            >
-              <ShoppingCart className="mr-2 h-4 w-4" />
-              {isInCart ? 'No Carrinho' : 'Adicionar'}
+            >              {isInCart ? (
+                <>
+                  <ShoppingCart className="mr-1 h-4 w-4" />
+                  <Check className="h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  Adicionar
+                </>
+              )}
             </Button>
           </div>
         </div>
