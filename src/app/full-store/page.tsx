@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRight, ShoppingBag, Heart, Star, Truck, CreditCard, Sparkles, Eye, ShoppingCart, Plus } from 'lucide-react';
 import CollectionSection from '@/components/CollectionSection';
 import CategoriesSection from '@/components/CategoriesSection';
+import { ReliableImage } from '@/components/ui/ReliableImage';
 
 export default function FullStorePage() {
   const benefits = [
@@ -24,15 +25,13 @@ export default function FullStorePage() {
     }  ];
 
   const ProductCard = ({ product }: { product: any }) => (
-    <Card className="group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95">
-      <div className="relative overflow-hidden">
+    <Card className="group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95">      <div className="relative overflow-hidden">
         <div className="product-card-image-container">
-          <Image
+          <ReliableImage
             src={product.image}
             alt={product.name}
-            width={400}
-            height={400}
-            className="product-card-image group-hover:scale-110 transition-transform duration-700"
+            className="product-card-image group-hover:scale-110 transition-transform duration-700 w-full h-full"
+            priority={false}
           />
         </div>
         

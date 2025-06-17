@@ -55,9 +55,8 @@ const typeIconMap: { [key: string]: { icon: string; displayName: string } } = {
   'tenis': { icon: '👟', displayName: 'Tênis' },
   'chinelo': { icon: '🩴', displayName: 'Chinelos' },
   'sapatilha': { icon: '🥿', displayName: 'Sapatilhas' },
-  
-  // Acessórios
-  'cinto': { icon: '👔', displayName: 'Cintos' },
+    // Acessórios
+  'cinto': { icon: '⚫', displayName: 'Cintos' },
   'relogio': { icon: '⌚', displayName: 'Relógios' },
   'oculos': { icon: '🕶️', displayName: 'Óculos' },
   'chapeu': { icon: '👒', displayName: 'Chapéus' },

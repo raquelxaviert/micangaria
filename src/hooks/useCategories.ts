@@ -14,7 +14,7 @@ import {
   Watch,
   Glasses,
   Anchor,
-  Key,
+  Circle,
   Star,
   Gift,
   ShoppingBag,
@@ -70,10 +70,8 @@ const typeIconMap: { [key: string]: { icon: any; displayName: string } } = {
   'bota': { icon: Anchor, displayName: 'Botas' },
   'tenis': { icon: Anchor, displayName: 'Tênis' },
   'chinelo': { icon: Anchor, displayName: 'Chinelos' },
-  'sapatilha': { icon: Anchor, displayName: 'Sapatilhas' },
-  
-  // Acessórios
-  'cinto': { icon: Key, displayName: 'Cintos' },
+  'sapatilha': { icon: Anchor, displayName: 'Sapatilhas' },  // Acessórios
+  'cinto': { icon: Circle, displayName: 'Cintos' },
   'relogio': { icon: Watch, displayName: 'Relógios' },
   'oculos': { icon: Glasses, displayName: 'Óculos' },
   'chapeu': { icon: Crown, displayName: 'Chapéus' },
