@@ -20,8 +20,8 @@ export async function POST(request: Request) {
     // Gerar ID único para o pedido
     const orderId = `order_${Date.now()}`;
 
-    // URLs base
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
+    // URLs base - usando uma URL pública para teste
+    const baseUrl = 'https://www.rugebrecho.com';
     const successUrl = `${baseUrl}/checkout/success`;
     const failureUrl = `${baseUrl}/checkout/failure`;
     const pendingUrl = `${baseUrl}/checkout/pending`;
@@ -70,7 +70,6 @@ export async function POST(request: Request) {
           failure: failureUrl,
           pending: pendingUrl
         },
-        auto_return: "approved",
         notification_url: webhookUrl,
         statement_descriptor: "MICA NGUEIRA",
         external_reference: orderId,
