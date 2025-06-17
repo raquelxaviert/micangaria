@@ -82,6 +82,7 @@ export function ProductCard({
                 alt={product.name}
                 width={400}
                 height={400}
+                fill={true}
                 className="product-card-image group-hover:scale-110 transition-transform duration-700"
                 quality={85}
               />
