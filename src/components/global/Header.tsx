@@ -35,12 +35,20 @@ export function Header() {
     
     return () => window.removeEventListener('cartChanged', updateCartCount);
   }, []);
-  
-  const handleSearch = (e: React.FormEvent) => {
+    const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       // Redireciona para a página de produtos com query de pesquisa
       window.location.href = `/products?search=${encodeURIComponent(searchQuery.trim())}`;
+    }
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (searchQuery.trim()) {
+        window.location.href = `/products?search=${encodeURIComponent(searchQuery.trim())}`;
+      }
     }
   };
 
@@ -59,9 +67,23 @@ export function Header() {
     { name: 'Mais Vendidos', href: '/products?filter=bestsellers' },
     { name: 'Vintage Collection', href: '/products?collection=vintage' },
   ];
-
   const MenuSidebar = () => (
     <div className="mt-6 space-y-6 pb-6">
+      {/* Barra de Pesquisa Mobile */}
+      <div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+          <Input
+            type="search"
+            placeholder="Buscar produtos..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            className="pl-10 pr-4 py-2 w-full bg-muted/50 border-0 rounded-xl focus:bg-background transition-colors"
+          />
+        </div>
+      </div>
+
       {/* Navegação Principal */}
       <div>
         <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
@@ -182,24 +204,17 @@ export function Header() {
               />
             </Link>
           </div>
-          
-          {/* Barra de pesquisa centralizada */}
+            {/* Barra de pesquisa moderna */}
           <form onSubmit={handleSearch} className="flex-1 max-w-md mx-4">
-            <div className="relative flex">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 type="text"
                 placeholder="Buscar produtos..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pr-12 bg-background border-primary/20 focus:border-primary"
+                className="pl-10 pr-4 h-10 bg-muted/50 border-0 rounded-full focus:bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary/20 placeholder:text-muted-foreground/70 transition-all duration-200"
               />
-              <Button 
-                type="submit" 
-                size="sm" 
-                className="absolute right-1.5 top-1/2 transform -translate-y-1/2 px-3 bg-primary hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                <Search size={16} />
-              </Button>
             </div>
           </form>
             {/* Navegação rápida à direita */}
