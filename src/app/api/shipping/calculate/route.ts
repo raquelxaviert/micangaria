@@ -207,9 +207,8 @@ async function calculateBasicShipping(from: any, to: any, products: any[], isSan
           id: 3,
           name: 'Loggi',
           picture: 'https://static.melhorenvio.com.br/images/shipping-companies/loggi.png'
-        },
-        price: (basePrice * 1.3).toFixed(2),
-        custom_price: (basePrice * 1.3).toFixed(2),
+        },        price: parseFloat((basePrice * 1.3).toFixed(2)),
+        custom_price: parseFloat((basePrice * 1.3).toFixed(2)),
         discount: '0',
         currency: 'BRL',
         delivery_time: 4,

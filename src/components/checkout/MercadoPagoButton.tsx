@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, CreditCard } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { CartManager } from '@/lib/cart';
 
 interface ShippingOption {
   name: string;
@@ -28,6 +30,14 @@ interface ShippingAddress {
   state: string;
 }
 
+interface CartItem {
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  imageUrl: string;
+}
+
 interface MercadoPagoButtonProps {
   amount: number;
   shippingOption: ShippingOption | null;
@@ -43,6 +53,7 @@ export default function MercadoPagoButton({
 }: MercadoPagoButtonProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
 
   const handlePayment = async () => {
     try {
@@ -76,6 +87,15 @@ export default function MercadoPagoButton({
         return;
       }
 
+      // Obter itens do carrinho
+      const cartItems = CartManager.getItems().map((item: CartItem) => ({
+        id: item.productId,
+        title: item.name,
+        quantity: item.quantity,
+        unit_price: item.price,
+        currency_id: 'BRL'
+      }));
+
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: {
@@ -86,6 +106,8 @@ export default function MercadoPagoButton({
           shippingOption,
           customerInfo,
           shippingAddress,
+          items: cartItems,
+          userId: user?.id
         }),
       });
 
