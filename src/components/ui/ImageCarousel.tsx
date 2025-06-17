@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { FastImage } from '@/components/ui/FastImage';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 import { getOptimizedImageUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
 
 interface ImageCarouselProps {
@@ -286,8 +285,8 @@ export function ImageCarousel({
   }, [isDragging, isZoomed, dragStart]);
 
   return (
-    <div className={`relative ${className}`}>{/* Main Image Display */}
-      <Card className="relative overflow-hidden bg-gray-50">
+    <div className={`relative ${className}`}>      {/* Main Image Display */}
+      <div className={`relative ${isZoomed ? '' : 'rounded-lg border border-gray-200 shadow-sm'} ${isZoomed ? 'overflow-visible' : 'overflow-hidden'} ${isZoomed ? 'bg-transparent' : 'bg-gray-50'}`}>
         <div 
           ref={imageContainerRef}
           className="relative aspect-square"
@@ -309,7 +308,7 @@ export function ImageCarousel({
           }}
         >          <div
             className={`w-full h-full transition-all duration-300 ${
-              isZoomed ? 'scale-150' : ''
+              isZoomed ? 'scale-150 bg-transparent' : ''
             }`}
             style={isZoomed ? {
               transform: `scale(1.5) translate(${panPosition.x / 1.5}px, ${panPosition.y / 1.5}px)`,
@@ -375,7 +374,9 @@ export function ImageCarousel({
             </div>
           )}
         </div>
-      </Card>      {/* Thumbnail Navigation */}
+      </div>
+
+      {/* Thumbnail Navigation */}
       {showThumbnails && optimizedImages.length > 1 && (
         <div className="flex gap-3 mt-6 overflow-x-auto pb-4 px-3 pt-2">
           {optimizedImages.map((imageSet, index) => (
