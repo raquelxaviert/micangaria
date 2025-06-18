@@ -228,6 +228,11 @@ export async function POST(request: NextRequest) {
         pending: `${baseUrl}/checkout/pending?external_ref=${external_reference}`
       },
       auto_return: 'approved', // Redirecionar automaticamente para success quando aprovado
+      redirect_urls: {
+        success: `${baseUrl}/checkout/success?external_ref=${external_reference}`,
+        failure: `${baseUrl}/checkout/failure?external_ref=${external_reference}`,
+        pending: `${baseUrl}/checkout/pending?external_ref=${external_reference}`
+      },
       external_reference: external_reference, // ID único simples
       notification_url: webhookUrl, // Usar URL fixa do webhook
       metadata: {

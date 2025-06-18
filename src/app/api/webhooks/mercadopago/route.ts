@@ -54,14 +54,21 @@ async function handleWebhookEvent(payload: any) {
     
     if (eventType === 'payment') {
       const paymentId = resourceId;
-      console.log(`[WebhookLogic] Processing 'payment' event. Payment ID: ${paymentId}`);      try {
+      console.log(`[WebhookLogic] Processing 'payment' event. Payment ID: ${paymentId}`);
+      
+      // Para payment.created, vamos buscar o pagamento e atualizar o pedido
+      const action = payload?.action || '';
+      console.log(`[WebhookLogic] Payment action: ${action}`);
+      
+      try {
         // Fetch payment details from Mercado Pago with retry logic
         console.log(`[WebhookLogic] Fetching payment details from Mercado Pago for ID: ${paymentId}`);
         
         let paymentDetails;
         let retryCount = 0;
         const maxRetries = 3;
-          while (retryCount < maxRetries) {
+        
+        while (retryCount < maxRetries) {
           try {
             paymentDetails = await paymentService.get({ id: paymentId });
             console.log(`[WebhookLogic] Successfully fetched payment on attempt ${retryCount + 1}`);
@@ -72,7 +79,8 @@ async function handleWebhookEvent(payload: any) {
               status: mpError.status,
               cause: mpError.cause
             });
-              // Check if it's a 404 or "not found" error
+            
+            // Check if it's a 404 or "not found" error
             const errorMessage = mpError?.message || '';
             const isNotFoundError = errorMessage.includes('Payment not found') || 
                                   mpError.status === 404 ||
@@ -85,66 +93,52 @@ async function handleWebhookEvent(payload: any) {
               continue;
             } else {
               console.error('[WebhookLogic] Final error or max retries reached:', mpError);
-                // If it's still a "not found" error after all retries, try fallback approach
-              if (isNotFoundError) {
-                console.log('[WebhookLogic] Payment not found after all retries. This might be a timing issue.');
-                console.log('[WebhookLogic] Will try fallback strategy since MP API is not responding.');
+              
+              // Para payment.created, mesmo se a API falhar, vamos tentar atualizar o pedido
+              if (action === 'payment.created') {
+                console.log('[WebhookLogic] 🎯 Payment created event - attempting to update order even without API response');
                 
-                // Force fallback when MP API fails
-                console.log('[WebhookLogic] 🔄 FORCING FALLBACK due to MP API failure...');
-                const action = payload?.action || '';
-                const webhookType = payload?.type || '';
-                
-                // Use fallback for payment webhooks when API fails
-                if (webhookType === 'payment') {
-                  console.log('[WebhookLogic] ⚡ API failed, assuming payment webhook means success');
+                try {
+                  // Buscar o pedido mais recente pendente
+                  const { data: pendingOrders, error: pendingError } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .eq('status', 'pending')
+                    .order('created_at', { ascending: false })
+                    .limit(1);
                   
-                  try {
-                    // Find the most recent pending order
-                    const supabase = await createClient();
-                    const { data: pendingOrders, error: pendingError } = await supabase
-                      .from('orders')
-                      .select('*')
-                      .eq('status', 'pending')
-                      .order('created_at', { ascending: false })
-                      .limit(1);
+                  if (!pendingError && pendingOrders && pendingOrders.length > 0) {
+                    const recentOrder = pendingOrders[0];
+                    console.log('[WebhookLogic] 🎯 Found recent pending order for payment.created:', {
+                      id: recentOrder.id,
+                      external_reference: recentOrder.external_reference,
+                      created_at: recentOrder.created_at
+                    });
                     
-                    if (!pendingError && pendingOrders && pendingOrders.length > 0) {
-                      const recentOrder = pendingOrders[0];
-                      console.log('[WebhookLogic] 🎯 Found recent pending order for API failure fallback:', {
-                        id: recentOrder.id,
-                        external_reference: recentOrder.external_reference,
-                        created_at: recentOrder.created_at
-                      });
-                      
-                      // Update this order to 'paid' status
-                      const { data: updateData, error: updateError } = await supabase
-                        .from('orders')
-                        .update({
-                          status: 'paid',
-                          payment_id: paymentId.toString(),
-                          updated_at: new Date().toISOString(),
-                        })
-                        .eq('id', recentOrder.id);
-                      
-                      if (!updateError) {
-                        console.log('[WebhookLogic] ✅ API FAILURE FALLBACK SUCCESS! Updated order:', recentOrder.external_reference);
-                        return; // Successfully handled with fallback
-                      } else {
-                        console.error('[WebhookLogic] ❌ API failure fallback update failed:', updateError);
-                      }
+                    // Para payment.created, vamos marcar como 'processing' primeiro
+                    const { data: updateData, error: updateError } = await supabase
+                      .from('orders')
+                      .update({
+                        status: 'processing', // Marcar como processando
+                        payment_id: paymentId.toString(),
+                        updated_at: new Date().toISOString(),
+                      })
+                      .eq('id', recentOrder.id);
+                    
+                    if (!updateError) {
+                      console.log('[WebhookLogic] ✅ Payment.created fallback success! Updated order to processing:', recentOrder.external_reference);
                     } else {
-                      console.warn('[WebhookLogic] 🤷 No pending orders found for API failure fallback');
+                      console.error('[WebhookLogic] ❌ Payment.created fallback update failed:', updateError);
                     }
-                  } catch (fallbackError) {
-                    console.error('[WebhookLogic] 💥 API failure fallback strategy failed:', fallbackError);
+                  } else {
+                    console.warn('[WebhookLogic] 🤷 No pending orders found for payment.created fallback');
                   }
+                } catch (fallbackError) {
+                  console.error('[WebhookLogic] 💥 Payment.created fallback strategy failed:', fallbackError);
                 }
-                
-                return; // End processing after fallback attempt
               }
               
-              throw mpError; // Re-throw for other types of errors
+              return; // End processing after fallback attempt
             }
           }
         }
@@ -197,7 +191,8 @@ async function handleWebhookEvent(payload: any) {
           } else {
             console.log('[WebhookLogic] Supabase update success for payment, external_reference:', externalReference);
             console.log('[WebhookLogic] Update result:', data);
-          }        } else {
+          }
+        } else {
           console.warn('[WebhookLogic] Missing data for Supabase update (payment):', { externalReference, paymentStatus });
           
           // 🚀 SMART FALLBACK STRATEGY: Only if we can infer the payment was successful
@@ -210,6 +205,7 @@ async function handleWebhookEvent(payload: any) {
           const likelySuccessActions = [
             'payment.updated', // Usually means approved
             'payment.approved', // Explicit approval
+            'payment.created', // New payment created
           ];
           
           const isProbablyApproved = likelySuccessActions.some(successAction => 
@@ -243,18 +239,21 @@ async function handleWebhookEvent(payload: any) {
                   created_at: recentOrder.created_at
                 });
                 
-                // Update this order to 'paid' status
+                // Para payment.created, marcar como 'processing', para outros como 'paid'
+                const statusToSet = action === 'payment.created' ? 'processing' : 'paid';
+                
+                // Update this order to appropriate status
                 const { data: updateData, error: updateError } = await supabase
                   .from('orders')
                   .update({
-                    status: 'paid', // Only mark as paid for likely successful payments
+                    status: statusToSet,
                     payment_id: paymentId.toString(),
                     updated_at: new Date().toISOString(),
                   })
                   .eq('id', recentOrder.id);
                 
                 if (!updateError) {
-                  console.log('[WebhookLogic] ✅ SMART FALLBACK SUCCESS! Updated order:', recentOrder.external_reference);
+                  console.log(`[WebhookLogic] ✅ SMART FALLBACK SUCCESS! Updated order to ${statusToSet}:`, recentOrder.external_reference);
                 } else {
                   console.error('[WebhookLogic] ❌ Fallback update failed:', updateError);
                 }
@@ -272,7 +271,8 @@ async function handleWebhookEvent(payload: any) {
       } catch (mpError: any) {
         console.error('[WebhookLogic] Error fetching payment from Mercado Pago:', mpError.message);
         console.error('[WebhookLogic] Full MP error:', mpError);
-      }    } else if (eventType === 'merchant_order' || (eventType && eventType.includes('merchant_order'))) {
+      }
+    } else if (eventType === 'merchant_order' || (eventType && eventType.includes('merchant_order'))) {
       const merchantOrderId = resourceId;
       console.log(`[WebhookLogic] Processing 'merchant_order' event. Merchant Order ID: ${merchantOrderId}`);
 
