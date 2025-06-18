@@ -40,8 +40,7 @@ export default function CheckoutPage() {
     neighborhood: '',
     city: '',
     state: '',
-  });
-  const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
+  });  const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -161,9 +160,11 @@ export default function CheckoutPage() {
                 insurance_value: item.price,
                 quantity: item.quantity,
               })),
-            }),
-          });          const shippingData = await shippingResponse.json();
-            // Verificar se a resposta da API é válida
+            }),          });
+
+          const shippingData = await shippingResponse.json();
+          
+          // Verificar se a resposta da API é válida
           if (!shippingResponse.ok || !Array.isArray(shippingData)) {
             console.warn('Erro na API de frete, usando valores padrão');
             // Usar frete padrão como fallback
@@ -190,7 +191,9 @@ export default function CheckoutPage() {
               service_id: option.id,
               service_name: option.name,
             }))
-            .sort((a: any, b: any) => a.price - b.price); // Ordenar por preço          setShippingOptions(options);
+            .sort((a: any, b: any) => a.price - b.price); // Ordenar por preço
+
+          setShippingOptions(options);
           // Não selecionar automaticamente - deixar o usuário escolher
         }
       } catch (error) {
@@ -456,9 +459,7 @@ export default function CheckoutPage() {
                         Seus dados são protegidos e usados apenas para calcular o frete e realizar a entrega.
                       </p>
                     </div>                  </div>
-                </div>
-
-                {/* Seção de Opções de Frete */}
+                </div>                {/* Seção de Opções de Frete */}
                 {shippingOptions.length > 0 && (
                   <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
                     <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
@@ -686,11 +687,11 @@ export default function CheckoutPage() {
                           )}
                         </span>
                       </div>
-                    </div>
-                  </CardContent>
+                    </div>                  </CardContent>
                 </Card>
               </div>
-            </div>          </div>
+            </div>
+          </div>
         </div>
       </div>
       
