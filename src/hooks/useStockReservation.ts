@@ -94,7 +94,7 @@ export function useProductStockStatus(productId: string) {
         });
       }
     } catch (error) {
-      if (error.name === 'AbortError') {
+      if (error instanceof Error && error.name === 'AbortError') {
         // Requisição foi cancelada, não fazer nada
         return;
       }
