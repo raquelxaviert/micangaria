@@ -8,51 +8,66 @@ import { useCheckout } from './CheckoutContext';
 
 interface CheckoutProgressProps {
   currentStep: number;
+  formProgress?: number; // 0-100
 }
 
-export function CheckoutProgress({ currentStep }: CheckoutProgressProps) {
+export function CheckoutProgress({ currentStep, formProgress = 0 }: CheckoutProgressProps) {
   const steps = [
-    { id: 1, label: 'Entrega' },
-    { id: 2, label: 'Pagamento' },
-    { id: 3, label: 'Confirmação' },
-  ];
-
+    { id: 1, icon: Truck },
+    { id: 2, icon: CreditCard },
+  ];  // Calcular progresso total considerando o preenchimento do formulário
+  const totalProgress = currentStep === 1 
+    ? formProgress / 2  // Na primeira etapa, progresso é baseado no preenchimento
+    : 50 + (currentStep === 2 ? 50 : 0); // Na segunda etapa, já temos 50% + progresso da etapa
   return (
-    <div className="w-full max-w-2xl mx-auto mb-8">
-      <div className="flex items-center justify-between relative">
-        {/* Progress bar */}
-        <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-200 -translate-y-1/2">
-          <div
-            className="h-full bg-primary transition-all duration-300"
-            style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
-          />
-        </div>
-
-        {/* Steps */}
-        {steps.map((step) => (
-          <div key={step.id} className="relative z-10 flex flex-col items-center">
+    <div className="sticky bottom-0 z-50 bg-gradient-to-t from-gray-100/95 to-gray-50/95 backdrop-blur-sm border-t border-gray-200/50 py-4 shadow-lg">
+      <div className="w-full max-w-3xl mx-auto px-4">
+        <div className="relative h-16">
+          {/* Progress bar - atravessa toda a largura entre os ícones */}
+          <div className="absolute top-5 left-5 right-5 h-1 bg-gray-200 rounded-full">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-300 ${
-                step.id <= currentStep
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-gray-200 text-gray-400'
-              }`}
-            >
-              {step.id < currentStep ? (
-                <CheckCircle2 className="w-5 h-5" />
-              ) : (
-                <span className="text-sm font-medium">{step.id}</span>
-              )}
-            </div>
-            <span
-              className={`mt-2 text-sm font-medium ${
-                step.id <= currentStep ? 'text-primary' : 'text-gray-400'
-              }`}
-            >
-              {step.label}
-            </span>
+              className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${Math.min(totalProgress, 100)}%` }}
+            />
           </div>
-        ))}
+
+          {/* Steps - ícones posicionados absolutamente nas extremidades */}
+          {steps.map((step, index) => {
+            const IconComponent = step.icon;
+            const isActive = step.id <= currentStep;
+            const isCompleted = step.id < currentStep;
+            
+            return (
+              <div 
+                key={step.id} 
+                className={`absolute flex flex-col items-center ${
+                  index === 0 ? 'left-0' : 'right-0'
+                }`}
+                style={{ top: '0px' }}
+              >                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 bg-white/90 backdrop-blur-sm border-2 shadow-sm ${
+                    isActive
+                      ? 'border-primary text-primary'
+                      : 'border-gray-300 text-gray-400'
+                  }`}
+                >
+                  {isCompleted ? (
+                    <CheckCircle2 className="w-5 h-5" />
+                  ) : (
+                    <IconComponent className="w-5 h-5" />
+                  )}
+                </div>
+                <div className="mt-2 text-center">
+                  <span
+                    className={`text-xs font-medium ${
+                      isActive ? 'text-primary' : 'text-gray-400'
+                    }`}
+                  >
+                  </span>
+                </div>
+              </div>
+            );          })}
+        </div>
       </div>
     </div>
   );
