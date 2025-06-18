@@ -13,12 +13,13 @@ interface CheckoutProgressProps {
 
 export function CheckoutProgress({ currentStep, formProgress = 0 }: CheckoutProgressProps) {
   const steps = [
-    { id: 1, icon: Truck },
-    { id: 2, icon: CreditCard },
-  ];  // Calcular progresso total considerando o preenchimento do formulário
-  const totalProgress = currentStep === 1 
-    ? formProgress / 2  // Na primeira etapa, progresso é baseado no preenchimento
-    : 50 + (currentStep === 2 ? 50 : 0); // Na segunda etapa, já temos 50% + progresso da etapa
+    { id: 1, icon: Truck},
+    { id: 2, icon: CreditCard},
+  ];
+
+  // Progresso baseado apenas no preenchimento do formulário (0-100%)
+  const progressPercentage = Math.min(formProgress, 100);
+
   return (
     <div className="sticky bottom-0 z-50 bg-gradient-to-t from-gray-100/95 to-gray-50/95 backdrop-blur-sm border-t border-gray-200/50 py-4 shadow-lg">
       <div className="w-full max-w-3xl mx-auto px-4">
@@ -27,7 +28,7 @@ export function CheckoutProgress({ currentStep, formProgress = 0 }: CheckoutProg
           <div className="absolute top-5 left-5 right-5 h-1 bg-gray-200 rounded-full">
             <div
               className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-500 ease-out"
-              style={{ width: `${Math.min(totalProgress, 100)}%` }}
+              style={{ width: `${progressPercentage}%` }}
             />
           </div>
 
@@ -44,9 +45,10 @@ export function CheckoutProgress({ currentStep, formProgress = 0 }: CheckoutProg
                   index === 0 ? 'left-0' : 'right-0'
                 }`}
                 style={{ top: '0px' }}
-              >                <div
+              >
+                <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 bg-white/90 backdrop-blur-sm border-2 shadow-sm ${
-                    isActive
+                    isActive && step.id !== 2 // Não colorir o ícone de pagamento
                       ? 'border-primary text-primary'
                       : 'border-gray-300 text-gray-400'
                   }`}
@@ -60,13 +62,14 @@ export function CheckoutProgress({ currentStep, formProgress = 0 }: CheckoutProg
                 <div className="mt-2 text-center">
                   <span
                     className={`text-xs font-medium ${
-                      isActive ? 'text-primary' : 'text-gray-400'
+                      isActive && step.id !== 2 ? 'text-primary' : 'text-gray-400'
                     }`}
                   >
                   </span>
                 </div>
               </div>
-            );          })}
+            );
+          })}
         </div>
       </div>
     </div>

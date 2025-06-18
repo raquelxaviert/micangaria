@@ -40,10 +40,11 @@ export default function CheckoutPage() {
     neighborhood: '',
     city: '',
     state: '',
-  });  const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
+  });
+  const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
+
   // Calcular progresso do formulário
   const calculateFormProgress = () => {
     const requiredFields = [
@@ -216,7 +217,7 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedShipping) {
       toast({
@@ -226,12 +227,61 @@ export default function CheckoutPage() {
       });
       return;
     }
-    setCurrentStep(2);
+
+    // Redirecionar diretamente para o Mercado Pago
+    try {
+      setIsLoading(true);
+
+      // Obter itens do carrinho
+      const cartItems = CartManager.getItems().map((item: any) => ({
+        id: item.productId,
+        title: item.name,
+        quantity: item.quantity,
+        unit_price: item.price,
+        currency_id: 'BRL'
+      }));
+
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: finalTotal,
+          shippingOption: selectedShipping,
+          customerInfo,
+          shippingAddress,
+          items: cartItems,
+          userId: user?.id
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao criar preferência de pagamento');
+      }
+
+      const data = await response.json();
+
+      if (data.init_point) {
+        window.location.href = data.init_point;
+      } else {
+        throw new Error('URL de pagamento não encontrada');
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Erro ao processar pagamento",
+        description: "Não foi possível criar a preferência de pagamento. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const shippingCost = selectedShipping ? Number(selectedShipping.price || 0) : 0;
   const finalTotal = total + shippingCost;  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen" style={{ backgroundColor: '#F5F0EB' }}>
       <div className="container mx-auto px-4 py-6 pb-24">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
@@ -241,24 +291,13 @@ export default function CheckoutPage() {
               <Card className="shadow-xl border-0 overflow-hidden">
                 <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
                   <CardTitle className="text-2xl flex items-center gap-3">
-                    {currentStep === 1 ? (
-                      <>
-                        <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                          <Truck className="w-5 h-5 text-primary" />
-                        </div>
-                        Dados de Entrega
-                      </>
-                    ) : (
-                      <>
-                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                          <CreditCard className="w-5 h-5 text-green-600" />
-                        </div>
-                        Pagamento
-                      </>
-                    )}
+                    <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                      <Truck className="w-5 h-5 text-primary" />
+                    </div>
+                    Dados de Entrega
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-8">            {currentStep === 1 ? (
+                <CardContent className="p-8">
               <form onSubmit={handleSubmit} className="space-y-8">
                 
                 {/* Dados Pessoais */}
@@ -329,7 +368,9 @@ export default function CheckoutPage() {
                       />
                     </div>
                   </div>
-                </div>                {/* Seção de Endereço */}
+                </div>
+
+                {/* Seção de Endereço */}
                 <div className="space-y-6">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
@@ -354,7 +395,9 @@ export default function CheckoutPage() {
                         autoComplete="postal-code"
                         inputMode="numeric"
                       />
-                    </div>                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="md:col-span-2 space-y-2">
                         <Label htmlFor="street" className="text-sm font-medium text-gray-700">Endereço *</Label>
                         <Input
@@ -450,7 +493,8 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                {/* Info Box */}                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-6">
+                {/* Info Box */}
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-6">
                   <div className="flex items-start gap-4">
                     <Truck className="w-6 h-6 text-amber-600 mt-1 flex-shrink-0" />
                     <div>
@@ -458,8 +502,11 @@ export default function CheckoutPage() {
                       <p className="text-sm text-gray-700 leading-relaxed">
                         Seus dados são protegidos e usados apenas para calcular o frete e realizar a entrega.
                       </p>
-                    </div>                  </div>
-                </div>                {/* Seção de Opções de Frete */}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Seção de Opções de Frete */}
                 {shippingOptions.length > 0 && (
                   <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
                     <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
@@ -467,7 +514,9 @@ export default function CheckoutPage() {
                         <span className="text-purple-600 font-bold text-sm">3</span>
                       </div>
                       Opções de Entrega
-                    </h3>                    <div className="space-y-3">
+                    </h3>
+
+                    <div className="space-y-3">
                       {shippingOptions.map((option, index) => (
                         <div
                           key={index}
@@ -516,12 +565,16 @@ export default function CheckoutPage() {
                       ))}
                     </div>
                   </div>
-                )}                <div className="bg-white rounded-xl p-6 border-2 border-gray-200 shadow-lg">
+                )}
+
+                <div className="bg-white rounded-xl p-6 border-2 border-gray-200 shadow-lg">
                   <div className="space-y-4">
                     <div className="flex justify-between items-center text-lg">
                       <span className="font-medium text-gray-700">Subtotal</span>
                       <span className="font-semibold">R$ {total.toFixed(2)}</span>
-                    </div>                    <div className="flex justify-between items-center text-lg">
+                    </div>
+
+                    <div className="flex justify-between items-center text-lg">
                       <span className="font-medium text-gray-700">Frete</span>
                       <span className="font-semibold">
                         {!selectedShipping ? (
@@ -537,7 +590,8 @@ export default function CheckoutPage() {
                     </div>
                     <Separator className="my-4" />
                     <div className="flex justify-between items-center text-2xl font-bold">
-                      <span className="text-gray-900">Total</span>                      <span className="text-primary">
+                      <span className="text-gray-900">Total</span>
+                      <span className="text-primary">
                         {!selectedShipping ? (
                           <>R$ {total.toFixed(2)} <span className="text-xs sm:text-sm text-gray-500">+ frete</span></>
                         ) : (
@@ -546,91 +600,38 @@ export default function CheckoutPage() {
                       </span>
                     </div>
                   </div>
-                </div>                <Button 
-                  type="submit" 
-                  className="w-full h-12 text-sm sm:text-base font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-300 rounded-lg"
+                </div>
+
+                <Button 
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-lg"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #009EE3 0%, #0078A3 100%)',
+                    color: 'white'
+                  }}
                 >
-                  <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="truncate">Ir para Pagamento →</span>
+                  {isLoading ? (
+                    <div className="flex items-center">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Processando...
+                    </div>
+                  ) : (
+                    <>
+                      <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="truncate">Ir para Pagamento</span>
+                    </>
+                  )}
                 </Button>
-              </form>            ) : (
-              <div className="space-y-8">
-                {/* Seção de Produtos */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-bold text-sm">✓</span>
-                    </div>
-                    Produtos do Pedido
-                  </h3>
-                  <div className="space-y-4">
-                    {cartItems.map((item) => (
-                      <div key={item.productId} className="flex items-center space-x-4 bg-white p-4 rounded-lg border border-gray-200">
-                        <FastImage
-                          src={item.imageUrl}
-                          alt={item.name}
-                          className="w-20 h-20 object-cover rounded-lg shadow-md"
-                        />
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-lg text-gray-800">{item.name}</h3>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Quantidade: {item.quantity}
-                          </p>
-                        </div>
-                        <p className="font-bold text-xl text-primary">
-                          R$ {(item.price * item.quantity).toFixed(2)}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
+                
+                <div className="text-center mt-3">
+                  <p className="text-xs text-gray-600">
+                    Você será redirecionado para o Mercado Pago para concluir sua compra de forma segura
+                  </p>
                 </div>
-
-                {/* Resumo Final */}
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="text-green-600 font-bold text-sm">$</span>
-                    </div>
-                    Resumo do Pagamento
-                  </h3>
-                  <div className="space-y-4 bg-white p-6 rounded-lg border border-gray-200">
-                    <div className="flex justify-between items-center text-lg">
-                      <span className="font-medium text-gray-700">Subtotal</span>
-                      <span className="font-semibold">R$ {total.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-lg">
-                      <span className="font-medium text-gray-700">Frete</span>
-                      <span className="font-semibold">
-                        {(selectedShipping?.price === 0 || Number(selectedShipping?.price || 0) === 0) ? (
-                          <span className="text-green-600 bg-green-100 px-2 py-1 rounded-full text-sm">
-                            GRÁTIS
-                          </span>
-                        ) : (
-                          `R$ ${Number(selectedShipping?.price || 0).toFixed(2)}`
-                        )}
-                      </span>
-                    </div>
-                    <Separator className="my-4" />
-                    <div className="flex justify-between items-center text-2xl font-bold">
-                      <span className="text-gray-900">Total a Pagar</span>
-                      <span className="text-primary">R$ {finalTotal.toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Botão do Mercado Pago */}
-                <div className="bg-white rounded-xl p-6 border-2 border-gray-200 shadow-lg">
-                  <MercadoPagoButton
-                    amount={finalTotal}
-                    shippingOption={selectedShipping}
-                    customerInfo={customerInfo}
-                    shippingAddress={shippingAddress}
-                  />
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              </form>
+            </CardContent>
+          </Card>
             </div>            {/* Coluna Lateral - Resumo do Pedido */}
             <div className="xl:col-span-4">
               <div className="sticky top-24">
@@ -696,7 +697,7 @@ export default function CheckoutPage() {
       </div>
       
       {/* Progress bar fixo na parte inferior */}
-      <CheckoutProgress currentStep={currentStep} formProgress={formProgress} />
+      <CheckoutProgress currentStep={1} formProgress={formProgress} />
     </div>
   );
 }
