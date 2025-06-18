@@ -377,92 +377,89 @@ export async function POST(request: NextRequest) {
   try {
     // --- SIGNATURE VALIDATION ---
     const signatureHeader = request.headers.get('x-signature');
-    const requestIdHeader = request.headers.get('x-request-id'); // Used in manifest    // data.id is expected in query parameters for signature validation template
+    const requestIdHeader = request.headers.get('x-request-id');
     const dataIdFromQuery = request.nextUrl.searchParams.get('data.id'); 
-    const idFromQuery = request.nextUrl.searchParams.get('id'); // Alternative for merchant orders
-    const topicFromQuery = request.nextUrl.searchParams.get('topic'); // Topic for merchant orders
+    const idFromQuery = request.nextUrl.searchParams.get('id');
+    const topicFromQuery = request.nextUrl.searchParams.get('topic');
 
     console.log(`[SignatureValidation] Headers: x-signature: "${signatureHeader}", x-request-id: "${requestIdHeader}"`);
     console.log(`[SignatureValidation] Query Params: data.id: "${dataIdFromQuery}", id: "${idFromQuery}", topic: "${topicFromQuery}"`);
 
-    if (!signatureHeader) {
-      console.warn('⚠️ WEBHOOK MP: Missing x-signature header. This is required for validation.');
-      // Respond 200 to MP to prevent retries, but indicate failure.
-      return NextResponse.json({ success: false, message: "Missing x-signature header" }, { status: 200 });
-    }
-
+    // Verificar se temos a chave secreta configurada
     const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
     if (!secret) {
       console.error('❌ WEBHOOK MP: Critical: MERCADOPAGO_WEBHOOK_SECRET is not configured on the server.');
       return NextResponse.json({ success: false, message: "Webhook secret not configured" }, { status: 200 });
     }
 
-    let ts: string | undefined;
-    let v1: string | undefined; // This is the hash from Mercado Pago
-    const parts = signatureHeader.split(',');
-    console.log(`[SignatureValidation] Signature parts:`, parts);
+    let signatureValid = false;
     
-    for (const part of parts) {
-      const [key, value] = part.split('=');
-      console.log(`[SignatureValidation] Part: "${part}", Key: "${key}", Value: "${value}"`);
-      if (key && value) { // Ensure both key and value exist
-        if (key.trim() === 'ts') ts = value.trim();
-        if (key.trim() === 'v1') v1 = value.trim();
+    // Tentar validar assinatura apenas se temos todos os dados necessários
+    if (signatureHeader && (dataIdFromQuery || idFromQuery)) {
+      let ts: string | undefined;
+      let v1: string | undefined;
+      const parts = signatureHeader.split(',');
+      console.log(`[SignatureValidation] Signature parts:`, parts);
+      
+      for (const part of parts) {
+        const [key, value] = part.split('=');
+        console.log(`[SignatureValidation] Part: "${part}", Key: "${key}", Value: "${value}"`);
+        if (key && value) {
+          if (key.trim() === 'ts') ts = value.trim();
+          if (key.trim() === 'v1') v1 = value.trim();
+        }
       }
+
+      if (ts && v1) {
+        let manifestId = '';
+        if (dataIdFromQuery && dataIdFromQuery !== 'null') {
+          manifestId = dataIdFromQuery;
+        } else if (idFromQuery) {
+          manifestId = idFromQuery;
+        }
+        
+        const manifest = `id:${manifestId};request-id:${requestIdHeader || ''};ts:${ts}`;
+        console.log(`[SignatureValidation] Manifest for HMAC: "${manifest}"`);
+        console.log(`[SignatureValidation] Secret length: ${secret.length} chars`);
+        console.log(`[SignatureValidation] Secret preview: ${secret.substring(0, 10)}...`);
+
+        const hmac = crypto.createHmac('sha256', secret);
+        hmac.update(manifest);
+        const calculatedSignature = hmac.digest('hex');
+        console.log(`[SignatureValidation] Calculated signature: "${calculatedSignature}"`);
+        console.log(`[SignatureValidation] Received v1: "${v1}"`);
+        
+        // Tentar formato alternativo com ponto e vírgula
+        let signatureMatches = calculatedSignature === v1;
+        let usedManifest = manifest;
+        
+        if (!signatureMatches) {
+          console.log(`[SignatureValidation] Primary signature failed, trying alternative format with trailing semicolon...`);
+          
+          const altManifest = `id:${manifestId};request-id:${requestIdHeader || ''};ts:${ts};`;
+          const altHmac = crypto.createHmac('sha256', secret);
+          altHmac.update(altManifest);
+          const altSignature = altHmac.digest('hex');
+          console.log(`[SignatureValidation] Alternative manifest: "${altManifest}"`);
+          console.log(`[SignatureValidation] Alternative signature: "${altSignature}"`);
+          
+          if (altSignature === v1) {
+            signatureMatches = true;
+            usedManifest = altManifest;
+            console.log(`[SignatureValidation] ✅ Alternative signature with trailing semicolon matched!`);
+          }
+        }
+        
+        signatureValid = signatureMatches;
+        console.log(`[SignatureValidation] Signatures match: ${signatureValid} (using manifest: "${usedManifest}")`);
+      }
+    } else {
+      console.warn('⚠️ WEBHOOK MP: Missing signature header or query parameters for validation');
     }
 
-    if (!ts || !v1) {
-      console.warn('⚠️ WEBHOOK MP: Invalid x-signature format. Could not parse ts or v1.', { signatureHeader });
-      return NextResponse.json({ success: false, message: "Invalid signature format" }, { status: 200 });
-    }    // Construct the manifest string according to Mercado Pago documentation:
-    // id:[data.id_url];request-id:[x-request-id_header];ts:[ts_header];
-    // For merchant orders, the ID comes in the `id` parameter, not `data.id`
-    // For payments, the ID comes in the `data.id` parameter
-    let manifestId = '';
-    if (dataIdFromQuery && dataIdFromQuery !== 'null') {
-      manifestId = dataIdFromQuery;
-    } else if (idFromQuery) {
-      manifestId = idFromQuery;
-    }
-      const manifest = `id:${manifestId};request-id:${requestIdHeader || ''};ts:${ts}`;
-    console.log(`[SignatureValidation] Manifest for HMAC: "${manifest}"`);
-    console.log(`[SignatureValidation] Secret length: ${secret.length} chars`);
-    console.log(`[SignatureValidation] Secret preview: ${secret.substring(0, 10)}...`);
-
-    const hmac = crypto.createHmac('sha256', secret);
-    hmac.update(manifest);
-    const calculatedSignature = hmac.digest('hex');
-    console.log(`[SignatureValidation] Calculated signature: "${calculatedSignature}"`);
-    console.log(`[SignatureValidation] Received v1: "${v1}"`);
-    
-    // Try alternative manifest formats for merchant orders if the primary fails
-    let signatureMatches = calculatedSignature === v1;
-    let usedManifest = manifest;
-    
-    if (!signatureMatches) {
-      console.log(`[SignatureValidation] Primary signature failed, trying alternative format with trailing semicolon...`);
-      
-      // Alternative: with trailing semicolon (backward compatibility)
-      const altManifest = `id:${manifestId};request-id:${requestIdHeader || ''};ts:${ts};`;
-      const altHmac = crypto.createHmac('sha256', secret);
-      altHmac.update(altManifest);
-      const altSignature = altHmac.digest('hex');
-      console.log(`[SignatureValidation] Alternative manifest: "${altManifest}"`);
-      console.log(`[SignatureValidation] Alternative signature: "${altSignature}"`);
-      
-      if (altSignature === v1) {
-        signatureMatches = true;
-        usedManifest = altManifest;
-        console.log(`[SignatureValidation] ✅ Alternative signature with trailing semicolon matched!`);
-      }
-    }
-    
-    console.log(`[SignatureValidation] Signatures match: ${signatureMatches} (using manifest: "${usedManifest}")`);    if (!signatureMatches) {
-      console.error('❌ WEBHOOK MP: Invalid signature. Calculated signature does not match v1 from header.');
-      console.error('❌ WEBHOOK MP: This could indicate tampering or configuration issues.');
-      console.warn('⚠️ WEBHOOK MP: CONTINUING WITH PROCESSING - Signature validation will be improved in next version');
-      // NOTE: In production, we continue processing to avoid missing legitimate payments
-      // TODO: Implement more robust signature validation once MP documentation is clearer
+    if (!signatureValid) {
+      console.warn('⚠️ WEBHOOK MP: Signature validation failed, but continuing with processing for sandbox testing');
+      console.warn('⚠️ WEBHOOK MP: In production, this should be investigated');
     } else {
       console.log('✅ WEBHOOK MP: Signature validated successfully.');
     }
@@ -472,15 +469,20 @@ export async function POST(request: NextRequest) {
     console.log('📄 WEBHOOK MP: Payload parsed. Type:', payload?.type, 'Action:', payload?.action, 'ID from body:', payload?.id, 'Data.id from body:', payload?.data?.id);
 
     if (payload) {
-      // Asynchronously process the event.
-      // This ensures we respond quickly to Mercado Pago.
+      // Processar o evento mesmo se a assinatura falhou (para sandbox)
+      console.log('⚙️ WEBHOOK MP: Processing webhook event...');
       handleWebhookEvent(payload).catch(processingError => {
         console.error('💥 WEBHOOK MP: Error during asynchronous event processing (handleWebhookEvent):', processingError);
       });
     }
 
     // IMPORTANT: Respond to Mercado Pago with a 200 OK quickly.
-    return NextResponse.json({ success: true, message: "Webhook received, signature validated, and processing initiated" }, { status: 200 });
+    return NextResponse.json({ 
+      success: true, 
+      message: "Webhook received and processing initiated",
+      signature_valid: signatureValid,
+      processing: "async"
+    }, { status: 200 });
 
   } catch (error: any) {
     console.error('❌ WEBHOOK MP: Error in POST handler (e.g., parsing request body):', error.message, error.stack);

@@ -19,16 +19,24 @@ export async function GET(request: NextRequest) {
       }
     },
     
+    webhook_code_check: {
+      uses_secret: "MERCADOPAGO_WEBHOOK_SECRET (sem underscore)",
+      current_secret: webhookSecretAlt ? 'CONFIGURED' : 'MISSING',
+      recommendation: webhookSecretAlt ? 
+        '✅ Chave secreta configurada corretamente' : 
+        '❌ Adicionar MERCADOPAGO_WEBHOOK_SECRET no Vercel'
+    },
+    
     recommendation: {
-      action: webhookSecret || webhookSecretAlt ? '✅ Chave secreta configurada' : '❌ Chave secreta não configurada',
-      next_steps: webhookSecret || webhookSecretAlt ? [
+      action: webhookSecretAlt ? '✅ Chave secreta configurada' : '❌ Chave secreta não configurada',
+      next_steps: webhookSecretAlt ? [
         '1. Verificar se o webhook está configurado no Mercado Pago',
         '2. Testar com cartão de teste',
-        '3. Verificar logs do servidor'
+        '3. Verificar logs do servidor para processamento'
       ] : [
         '1. Configurar webhook no Mercado Pago Developers',
         '2. Copiar a chave secreta gerada',
-        '3. Adicionar como MERCADO_PAGO_WEBHOOK_SECRET no Vercel',
+        '3. Adicionar como MERCADOPAGO_WEBHOOK_SECRET no Vercel (sem underscore)',
         '4. Fazer redeploy'
       ]
     },
