@@ -144,11 +144,17 @@ export async function POST(request: Request) {
 
       console.log('Resposta final:', {
         init_point: result.init_point,
+        sandbox_init_point: result.sandbox_init_point,
         preference_id: result.id
       });
 
+      // Em ambiente de teste, usar sandbox_init_point
+      const redirectUrl = result.sandbox_init_point || result.init_point;
+      console.log('URL de redirecionamento escolhida:', redirectUrl);
+
       return NextResponse.json({
-        init_point: result.init_point,
+        init_point: redirectUrl,
+        sandbox_init_point: result.sandbox_init_point,
         preference_id: result.id
       });
     } catch (mpError: any) {
