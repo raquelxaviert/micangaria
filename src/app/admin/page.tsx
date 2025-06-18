@@ -589,7 +589,8 @@ function ProductForm({
       search_keywords: '',
       vendor: '',
       collection: '',
-      notes: '',      care_instructions: '',
+      notes: '',
+      care_instructions: '',
       image_url: '',
       gallery_urls: [],
       show_colors_badge: true,
@@ -623,6 +624,78 @@ function ProductForm({
     return defaultData;
   });
 
+  // Função para validar o slug
+  const validateSlug = (slug: string) => {
+    const warnings = [];
+    
+    if (!slug) {
+      return { isValid: true, warnings: [] }; // Slug vazio é válido (será gerado automaticamente)
+    }
+
+    // Verificar espaços no início ou fim
+    if (slug !== slug.trim()) {
+      warnings.push('⚠️ O slug contém espaços no início ou fim que serão removidos automaticamente');
+    }
+
+    // Verificar espaços no meio
+    if (slug.includes(' ')) {
+      warnings.push('❌ O slug não deve conter espaços. Use hífens (-) ou underscores (_)');
+    }
+
+    // Verificar caracteres especiais
+    const invalidChars = slug.match(/[^a-z0-9\-_]/g);
+    if (invalidChars) {
+      warnings.push('❌ O slug contém caracteres inválidos. Use apenas letras minúsculas, números, hífens (-) e underscores (_)');
+    }
+
+    // Verificar hífens duplos ou no início/fim
+    if (slug.includes('--') || slug.startsWith('-') || slug.endsWith('-')) {
+      warnings.push('⚠️ O slug não deve começar/terminar com hífen ou ter hífens duplos');
+    }
+
+    // Verificar comprimento
+    if (slug.length < 3) {
+      warnings.push('⚠️ O slug deve ter pelo menos 3 caracteres');
+    }
+
+    if (slug.length > 50) {
+      warnings.push('⚠️ O slug deve ter no máximo 50 caracteres');
+    }
+
+    // Verificar se é apenas hífens
+    if (slug.replace(/[-_]/g, '') === '') {
+      warnings.push('❌ O slug não pode conter apenas hífens ou underscores');
+    }
+
+    const isValid = warnings.filter(w => w.startsWith('❌')).length === 0;
+    
+    return { isValid, warnings };
+  };
+
+  // Função para gerar slug automaticamente a partir do nome
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .replace(/[^a-z0-9\s-]/g, '') // Remove caracteres especiais
+      .replace(/\s+/g, '-') // Substitui espaços por hífens
+      .replace(/-+/g, '-') // Remove hífens duplos
+      .replace(/^-+|-+$/g, '') // Remove hífens do início e fim
+      .trim();
+  };
+
+  // Estado para validação do slug
+  const [slugValidation, setSlugValidation] = useState(() => 
+    validateSlug(formData.slug || '')
+  );
+
+  // Atualizar validação quando o slug mudar
+  useEffect(() => {
+    const validation = validateSlug(formData.slug || '');
+    setSlugValidation(validation);
+  }, [formData.slug]);
+
   // DEBUG: Log product and formData when product is loaded for editing
   useEffect(() => {
     if (product) {
@@ -655,6 +728,37 @@ function ProductForm({
     setIsUploading(true);
 
     try {
+      // Corrigir o slug automaticamente antes de salvar
+      let finalSlug = formData.slug;
+      
+      if (finalSlug) {
+        // Aplicar correções automáticas
+        finalSlug = finalSlug
+          .trim() // Remove espaços no início e fim
+          .toLowerCase() // Converte para minúsculas
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+          .replace(/[^a-z0-9\s-]/g, '') // Remove caracteres especiais
+          .replace(/\s+/g, '-') // Substitui espaços por hífens
+          .replace(/-+/g, '-') // Remove hífens duplos
+          .replace(/^-+|-+$/g, ''); // Remove hífens do início e fim
+      } else if (formData.name) {
+        // Gerar slug automaticamente se não foi fornecido
+        finalSlug = generateSlug(formData.name);
+      }
+
+      // Validar o slug final
+      const finalValidation = validateSlug(finalSlug);
+      if (!finalValidation.isValid) {
+        const errorMessages = finalValidation.warnings
+          .filter(w => w.startsWith('❌'))
+          .map(w => w.replace('❌ ', ''))
+          .join(', ');
+        throw new Error(`Slug inválido: ${errorMessages}`);
+      }
+
+      console.log('🔧 Slug corrigido:', { original: formData.slug, final: finalSlug });
+
       // Preservar a ordem das imagens conforme definido no formulário
       // A primeira imagem é sempre a principal (imageData.url)
       const allImages = [
@@ -699,7 +803,7 @@ function ProductForm({
         track_inventory: formData.track_inventory ?? false,
         quantity: formData.quantity ?? 0,
         allow_backorder: formData.allow_backorder ?? false,
-        slug: formData.slug || null,
+        slug: finalSlug || null, // Usar o slug corrigido
         meta_title: formData.meta_title || null,
         meta_description: formData.meta_description || null,
         is_active: formData.is_active ?? true,
@@ -713,7 +817,8 @@ function ProductForm({
         search_keywords: formData.search_keywords || null,
         vendor: formData.vendor || null,
         collection: formData.collection || null,
-        notes: formData.notes || null,        care_instructions: formData.care_instructions || null,
+        notes: formData.notes || null,
+        care_instructions: formData.care_instructions || null,
         show_colors_badge: formData.show_colors_badge ?? true,
         show_materials_badge: formData.show_materials_badge ?? true,
         show_sizes_badge: formData.show_sizes_badge ?? true,
@@ -725,7 +830,8 @@ function ProductForm({
 
       console.log('📦 Dados do produto:', {
         image_url: productData.image_url,
-        gallery_urls: productData.gallery_urls
+        gallery_urls: productData.gallery_urls,
+        slug: productData.slug
       });
 
       let result;
@@ -887,12 +993,61 @@ function ProductForm({
           
           <div>
             <Label htmlFor="slug">URL Amigável (Slug)</Label>
-            <Input
-              id="slug"
-              value={formData.slug || ''}
-              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-              placeholder="colar-lua-cheia"
-            />
+            <div className="space-y-2">
+              <Input
+                id="slug"
+                value={formData.slug || ''}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                placeholder="colar-lua-cheia"
+                className={slugValidation.warnings.some(w => w.startsWith('❌')) ? 'border-red-500' : ''}
+              />
+              
+              {/* Botão para gerar slug automaticamente */}
+              {formData.name && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const generatedSlug = generateSlug(formData.name || '');
+                    setFormData({ ...formData, slug: generatedSlug });
+                  }}
+                  className="text-xs"
+                >
+                  🔄 Gerar slug automaticamente
+                </Button>
+              )}
+              
+              {/* Warnings de validação */}
+              {slugValidation.warnings.length > 0 && (
+                <div className="space-y-1">
+                  {slugValidation.warnings.map((warning, index) => (
+                    <div
+                      key={index}
+                      className={`text-xs p-2 rounded ${
+                        warning.startsWith('❌') 
+                          ? 'bg-red-50 border border-red-200 text-red-700' 
+                          : 'bg-yellow-50 border border-yellow-200 text-yellow-700'
+                      }`}
+                    >
+                      {warning}
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Preview da URL */}
+              {formData.slug && slugValidation.isValid && (
+                <div className="text-xs text-green-600 bg-green-50 p-2 rounded border border-green-200">
+                  ✅ URL: <code className="bg-white px-1 rounded">/products/{formData.slug}</code>
+                </div>
+              )}
+              
+              {/* Dicas de uso */}
+              <div className="text-xs text-gray-500">
+                💡 Dicas: Use apenas letras minúsculas, números e hífens. Deixe vazio para gerar automaticamente.
+              </div>
+            </div>
           </div>
         </div>
 
