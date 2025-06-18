@@ -112,10 +112,14 @@ export async function POST(request: NextRequest) {
 
     const response = await preference.create({ body: preferenceData });
 
+    // Determinar se deve usar sandbox ou produção
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isSandbox = process.env.MERCADO_PAGO_SANDBOX === 'true' || !isProduction;
+
     return NextResponse.json({
       success: true,
       preference_id: response.id,
-      init_point: response.init_point,
+      init_point: isSandbox ? response.sandbox_init_point : response.init_point,
       sandbox_init_point: response.sandbox_init_point,
       total: total,
       breakdown: {

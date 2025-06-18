@@ -148,14 +148,20 @@ export async function POST(request: Request) {
         preference_id: result.id
       });
 
-      // Em ambiente de teste, usar sandbox_init_point
-      const redirectUrl = result.sandbox_init_point || result.init_point;
+      // Determinar se deve usar sandbox ou produção
+      const isProduction = process.env.NODE_ENV === 'production';
+      const isSandbox = process.env.MERCADO_PAGO_SANDBOX === 'true' || !isProduction;
+      
+      // Usar sandbox_init_point se estiver em modo sandbox
+      const redirectUrl = isSandbox ? result.sandbox_init_point : result.init_point;
       console.log('URL de redirecionamento escolhida:', redirectUrl);
+      console.log(`🔧 Usando ${isSandbox ? 'sandbox_init_point' : 'init_point'} (modo ${isSandbox ? 'SANDBOX' : 'PRODUÇÃO'})`);
 
       return NextResponse.json({
         init_point: redirectUrl,
         sandbox_init_point: result.sandbox_init_point,
-        preference_id: result.id
+        preference_id: result.id,
+        note: `Using ${isSandbox ? 'sandbox' : 'production'} mode`
       });
     } catch (mpError: any) {
       console.error('Erro do Mercado Pago:', {

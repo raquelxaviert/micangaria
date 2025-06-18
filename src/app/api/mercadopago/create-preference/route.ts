@@ -1,5 +1,5 @@
 /**
- * 🛒 API PARA CRIAR PRE      notification_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/mercadopago`,ERÊNCIA DO MERCADO PAGO
+ * 🛒 API PARA CRIAR PREFERÊNCIA DO MERCADO PAGO
  * 
  * Cria link de pagamento incluindo frete
  */
@@ -77,9 +77,13 @@ export async function POST(request: NextRequest) {
     
     console.log('💳 Preferência criada:', preferenceData.id);
     
+    // Determinar se deve usar sandbox ou produção
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isSandbox = process.env.MERCADO_PAGO_SANDBOX === 'true' || !isProduction;
+    
     return NextResponse.json({
       id: preferenceData.id,
-      init_point: preferenceData.init_point, // Link para pagamento
+      init_point: isSandbox ? preferenceData.sandbox_init_point : preferenceData.init_point, // Link para pagamento
       sandbox_init_point: preferenceData.sandbox_init_point
     });
   } catch (error) {
