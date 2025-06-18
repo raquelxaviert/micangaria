@@ -174,7 +174,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
               />
             </div>
             <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
-              Entre na sua conta para sincronizar seus favoritos
+              Entre na sua conta para sincronizar seu carrinho e finalizar sua compra
             </p>
           </div>
 

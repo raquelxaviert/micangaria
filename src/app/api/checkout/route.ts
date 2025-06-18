@@ -17,6 +17,20 @@ export async function POST(request: Request) {
     const data = await request.json();
     console.log('Dados recebidos:', data);
 
+    // Validar dados obrigatórios
+    if (!data.amount || !data.customerInfo || !data.shippingAddress || !data.shippingOption) {
+      console.error('Dados obrigatórios ausentes:', {
+        hasAmount: !!data.amount,
+        hasCustomerInfo: !!data.customerInfo,
+        hasShippingAddress: !!data.shippingAddress,
+        hasShippingOption: !!data.shippingOption
+      });
+      return NextResponse.json(
+        { error: 'Dados obrigatórios ausentes' },
+        { status: 400 }
+      );
+    }
+
     // Gerar ID único para o pedido
     const orderId = `order_${Date.now()}`;
 
@@ -115,8 +129,13 @@ export async function POST(request: Request) {
         throw new Error('Erro ao criar pedido no banco de dados');
       }
 
+      console.log('Resposta final:', {
+        init_point: result.init_point,
+        preference_id: result.id
+      });
+
       return NextResponse.json({
-        init_point: result.sandbox_init_point,
+        init_point: result.init_point,
         preference_id: result.id
       });
     } catch (mpError: any) {

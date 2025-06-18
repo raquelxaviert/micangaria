@@ -21,8 +21,8 @@ export function CheckoutProgress({ currentStep, formProgress = 0 }: CheckoutProg
   const progressPercentage = Math.min(formProgress, 100);
 
   return (
-    <div className="sticky bottom-0 z-50 bg-gradient-to-t from-gray-100/95 to-gray-50/95 backdrop-blur-sm border-t border-gray-200/50 py-4 shadow-lg">
-      <div className="w-full max-w-3xl mx-auto px-4">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-gray-100/95 to-gray-50/95 backdrop-blur-sm border-t border-gray-200/50 py-4 shadow-lg">
+      <div className="w-full px-6">
         <div className="relative h-16">
           {/* Progress bar - atravessa toda a largura entre os ícones */}
           <div className="absolute top-5 left-5 right-5 h-1 bg-gray-200 rounded-full">

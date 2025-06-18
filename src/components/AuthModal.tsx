@@ -127,7 +127,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
             <CardTitle className="text-xl font-headline">RÜGE</CardTitle>
           </div>
           <CardDescription className="text-sm">
-            Entre na sua conta para sincronizar seus favoritos
+            Entre na sua conta para sincronizar seu carrinho e finalizar sua compra
           </CardDescription>
         </CardHeader>
 
