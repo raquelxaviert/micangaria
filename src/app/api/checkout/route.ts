@@ -8,8 +8,9 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Configurar cliente do Mercado Pago com token de teste
+const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN || 'APP_USR-1462764550696594-061211-e1e1043f436264c9bf3ff42860b3a608-2490474713';
 const client = new MercadoPagoConfig({ 
-  accessToken: 'APP_USR-1462764550696594-061211-e1e1043f436264c9bf3ff42860b3a608-2490474713'
+  accessToken: accessToken
 });
 
 export async function POST(request: Request) {

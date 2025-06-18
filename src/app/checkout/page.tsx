@@ -241,6 +241,15 @@ export default function CheckoutPage() {
         currency_id: 'BRL'
       }));
 
+      console.log('Enviando dados para API:', {
+        amount: finalTotal,
+        shippingOption: selectedShipping,
+        customerInfo,
+        shippingAddress,
+        items: cartItems,
+        userId: user?.id
+      });
+
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: {
@@ -256,22 +265,28 @@ export default function CheckoutPage() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Erro ao criar preferência de pagamento');
-      }
+      console.log('Status da resposta:', response.status);
+      console.log('Headers da resposta:', Object.fromEntries(response.headers.entries()));
 
       const data = await response.json();
+      console.log('Dados da resposta:', data);
+
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${data.error || 'Erro ao criar preferência de pagamento'}`);
+      }
 
       if (data.init_point) {
+        console.log('Redirecionando para:', data.init_point);
         window.location.href = data.init_point;
       } else {
-        throw new Error('URL de pagamento não encontrada');
+        console.error('Resposta sem init_point:', data);
+        throw new Error('URL de pagamento não encontrada na resposta');
       }
     } catch (error) {
       console.error('Payment error:', error);
       toast({
         title: "Erro ao processar pagamento",
-        description: "Não foi possível criar a preferência de pagamento. Tente novamente.",
+        description: error instanceof Error ? error.message : "Não foi possível criar a preferência de pagamento. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -488,21 +503,12 @@ export default function CheckoutPage() {
                           autoComplete="country"
                           placeholder="SP"
                         />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Info Box */}
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-6">
-                  <div className="flex items-start gap-4">
-                    <Truck className="w-6 h-6 text-amber-600 mt-1 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-bold text-gray-900 text-base mb-2">Entrega Segura e Rápida</h4>
-                      <p className="text-sm text-gray-700 leading-relaxed">
-                        Seus dados são protegidos e usados apenas para calcular o frete e realizar a entrega.
-                      </p>
-                    </div>
+                      </div>                    </div>
+                    
+                    {/* Disclaimer pequeno */}
+                    <p className="text-xs text-gray-500 mt-3">
+                      Seus dados são protegidos e usados apenas para calcular o frete e realizar a entrega.
+                    </p>
                   </div>
                 </div>
 
@@ -546,15 +552,14 @@ export default function CheckoutPage() {
                                   {option.deadline}
                                 </p>
                               </div>
-                            </div>
-                            <div className="text-right sm:text-left">
-                              <p className="font-bold text-lg">
+                            </div>                            <div className="text-right sm:text-left">
+                              <p className="font-bold text-sm">
                                 {(option.price === 0 || Number(option.price) === 0) ? (
-                                  <span className="text-green-600 bg-green-100 px-2 py-1 rounded-full text-sm">
+                                  <span className="text-green-600 bg-green-100 px-2 py-1 rounded-full text-xs">
                                     GRÁTIS
                                   </span>
                                 ) : (
-                                  <span className="text-gray-800">
+                                  <span className="text-green-600">
                                     R$ {Number(option.price || 0).toFixed(2)}
                                   </span>
                                 )}
@@ -572,26 +577,23 @@ export default function CheckoutPage() {
                     <div className="flex justify-between items-center text-lg">
                       <span className="font-medium text-gray-700">Subtotal</span>
                       <span className="font-semibold">R$ {total.toFixed(2)}</span>
-                    </div>
-
-                    <div className="flex justify-between items-center text-lg">
+                    </div>                    <div className="flex justify-between items-center text-lg">
                       <span className="font-medium text-gray-700">Frete</span>
-                      <span className="font-semibold">
+                      <span className="font-semibold text-sm">
                         {!selectedShipping ? (
                           <span className="text-gray-500 text-sm">A calcular</span>
                         ) : (selectedShipping.price === 0 || Number(selectedShipping.price) === 0) ? (
-                          <span className="text-green-600 bg-green-100 px-2 py-1 rounded-full text-sm">
+                          <span className="text-green-600 bg-green-100 px-2 py-1 rounded-full text-xs">
                             GRÁTIS
                           </span>
                         ) : (
-                          `R$ ${Number(selectedShipping.price || 0).toFixed(2)}`
+                          <span className="text-green-600">R$ {Number(selectedShipping.price || 0).toFixed(2)}</span>
                         )}
                       </span>
                     </div>
-                    <Separator className="my-4" />
-                    <div className="flex justify-between items-center text-2xl font-bold">
+                    <Separator className="my-4" />                    <div className="flex justify-between items-center text-xl font-bold">
                       <span className="text-gray-900">Total</span>
-                      <span className="text-primary">
+                      <span className="text-green-600 text-lg">
                         {!selectedShipping ? (
                           <>R$ {total.toFixed(2)} <span className="text-xs sm:text-sm text-gray-500">+ frete</span></>
                         ) : (
@@ -663,24 +665,22 @@ export default function CheckoutPage() {
                       <div className="flex justify-between">
                         <span>Subtotal</span>
                         <span>R$ {total.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between">
+                      </div>                      <div className="flex justify-between">
                         <span>Frete</span>
-                        <span>
+                        <span className="text-sm">
                           {!selectedShipping ? (
                             <span className="text-gray-500 text-sm">A calcular</span>
                           ) : (selectedShipping.price === 0 || Number(selectedShipping.price) === 0) ? (
-                            <span className="text-green-600 bg-green-100 px-2 py-1 rounded-full text-sm">
+                            <span className="text-green-600 bg-green-100 px-2 py-1 rounded-full text-xs">
                               GRÁTIS
                             </span>
                           ) : (
-                            `R$ ${Number(selectedShipping.price || 0).toFixed(2)}`
+                            <span className="text-green-600">R$ {Number(selectedShipping.price || 0).toFixed(2)}</span>
                           )}
                         </span>
-                      </div>
-                      <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                      </div>                      <div className="flex justify-between font-bold text-lg pt-2 border-t">
                         <span>Total</span>
-                        <span className="text-primary">
+                        <span className="text-green-600">
                           {!selectedShipping ? (
                             <>R$ {total.toFixed(2)} <span className="text-xs text-gray-500">+ frete</span></>
                           ) : (
