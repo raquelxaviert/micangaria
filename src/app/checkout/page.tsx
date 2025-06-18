@@ -178,16 +178,15 @@ export default function CheckoutPage() {
             setShippingOptions(defaultShipping);
             // Não selecionar automaticamente
             return;
-          }
-
-          // Processar todas as opções retornadas pela API
+          }          // Processar todas as opções retornadas pela API
           const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+          const isFreeShipping = total >= 300;
           const options = shippingData
             .filter((option: any) => option.price !== null && option.price !== undefined)
             .map((option: any) => ({
               name: option.name || option.company?.name || 'Transportadora',
               company: option.company?.name || 'Correios',
-              price: total >= 300 && option.name?.toLowerCase().includes('pac') ? 0 : parseFloat(option.price || option.custom_price || '0'),
+              price: isFreeShipping ? 0 : parseFloat(option.price || option.custom_price || '0'),
               deadline: option.delivery_time ? `${option.delivery_time} dias úteis` : (option.custom_delivery_time || '5-10 dias úteis'),
               service_id: option.id,
               service_name: option.name,
@@ -292,13 +291,68 @@ export default function CheckoutPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-  const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const shippingCost = selectedShipping ? Number(selectedShipping.price || 0) : 0;
-  const finalTotal = total + shippingCost;  return (
+  };  const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  
+  // Frete grátis para compras acima de R$ 300
+  const isFreeShipping = total >= 300;
+  const shippingCost = selectedShipping ? 
+    (isFreeShipping ? 0 : Number(selectedShipping.price || 0)) : 0;
+  const finalTotal = total + shippingCost;return (
     <div className="min-h-screen" style={{ backgroundColor: '#F5F0EB' }}>
       <div className="container mx-auto px-4 py-6 pb-24">
         <div className="max-w-6xl mx-auto">
+          
+          {/* Faixa de Anúncio - Frete Grátis */}
+          {isFreeShipping ? (
+            <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg p-4 mb-6 shadow-lg">
+              <div className="flex items-center justify-center gap-3">
+                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                  <Truck className="w-5 h-5" />
+                </div>
+                <div className="text-center">
+                  <p className="font-bold text-lg">
+                    🎉 Parabéns! Você ganhou frete grátis!
+                  </p>
+                  <p className="text-sm opacity-90">
+                    Sua compra de R$ {total.toFixed(2)} qualifica para entrega gratuita
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : total >= 200 ? (
+            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg p-4 mb-6 shadow-lg">
+              <div className="flex items-center justify-center gap-3">
+                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                  <Truck className="w-5 h-5" />
+                </div>
+                <div className="text-center">
+                  <p className="font-bold text-lg">
+                    ⚡ Faltam apenas R$ {(300 - total).toFixed(2)} para o frete grátis!
+                  </p>
+                  <p className="text-sm opacity-90">
+                    Adicione mais produtos e ganhe entrega gratuita
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg p-4 mb-6 shadow-lg">
+              <div className="flex items-center justify-center gap-3">
+                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                  <Truck className="w-5 h-5" />
+                </div>
+                <div className="text-center">
+                  <p className="font-bold text-lg">
+                    🚚 Frete Grátis em compras acima de R$ 300!
+                  </p>
+                  <p className="text-sm opacity-90">
+                    Aproveite a entrega gratuita em todo o Brasil
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
             
             {/* Coluna Principal - Formulário */}
@@ -504,13 +558,45 @@ export default function CheckoutPage() {
                           placeholder="SP"
                         />
                       </div>                    </div>
-                    
-                    {/* Disclaimer pequeno */}
+                      {/* Disclaimer pequeno */}
                     <p className="text-xs text-gray-500 mt-3">
                       Seus dados são protegidos e usados apenas para calcular o frete e realizar a entrega.
                     </p>
                   </div>
-                </div>
+                </div>                {/* Informação sobre Frete Grátis */}
+                {total >= 300 ? (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                        <Truck className="w-4 h-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-green-800 font-medium text-sm">
+                          🎉 Parabéns! Você ganhou frete grátis!
+                        </p>
+                        <p className="text-green-600 text-xs">
+                          Em compras acima de R$ 300, o frete é por nossa conta.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : total >= 250 && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <Truck className="w-4 h-4 text-yellow-600" />
+                      </div>
+                      <div>
+                        <p className="text-yellow-800 font-medium text-sm">
+                          ⚡ Faltam apenas R$ {(300 - total).toFixed(2)} para o frete grátis!
+                        </p>
+                        <p className="text-yellow-600 text-xs">
+                          Que tal adicionar mais algum produto à sua compra?
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Seção de Opções de Frete */}
                 {shippingOptions.length > 0 && (
@@ -554,7 +640,7 @@ export default function CheckoutPage() {
                               </div>
                             </div>                            <div className="text-right sm:text-left">
                               <p className="font-bold text-sm">
-                                {(option.price === 0 || Number(option.price) === 0) ? (
+                                {(isFreeShipping || option.price === 0 || Number(option.price) === 0) ? (
                                   <span className="text-green-600 bg-green-100 px-2 py-1 rounded-full text-xs">
                                     GRÁTIS
                                   </span>
@@ -582,7 +668,7 @@ export default function CheckoutPage() {
                       <span className="font-semibold text-sm">
                         {!selectedShipping ? (
                           <span className="text-gray-500 text-sm">A calcular</span>
-                        ) : (selectedShipping.price === 0 || Number(selectedShipping.price) === 0) ? (
+                        ) : (isFreeShipping || selectedShipping.price === 0 || Number(selectedShipping.price) === 0) ? (
                           <span className="text-green-600 bg-green-100 px-2 py-1 rounded-full text-xs">
                             GRÁTIS
                           </span>
@@ -595,9 +681,20 @@ export default function CheckoutPage() {
                       <span className="text-gray-900">Total</span>
                       <span className="text-green-600 text-lg">
                         {!selectedShipping ? (
-                          <>R$ {total.toFixed(2)} <span className="text-xs sm:text-sm text-gray-500">+ frete</span></>
+                          isFreeShipping ? (
+                            <>R$ {total.toFixed(2)} <span className="text-xs sm:text-sm text-green-600">+ frete grátis</span></>
+                          ) : (
+                            <>R$ {total.toFixed(2)} <span className="text-xs sm:text-sm text-gray-500">+ frete</span></>
+                          )
                         ) : (
-                          `R$ ${finalTotal.toFixed(2)}`
+                          <div className="text-right">
+                            <div>R$ {finalTotal.toFixed(2)}</div>
+                            {isFreeShipping && (
+                              <div className="text-xs text-green-600 font-normal">
+                                (frete grátis incluído)
+                              </div>
+                            )}
+                          </div>
                         )}
                       </span>
                     </div>
@@ -669,8 +766,14 @@ export default function CheckoutPage() {
                         <span>Frete</span>
                         <span className="text-sm">
                           {!selectedShipping ? (
-                            <span className="text-gray-500 text-sm">A calcular</span>
-                          ) : (selectedShipping.price === 0 || Number(selectedShipping.price) === 0) ? (
+                            isFreeShipping ? (
+                              <span className="text-green-600 bg-green-100 px-2 py-1 rounded-full text-xs">
+                                GRÁTIS
+                              </span>
+                            ) : (
+                              <span className="text-gray-500 text-sm">A calcular</span>
+                            )
+                          ) : (isFreeShipping || selectedShipping.price === 0 || Number(selectedShipping.price) === 0) ? (
                             <span className="text-green-600 bg-green-100 px-2 py-1 rounded-full text-xs">
                               GRÁTIS
                             </span>
@@ -678,13 +781,24 @@ export default function CheckoutPage() {
                             <span className="text-green-600">R$ {Number(selectedShipping.price || 0).toFixed(2)}</span>
                           )}
                         </span>
-                      </div>                      <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                      </div><div className="flex justify-between font-bold text-lg pt-2 border-t">
                         <span>Total</span>
                         <span className="text-green-600">
                           {!selectedShipping ? (
-                            <>R$ {total.toFixed(2)} <span className="text-xs text-gray-500">+ frete</span></>
+                            isFreeShipping ? (
+                              <>R$ {total.toFixed(2)} <span className="text-xs text-green-600">+ frete grátis</span></>
+                            ) : (
+                              <>R$ {total.toFixed(2)} <span className="text-xs text-gray-500">+ frete</span></>
+                            )
                           ) : (
-                            `R$ ${finalTotal.toFixed(2)}`
+                            <div className="text-right">
+                              <div>R$ {finalTotal.toFixed(2)}</div>
+                              {isFreeShipping && (
+                                <div className="text-xs text-green-600 font-normal">
+                                  (frete grátis incluído)
+                                </div>
+                              )}
+                            </div>
                           )}
                         </span>
                       </div>

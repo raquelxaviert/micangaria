@@ -43,7 +43,7 @@ export default async function RootLayout({
         ) : (
           <ClientProviders>
             <Header />
-            <main className="flex-grow container mx-auto px-4 py-8 pt-20">
+            <main className="flex-grow container mx-auto px-4 py-8 pt-28">
               {children}
             </main>
             <Footer />
