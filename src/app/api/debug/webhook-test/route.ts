@@ -2,63 +2,57 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🧪 [WebhookTest] Teste de webhook recebido!');
+    console.log('�� [WebhookTest] Test webhook endpoint called');
     
-    // Log dos headers
-    const headers: Record<string, string> = {};
-    request.headers.forEach((value, key) => {
-      headers[key] = value;
-    });
+    const body = await request.json();
+    const headers = Object.fromEntries(request.headers.entries());
     
-    console.log('📋 [WebhookTest] Headers recebidos:', headers);
+    console.log('📄 [WebhookTest] Request body:', body);
+    console.log('📋 [WebhookTest] Request headers:', headers);
     
-    // Log do body
-    const body = await request.text();
-    console.log('📦 [WebhookTest] Body recebido:', body);
+    // Simular um webhook de pagamento aprovado
+    const mockWebhookPayload = {
+      action: "payment.updated",
+      api_version: "v1",
+      data: {
+        id: "123456789"
+      },
+      date_created: new Date().toISOString(),
+      id: "123456789",
+      live_mode: false,
+      type: "payment",
+      user_id: 2490474713
+    };
     
-    // Tentar fazer parse do JSON
-    let parsedBody;
-    try {
-      parsedBody = JSON.parse(body);
-      console.log('✅ [WebhookTest] Body parseado com sucesso:', parsedBody);
-    } catch (parseError) {
-      console.log('❌ [WebhookTest] Erro ao fazer parse do body:', parseError);
-    }
-    
-    // Verificar se é uma notificação do Mercado Pago
-    const isMercadoPagoWebhook = headers['x-signature'] || 
-                                 headers['x-request-id'] || 
-                                 (parsedBody && (parsedBody.type === 'payment' || parsedBody.action));
-    
-    console.log('🔍 [WebhookTest] É webhook do Mercado Pago?', isMercadoPagoWebhook);
+    // Simular headers do Mercado Pago
+    const mockHeaders = {
+      'x-signature': 'ts=1742505638683,v1=ced36ab6d33566bb1e16c125819b8d840d6b8ef136b0b9127c76064466f5229b',
+      'x-request-id': 'test-request-id-123',
+      'content-type': 'application/json'
+    };
     
     return NextResponse.json({
       success: true,
-      message: 'Webhook test received successfully',
-      timestamp: new Date().toISOString(),
-      headers: headers,
-      body: parsedBody || body,
-      isMercadoPagoWebhook: isMercadoPagoWebhook,
-      webhookUrl: 'https://www.rugebrecho.com/api/webhooks/mercadopago'
+      message: 'Webhook test endpoint is working',
+      received_body: body,
+      received_headers: headers,
+      mock_webhook_payload: mockWebhookPayload,
+      mock_headers: mockHeaders,
+      webhook_url: 'https://www.rugebrecho.com/api/webhooks/mercadopago',
+      timestamp: new Date().toISOString()
     });
     
   } catch (error: any) {
-    console.error('❌ [WebhookTest] Erro:', error);
-    
-    return NextResponse.json({
-      success: false,
-      error: error.message,
-      timestamp: new Date().toISOString()
-    }, { status: 500 });
+    console.error('❌ [WebhookTest] Error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
 export async function GET(request: NextRequest) {
   return NextResponse.json({
     message: 'Webhook Test Endpoint',
-    usage: 'POST to test webhook reception',
-    webhookUrl: 'https://www.rugebrecho.com/api/webhooks/mercadopago',
-    testUrl: 'https://www.rugebrecho.com/api/debug/webhook-test',
+    usage: 'POST to test webhook functionality',
+    webhook_url: 'https://www.rugebrecho.com/api/webhooks/mercadopago',
     timestamp: new Date().toISOString()
   });
 } 
