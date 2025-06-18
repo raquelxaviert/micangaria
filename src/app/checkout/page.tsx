@@ -322,18 +322,45 @@ export default function CheckoutPage() {
       console.log('Status da resposta:', response.status);
       console.log('Headers da resposta:', Object.fromEntries(response.headers.entries()));
 
-      const data = await response.json();
-      console.log('Dados da resposta:', data);
+      let data;
+      try {
+        data = await response.json();
+        console.log('Dados da resposta:', data);
+        console.log('Tipo de dados da resposta:', typeof data);
+        console.log('Propriedades da resposta:', Object.keys(data));
+      } catch (parseError) {
+        console.error('Erro ao fazer parse da resposta:', parseError);
+        const responseText = await response.text();
+        console.error('Resposta como texto:', responseText);
+        throw new Error('Erro ao processar resposta da API');
+      }
 
       if (!response.ok) {
+        console.error('Resposta não OK:', response.status, data);
         throw new Error(`Erro ${response.status}: ${data.error || 'Erro ao criar preferência de pagamento'}`);
       }
 
-      if (data.init_point) {
-        console.log('Redirecionando para:', data.init_point);
-        window.location.href = data.init_point;
+      console.log('Verificando init_point:', {
+        hasInitPoint: !!data.init_point,
+        initPointValue: data.init_point,
+        hasSandboxInitPoint: !!data.sandbox_init_point,
+        sandboxInitPointValue: data.sandbox_init_point
+      });
+
+      // Tentar diferentes propriedades para a URL de redirecionamento
+      const redirectUrl = data.init_point || data.sandbox_init_point || data.redirect_url;
+      
+      if (redirectUrl) {
+        console.log('Redirecionando para:', redirectUrl);
+        console.log('URL completa:', redirectUrl);
+        
+        // Adicionar um pequeno delay para garantir que os logs sejam exibidos
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 100);
       } else {
-        console.error('Resposta sem init_point:', data);
+        console.error('Resposta sem URL de redirecionamento:', data);
+        console.error('Estrutura completa da resposta:', JSON.stringify(data, null, 2));
         throw new Error('URL de pagamento não encontrada na resposta');
       }
     } catch (error) {
