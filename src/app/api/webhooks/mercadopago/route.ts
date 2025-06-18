@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createClient } from '@/lib/supabase/server';
 import { paymentService, merchantOrderService } from '@/lib/mercadopago/client';
+import { StockReservationService } from '@/lib/stockReservation';
 
 // Helper function to map Mercado Pago payment statuses to your application's order statuses
 function mapMercadoPagoStatusToYourStatus(mpStatus: string): string {
@@ -191,6 +192,50 @@ async function handleWebhookEvent(payload: any) {
           } else {
             console.log('[WebhookLogic] Supabase update success for payment, external_reference:', externalReference);
             console.log('[WebhookLogic] Update result:', data);
+            
+            // Marcar reservas como concluídas se o pagamento foi aprovado
+            if (mappedOrderStatus === 'paid') {
+              try {
+                console.log('[WebhookLogic] 🎯 Pagamento aprovado, marcando reservas como concluídas...');
+                
+                // Buscar o pedido para obter o order_id
+                const { data: order, error: orderError } = await supabase
+                  .from('orders')
+                  .select('id, items')
+                  .eq('external_reference', externalReference)
+                  .single();
+                
+                if (!orderError && order) {
+                  // Para cada produto no pedido, marcar reserva como concluída
+                  const items = order.items || [];
+                  for (const item of items) {
+                    const productId = item.productId || item.id;
+                    if (productId) {
+                      // Buscar reserva ativa para este produto e usuário
+                      const { data: reservations, error: reservationError } = await supabase
+                        .from('stock_reservations')
+                        .select('id')
+                        .eq('product_id', productId)
+                        .eq('status', 'active')
+                        .order('created_at', { ascending: false })
+                        .limit(1);
+                      
+                      if (!reservationError && reservations && reservations.length > 0) {
+                        const reservation = reservations[0];
+                        await StockReservationService.completeReservation(reservation.id, order.id);
+                        console.log('[WebhookLogic] ✅ Reserva marcada como concluída:', {
+                          reservation_id: reservation.id,
+                          product_id: productId,
+                          order_id: order.id
+                        });
+                      }
+                    }
+                  }
+                }
+              } catch (reservationError) {
+                console.error('[WebhookLogic] ❌ Erro ao marcar reservas como concluídas:', reservationError);
+              }
+            }
           }
         } else {
           console.warn('[WebhookLogic] Missing data for Supabase update (payment):', { externalReference, paymentStatus });

@@ -20,13 +20,15 @@ import {
   Plus,
   Info,
   Check,
-  X
+  X,
+  Clock
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { ProductCard, ProductData } from '@/components/ui/ProductCard';
 import { ImageCarousel } from '@/components/ui/ImageCarousel';
 import ShippingCalculator from '@/components/ShippingCalculator';
 import { CartManager } from '@/lib/ecommerce';
+import { useProductStockStatus } from '@/hooks/useStockReservation';
 
 interface Product {
   id: string;
@@ -63,6 +65,23 @@ export default function ProductPage() {
   const [selectedShipping, setSelectedShipping] = useState<any>(null);
   const [shippingCost, setShippingCost] = useState(0);
   const supabase = createClient();
+
+  // Stock reservation hook para este produto específico
+  const { 
+    isReserved, 
+    isSold,
+    timeRemaining, 
+    isLoading: stockLoading 
+  } = useProductStockStatus(product?.id || '');
+
+  // Determinar o estado do produto
+  const getProductStatus = () => {
+    if (isSold) return 'sold';
+    if (isReserved) return 'reserved';
+    return 'available';
+  };
+
+  const productStatus = getProductStatus();
 
   // Atualizar aba ativa quando o produto carrega, garantindo que seja uma aba visível
   useEffect(() => {
@@ -302,6 +321,18 @@ export default function ProductPage() {
     fetchProduct();
   }, [params.slug, supabase, router]);  const handleAddToCart = () => {
     if (!product) return;
+    
+    // Verificar se o produto está vendido
+    if (productStatus === 'sold') {
+      alert('Este produto já foi vendido!');
+      return;
+    }
+    
+    // Verificar se o produto está reservado
+    if (productStatus === 'reserved') {
+      alert('Este produto está temporariamente reservado por outro comprador!');
+      return;
+    }
     
     try {
       // Se já está no carrinho, remover do carrinho
@@ -567,22 +598,42 @@ export default function ProductPage() {
             {/* Botões de Ação */}
             <div className="space-y-3">              <Button 
                 size="lg"                className={`w-full text-base font-semibold h-12 hidden md:flex md:items-center md:justify-center ${
-                  isInCart 
+                  productStatus === 'sold'
+                    ? 'bg-gray-500 text-white cursor-not-allowed'
+                    : productStatus === 'reserved'
+                    ? 'bg-orange-500 text-white cursor-not-allowed'
+                    : isInCart 
                     ? 'bg-green-600 hover:bg-green-700 text-white' 
                     : 'bg-primary hover:bg-primary/90'
                 }`}
                 onClick={handleAddToCart}
-              >                {isInCart ? (
-                  <>
-                    <Check className="mr-2 h-5 w-5" />
-                    Ver no Carrinho
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="mr-2 h-5 w-5" />
-                    Adicionar ao Carrinho
-                  </>
-                )}
+                disabled={productStatus === 'sold' || productStatus === 'reserved' || stockLoading}
+              >                {stockLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Carregando...
+                </>
+              ) : productStatus === 'sold' ? (
+                <>
+                  <X className="mr-2 h-5 w-5" />
+                  Vendido
+                </>
+              ) : productStatus === 'reserved' ? (
+                <>
+                  <Clock className="mr-2 h-5 w-5" />
+                  Reservado ({timeRemaining})
+                </>
+              ) : isInCart ? (
+                <>
+                  <Check className="mr-2 h-5 w-5" />
+                  Ver no Carrinho
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="mr-2 h-5 w-5" />
+                  Adicionar ao Carrinho
+                </>
+              )}
               </Button>{/* Botões secundários - Desktop */}
               <div className="hidden md:flex gap-3">
                 <Button 
@@ -741,19 +792,39 @@ export default function ProductPage() {
             </div>            {/* Botão Adicionar - direita */}
             <Button 
               size="lg"              className={`h-12 px-6 font-semibold ${
-                isInCart 
+                productStatus === 'sold'
+                  ? 'bg-gray-500 text-white cursor-not-allowed'
+                  : productStatus === 'reserved'
+                  ? 'bg-orange-500 text-white cursor-not-allowed'
+                  : isInCart 
                   ? 'bg-green-600 hover:bg-green-700 text-white' 
                   : 'bg-primary hover:bg-primary/90'
               }`}
               onClick={handleAddToCart}
-            >              {isInCart ? (
+              disabled={productStatus === 'sold' || productStatus === 'reserved' || stockLoading}
+            >              {stockLoading ? (
                 <>
-                  <ShoppingCart className="mr-1 h-4 w-4" />
-                  <Check className="h-4 w-4" />
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Carregando...
+                </>
+              ) : productStatus === 'sold' ? (
+                <>
+                  <X className="mr-2 h-5 w-5" />
+                  Vendido
+                </>
+              ) : productStatus === 'reserved' ? (
+                <>
+                  <Clock className="mr-1 h-4 w-4" />
+                  Reservado
+                </>
+              ) : isInCart ? (
+                <>
+                  <Check className="mr-1 h-4 w-4" />
+                  Carrinho
                 </>
               ) : (
                 <>
-                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  <ShoppingCart className="mr-1 h-4 w-4" />
                   Adicionar
                 </>
               )}

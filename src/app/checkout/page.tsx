@@ -15,6 +15,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { CheckoutProgress } from '@/components/checkout/CheckoutProgress';
 import { createClient } from '@/lib/supabase/client';
+import { useStockReservation } from '@/hooks/useStockReservation';
+import { ActiveReservations } from '@/components/ActiveReservations';
 
 interface ShippingOption {
   name: string;
@@ -46,6 +48,8 @@ export default function CheckoutPage() {
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
+  const { createReservation, isProductReservedByUser, getProductReservation } = useStockReservation();
+  const [reservationCreated, setReservationCreated] = useState(false);
 
   // Calcular progresso do formulário
   const calculateFormProgress = () => {
@@ -323,6 +327,50 @@ export default function CheckoutPage() {
     }
   };
 
+  // Função para criar reservas de estoque para todos os produtos no carrinho
+  const createStockReservations = async (): Promise<boolean> => {
+    if (!user || cartItems.length === 0) return false;
+
+    try {
+      console.log('🔒 [Checkout] Criando reservas de estoque para', cartItems.length, 'produtos');
+      
+      const reservationPromises = cartItems.map(item => 
+        createReservation(item.productId, item.quantity, 15) // 15 minutos para checkout
+      );
+
+      const results = await Promise.all(reservationPromises);
+      const successfulReservations = results.filter(result => result !== null);
+
+      if (successfulReservations.length === cartItems.length) {
+        console.log('✅ [Checkout] Todas as reservas criadas com sucesso');
+        setReservationCreated(true);
+        return true;
+      } else {
+        console.error('❌ [Checkout] Algumas reservas falharam:', {
+          total: cartItems.length,
+          successful: successfulReservations.length
+        });
+        
+        toast({
+          title: "❌ Produto indisponível",
+          description: "Um ou mais produtos não estão mais disponíveis. Verifique seu carrinho.",
+          variant: "destructive",
+        });
+        
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ [Checkout] Erro ao criar reservas:', error);
+      toast({
+        title: "❌ Erro ao reservar produtos",
+        description: "Não foi possível reservar os produtos. Tente novamente.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  // Modificar handleSubmit para incluir reserva de estoque
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedShipping) {
@@ -332,6 +380,12 @@ export default function CheckoutPage() {
         variant: 'destructive',
       });
       return;
+    }
+
+    // Criar reservas de estoque antes de prosseguir
+    const reservationsCreated = await createStockReservations();
+    if (!reservationsCreated) {
+      return; // Parar se as reservas falharam
     }
 
     // Redirecionar diretamente para o Mercado Pago
@@ -422,11 +476,11 @@ export default function CheckoutPage() {
         throw new Error('URL de pagamento não encontrada na resposta');
       }
     } catch (error) {
-      console.error('Payment error:', error);
+      console.error('Erro ao processar checkout:', error);
       toast({
-        title: "Erro ao processar pagamento",
-        description: error instanceof Error ? error.message : "Não foi possível criar a preferência de pagamento. Tente novamente.",
-        variant: "destructive",
+        title: 'Erro ao processar pagamento',
+        description: 'Não foi possível processar seu pagamento. Tente novamente.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -511,6 +565,9 @@ export default function CheckoutPage() {
             
             {/* Coluna Principal - Formulário */}
             <div className="xl:col-span-8">
+              {/* Mostrar reservas ativas */}
+              <ActiveReservations />
+              
               <Card className="shadow-xl border-0 overflow-hidden">
                 <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
                   <CardTitle className="text-2xl flex items-center gap-3">
@@ -765,6 +822,42 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                 )}
+
+                {/* Indicador de Reserva de Estoque */}
+                {reservationCreated && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                      </div>
+                      <div>
+                        <p className="text-blue-800 font-medium text-sm">
+                          🔒 Produtos reservados!
+                        </p>
+                        <p className="text-blue-600 text-xs">
+                          Seus produtos estão reservados por 30 minutos. Finalize o pagamento para garantir sua compra.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Aviso de Produtos Únicos */}
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center">
+                      <span className="text-orange-600 text-xs font-bold">!</span>
+                    </div>
+                    <div>
+                      <p className="text-orange-800 font-medium text-sm">
+                        ⚠️ Produtos únicos
+                      </p>
+                      <p className="text-orange-600 text-xs">
+                        Como são peças de brechó, cada produto é único. Outras pessoas podem estar visualizando os mesmos itens.
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Seção de Opções de Frete */}
                 {isCalculatingShipping && (

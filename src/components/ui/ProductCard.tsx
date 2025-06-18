@@ -4,12 +4,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Eye, ShoppingCart, Star, Check } from 'lucide-react';
+import { Eye, ShoppingCart, Star, Check, Clock, X } from 'lucide-react';
 import { CartManager } from '@/lib/ecommerce';
 import { getOptimizedImageUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
 import { useState, useEffect } from 'react';
 import { useImagePreload } from '@/hooks/useImagePreload';
 import { ReliableImage } from '@/components/ui/FastReliableImage';
+import { useProductStockStatus } from '@/hooks/useStockReservation';
 
 // Interface genérica para produto - suporta tanto Supabase quanto mock
 export interface ProductData {
@@ -35,6 +36,11 @@ export interface ProductData {
   show_colors_badge?: boolean;
   show_materials_badge?: boolean;
   show_sizes_badge?: boolean;
+  // Stock reservation fields
+  stock_available?: number;
+  stock_reserved?: number;
+  stock_available_updated?: number;
+  stock_reserved_updated?: number;
 }
 
 interface ProductCardProps {
@@ -59,6 +65,14 @@ export function ProductCard({
   priority = false
 }: ProductCardProps) {
   const [isInCart, setIsInCart] = useState(false);
+  
+  // Stock reservation hook para este produto específico
+  const { 
+    isReserved, 
+    isSold,
+    timeRemaining, 
+    isLoading 
+  } = useProductStockStatus(product.id);
   
   // Normalize product data to handle both formats
   const imageUrl = product.image_url || product.imageUrl || (product.gallery_urls && product.gallery_urls[0]) || '/products/placeholder.jpg';
@@ -85,6 +99,119 @@ export function ProductCard({
     return () => window.removeEventListener('cartChanged', handleCartChange);
   }, [product.id]);
 
+  // Determinar o estado do produto
+  const getProductStatus = () => {
+    if (isSold) return 'sold';
+    if (isReserved) return 'reserved';
+    return 'available';
+  };
+
+  const productStatus = getProductStatus();
+
+  // Renderizar botão baseado no status
+  const renderActionButton = () => {
+    if (!showActions) return null;
+
+    switch (productStatus) {
+      case 'sold':
+        return (
+          <Button 
+            size="sm"
+            disabled
+            className={`w-full bg-gray-500 text-white cursor-not-allowed ${
+              variant === 'compact' ? 'text-xs px-2 py-1 h-8' : 'text-xs px-3 py-2'
+            }`}
+          >
+            <X className="w-3 h-3 mr-1" />
+            <span className="hidden sm:inline">Vendido</span>
+            <span className="sm:hidden">Vendido</span>
+          </Button>
+        );
+
+      case 'reserved':
+        return (
+          <Button 
+            size="sm"
+            disabled
+            className={`w-full bg-orange-500 text-white cursor-not-allowed ${
+              variant === 'compact' ? 'text-xs px-2 py-1 h-8' : 'text-xs px-3 py-2'
+            }`}
+          >
+            <Clock className="w-3 h-3 mr-1" />
+            <span className="hidden sm:inline">Reservado ({timeRemaining})</span>
+            <span className="sm:hidden">{timeRemaining}</span>
+          </Button>
+        );
+
+      case 'available':
+        return (
+          <Button 
+            size="sm"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+                try {
+                // Se já está no carrinho, remover
+                if (CartManager.isInCart(product.id)) {
+                  CartManager.removeItem(product.id);
+                  setIsInCart(false);
+                  return;
+                }
+
+                const success = CartManager.addItem({
+                  productId: product.id,
+                  name: product.name,
+                  price: product.price,
+                  imageUrl: imageUrl
+                });
+                
+                if (success) {
+                  console.log('✅ Produto adicionado ao carrinho:', product.name);
+                  setIsInCart(true);
+                }
+              } catch (error) {
+                console.error('❌ Erro ao adicionar ao carrinho:', error);
+              }
+            }}              className={`w-full transition-colors duration-300 ${
+              isInCart 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'bg-black hover:bg-black/90'
+            } ${
+              variant === 'compact' ? 'text-xs px-2 py-1 h-8' : 'text-xs px-3 py-2'
+            }`}
+            style={isInCart ? {} : { color: '#F5F0EB' }}
+            disabled={isLoading}
+          >              {isLoading ? (
+            <>
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+              <span>Carregando...</span>
+            </>
+          ) : isInCart ? (
+            <>
+              <div className="flex items-center justify-center sm:hidden">
+                <ShoppingCart className="w-3 h-3" />
+                <Check className="w-3 h-3 ml-0.5" />
+              </div>
+              <div className="hidden sm:flex items-center justify-center">
+                <Check className="w-3 h-3 mr-1" />
+                <span>Ver no carrinho</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="w-3 h-3 mr-1" style={{ color: '#F5F0EB' }} />
+              <span className="hidden sm:inline">Adicionar</span>
+              <span className="sm:hidden">+</span>
+            </>
+          )}
+          </Button>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <Card className={`group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95 w-full ${className}`}>      <div className="relative">
         <Link href={`/products/${product.slug || product.id}`} className="block cursor-pointer">          <div className="relative overflow-hidden">            <div className={`product-card-image-container ${variant === 'compact' ? 'compact' : ''}`}>
@@ -110,6 +237,21 @@ export function ProductCard({
                   variant === 'compact' ? 'text-xs px-2 py-0.5' : 'text-xs px-2 py-1'
                 }`}>
                   {variant === 'compact' ? 'OFERTA' : (promotionDetails || 'OFERTA')}
+                </Badge>
+              )}
+              {/* Badge de status do produto */}
+              {productStatus === 'sold' && (
+                <Badge className={`bg-gray-500 text-white font-medium shadow-md ${
+                  variant === 'compact' ? 'text-xs px-2 py-0.5' : 'text-xs px-2 py-1'
+                }`}>
+                  VENDIDO
+                </Badge>
+              )}
+              {productStatus === 'reserved' && (
+                <Badge className={`bg-orange-500 text-white font-medium shadow-md ${
+                  variant === 'compact' ? 'text-xs px-2 py-0.5' : 'text-xs px-2 py-1'
+                }`}>
+                  RESERVADO
                 </Badge>
               )}
             </div>            {/* Multiple images indicator */}
@@ -210,62 +352,7 @@ export function ProductCard({
             }`}>
               R$ {product.price.toFixed(2).replace('.', ',')}
             </span>
-          </div>          {showActions && (
-            <Button 
-              size="sm"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                  try {
-                  // Se já está no carrinho, remover
-                  if (CartManager.isInCart(product.id)) {
-                    CartManager.removeItem(product.id);
-                    setIsInCart(false);
-                    return;
-                  }
-
-                  const success = CartManager.addItem({
-                    productId: product.id,
-                    name: product.name,
-                    price: product.price,
-                    imageUrl: imageUrl
-                  });
-                  
-                  if (success) {
-                    console.log('✅ Produto adicionado ao carrinho:', product.name);
-                    setIsInCart(true);
-                  }
-                } catch (error) {
-                  console.error('❌ Erro ao adicionar ao carrinho:', error);
-                }
-              }}              className={`w-full transition-colors duration-300 ${
-                isInCart 
-                  ? 'bg-green-600 hover:bg-green-700 text-white' 
-                  : 'bg-black hover:bg-black/90'
-              } ${
-                variant === 'compact' ? 'text-xs px-2 py-1 h-8' : 'text-xs px-3 py-2'
-              }`}
-              style={isInCart ? {} : { color: '#F5F0EB' }}
-            >              {isInCart ? (
-                <>
-                  <div className="flex items-center justify-center sm:hidden">
-                    <ShoppingCart className="w-3 h-3" />
-                    <Check className="w-3 h-3 ml-0.5" />
-                  </div>
-                  <div className="hidden sm:flex items-center justify-center">
-                    <Check className="w-3 h-3 mr-1" />
-                    <span>Ver no carrinho</span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <ShoppingCart className="w-3 h-3 mr-1" style={{ color: '#F5F0EB' }} />
-                  <span className="hidden sm:inline">Adicionar</span>
-                  <span className="sm:hidden">+</span>
-                </>
-              )}
-            </Button>
-          )}
+          </div>          {renderActionButton()}
         </div>
       </CardContent>
     </Card>
