@@ -128,6 +128,44 @@ export class StockReservationService {
     try {
       const supabase = await createClient();
       
+      // Verificar se há reservas ativas para este produto
+      const { data: activeReservation, error: reservationError } = await supabase
+        .from('stock_reservations')
+        .select('*')
+        .eq('product_id', productId)
+        .eq('status', 'active')
+        .gt('expires_at', new Date().toISOString())
+        .single();
+
+      if (reservationError && reservationError.code !== 'PGRST116') {
+        console.error('❌ [StockReservation] Erro ao verificar reservas:', reservationError);
+      }
+
+      // Se há uma reserva ativa, o produto não está disponível
+      if (activeReservation) {
+        console.log('❌ [StockReservation] Produto reservado por outro usuário:', productId);
+        return false;
+      }
+
+      // Verificar se o produto está vendido
+      const { data: soldReservation, error: soldError } = await supabase
+        .from('stock_reservations')
+        .select('*')
+        .eq('product_id', productId)
+        .eq('status', 'completed')
+        .single();
+
+      if (soldError && soldError.code !== 'PGRST116') {
+        console.error('❌ [StockReservation] Erro ao verificar vendas:', soldError);
+      }
+
+      // Se há uma reserva completada, o produto foi vendido
+      if (soldReservation) {
+        console.log('❌ [StockReservation] Produto já foi vendido:', productId);
+        return false;
+      }
+
+      // Verificar estoque disponível
       const { data: product, error } = await supabase
         .from('products')
         .select('stock_available, stock_reserved')
@@ -135,10 +173,13 @@ export class StockReservationService {
         .single();
 
       if (error || !product) {
+        console.error('❌ [StockReservation] Produto não encontrado:', productId);
         return false;
       }
 
-      return product.stock_available > 0;
+      const isAvailable = product.stock_available > 0;
+      console.log(`✅ [StockReservation] Produto ${productId} disponível: ${isAvailable}`);
+      return isAvailable;
     } catch (error) {
       console.error('❌ [StockReservation] Erro ao verificar disponibilidade:', error);
       return false;

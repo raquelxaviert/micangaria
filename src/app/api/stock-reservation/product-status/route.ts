@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,7 +13,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
+    // Usar cliente Supabase com chave anônima para permitir acesso público
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Verificar se o produto está vendido (tem reserva completed)
     const { data: soldReservation, error: soldError } = await supabase
@@ -42,6 +46,7 @@ export async function GET(request: NextRequest) {
       .select('*')
       .eq('product_id', productId)
       .eq('status', 'active')
+      .gt('expires_at', new Date().toISOString())
       .single();
 
     if (activeError && activeError.code !== 'PGRST116') {
