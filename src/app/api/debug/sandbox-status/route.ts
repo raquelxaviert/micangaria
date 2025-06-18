@@ -12,13 +12,11 @@ export async function GET(request: NextRequest) {
     });
 
     // Determinar modo atual
-    const isProduction = process.env.NODE_ENV === 'production';
-    const isSandbox = process.env.MERCADO_PAGO_SANDBOX === 'true' || !isProduction;
+    const isSandbox = process.env.MERCADO_PAGO_SANDBOX === 'true';
     
     console.log('🔧 [SandboxStatus] Configuração atual:', {
       NODE_ENV: process.env.NODE_ENV,
       MERCADO_PAGO_SANDBOX: process.env.MERCADO_PAGO_SANDBOX,
-      isProduction,
       isSandbox,
       accessTokenType: accessToken.startsWith('APP_USR_') ? 'PRODUCTION' : 'SANDBOX'
     });
@@ -89,7 +87,6 @@ export async function GET(request: NextRequest) {
       configuration: {
         NODE_ENV: process.env.NODE_ENV,
         MERCADO_PAGO_SANDBOX: process.env.MERCADO_PAGO_SANDBOX,
-        isProduction,
         isSandbox,
         accessTokenType: accessToken.startsWith('APP_USR_') ? 'PRODUCTION' : 'SANDBOX'
       },
@@ -104,8 +101,8 @@ export async function GET(request: NextRequest) {
         should_use_sandbox: isSandbox,
         recommended_url: isSandbox ? result.sandbox_init_point : result.init_point,
         reason: isSandbox 
-          ? 'MERCADO_PAGO_SANDBOX=true ou NODE_ENV=development' 
-          : 'MERCADO_PAGO_SANDBOX=false e NODE_ENV=production'
+          ? 'MERCADO_PAGO_SANDBOX=true' 
+          : 'MERCADO_PAGO_SANDBOX=false'
       },
       timestamp: new Date().toISOString()
     });

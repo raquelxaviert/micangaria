@@ -155,9 +155,10 @@ export async function POST(request: NextRequest) {
         currency_id: 'BRL',
         unit_price: shippingCost
       }    ];    // Dados do comprador (usar os dados enviados pelo frontend)
-    const isProduction = process.env.NODE_ENV === 'production';
-    const isSandbox = process.env.MERCADO_PAGO_SANDBOX === 'true' || !isProduction;
-      // Preparar dados do pagador com validação rigorosa
+    // Local sempre usa sandbox, Vercel usa a variável
+    const isSandbox = process.env.NODE_ENV === 'development' || process.env.MERCADO_PAGO_SANDBOX === 'true';
+    
+    // Preparar dados do pagador com validação rigorosa
     const payer = {
       name: customerInfo.name.trim(),
       email: customerInfo.email.toLowerCase().trim(),
@@ -179,7 +180,6 @@ export async function POST(request: NextRequest) {
       email: payer.email,
       phone: `${payer.phone.area_code}${payer.phone.number}`,
       cpf: payer.identification.number,
-      isProduction,
       isSandbox 
     });
 

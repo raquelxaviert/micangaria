@@ -149,8 +149,8 @@ export async function POST(request: Request) {
       });
 
       // Determinar se deve usar sandbox ou produção
-      const isProduction = process.env.NODE_ENV === 'production';
-      const isSandbox = process.env.MERCADO_PAGO_SANDBOX === 'true' || !isProduction;
+      // Local sempre usa sandbox, Vercel usa a variável
+      const isSandbox = process.env.NODE_ENV === 'development' || process.env.MERCADO_PAGO_SANDBOX === 'true';
       
       // Usar sandbox_init_point se estiver em modo sandbox
       const redirectUrl = isSandbox ? result.sandbox_init_point : result.init_point;
