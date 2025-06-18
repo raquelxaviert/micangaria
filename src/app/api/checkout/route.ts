@@ -17,6 +17,7 @@ export async function POST(request: Request) {
   try {
     const data = await request.json();
     console.log('Dados recebidos:', data);
+    console.log('Itens recebidos na API:', data.items);
 
     // Validar dados obrigatórios
     if (!data.amount || !data.customerInfo || !data.shippingAddress || !data.shippingOption) {
@@ -105,32 +106,36 @@ export async function POST(request: Request) {
       console.log('Resultado da preferência:', result);
 
       // Criar pedido no Supabase
+      const orderData = {
+        user_id: data.userId,
+        preference_id: result.id,
+        external_reference: orderId,
+        init_point: result.init_point,
+        sandbox_init_point: result.sandbox_init_point,
+        subtotal: data.amount - data.shippingOption.price,
+        shipping_cost: data.shippingOption.price,
+        total: data.amount,
+        items: data.items.map((item: any) => ({
+          id: item.id,
+          title: item.title,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          currency_id: item.currency_id,
+          imageUrl: item.imageUrl
+        })),
+        shipping_option: data.shippingOption,
+        customer_info: data.customerInfo,
+        shipping_address: data.shippingAddress,
+        payment_status: 'pending',
+        shipping_status: 'pending',
+        status: 'pending'
+      };
+
+      console.log('Dados do pedido sendo salvos:', JSON.stringify(orderData, null, 2));
+
       const { error: orderError } = await supabase
         .from('orders')
-        .insert({
-          user_id: data.userId,
-          preference_id: result.id,
-          external_reference: orderId,
-          init_point: result.init_point,
-          sandbox_init_point: result.sandbox_init_point,
-          subtotal: data.amount - data.shippingOption.price,
-          shipping_cost: data.shippingOption.price,
-          total: data.amount,
-          items: data.items.map((item: any) => ({
-            id: item.id,
-            title: item.title,
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-            currency_id: item.currency_id,
-            imageUrl: item.imageUrl
-          })),
-          shipping_option: data.shippingOption,
-          customer_info: data.customerInfo,
-          shipping_address: data.shippingAddress,
-          payment_status: 'pending',
-          shipping_status: 'pending',
-          status: 'pending'
-        });
+        .insert(orderData);
 
       if (orderError) {
         console.error('Erro ao criar pedido:', orderError);

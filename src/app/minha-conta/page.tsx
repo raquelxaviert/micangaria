@@ -76,6 +76,22 @@ export default function MinhaContaPage() {
     }
   }, [user, authLoading, router]);
 
+  useEffect(() => {
+    if (user) {
+      fetchUserData();
+    }
+  }, [user]);
+
+  // Debug: log dos pedidos quando mudarem
+  useEffect(() => {
+    if (recentOrders.length > 0) {
+      console.log('Pedidos carregados:', recentOrders);
+      recentOrders.forEach(order => {
+        console.log('Itens do pedido:', order.external_reference, order.items);
+      });
+    }
+  }, [recentOrders]);
+
   const fetchUserData = async () => {
     try {
       const supabase = createClient();
@@ -106,6 +122,8 @@ export default function MinhaContaPage() {
       if (ordersError) {
         console.error('Erro ao buscar pedidos:', ordersError);
       }
+
+      console.log('Pedidos encontrados:', ordersData);
 
       // Buscar total de pedidos
       const { data: allOrders, error: statsError } = await supabase
@@ -343,24 +361,33 @@ export default function MinhaContaPage() {
                           {/* Miniaturas dos produtos */}
                           {order.items && order.items.length > 0 && (
                             <div className="flex gap-2 mt-3 overflow-x-auto pb-2">
-                              {order.items.slice(0, 3).map((item, index) => (
-                                <div key={index} className="flex-shrink-0">
-                                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 border">
-                                    {item.imageUrl ? (
-                                      <img 
-                                        src={item.imageUrl} 
-                                        alt={item.name}
-                                        className="w-full h-full object-cover"
-                                        loading="lazy"
-                                      />
-                                    ) : (
-                                      <div className="w-full h-full flex items-center justify-center">
+                              {order.items.slice(0, 3).map((item, index) => {
+                                const imageUrl = item.imageUrl || item.image_url || null;
+                                const itemName = item.title || item.name || 'Produto';
+                                
+                                return (
+                                  <div key={index} className="flex-shrink-0">
+                                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 border">
+                                      {imageUrl ? (
+                                        <img 
+                                          src={imageUrl} 
+                                          alt={itemName}
+                                          className="w-full h-full object-cover"
+                                          loading="lazy"
+                                          onError={(e) => {
+                                            console.log('Erro ao carregar imagem:', imageUrl);
+                                            e.currentTarget.style.display = 'none';
+                                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                          }}
+                                        />
+                                      ) : null}
+                                      <div className={`w-full h-full flex items-center justify-center ${imageUrl ? 'hidden' : ''}`}>
                                         <Package className="w-4 h-4 text-gray-400" />
                                       </div>
-                                    )}
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                               {order.items.length > 3 && (
                                 <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gray-100 border flex items-center justify-center">
                                   <span className="text-xs text-gray-500">+{order.items.length - 3}</span>

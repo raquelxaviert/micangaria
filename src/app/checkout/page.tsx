@@ -293,6 +293,8 @@ export default function CheckoutPage() {
         imageUrl: item.imageUrl // Incluir URL da imagem
       }));
 
+      console.log('Itens do carrinho enviados para API:', cartItems);
+
       console.log('Enviando dados para API:', {
         amount: finalTotal,
         shippingOption: selectedShipping,
