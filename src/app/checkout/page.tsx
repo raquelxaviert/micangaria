@@ -45,6 +45,7 @@ export default function CheckoutPage() {
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
 
   // Calcular progresso do formulário
   const calculateFormProgress = () => {
@@ -135,20 +136,130 @@ export default function CheckoutPage() {
 
       // Preencher endereço se existir
       if (profileData.address) {
-        setShippingAddress(prev => ({
-          ...prev,
-          zipCode: profileData.address.postal_code || prev.zipCode,
-          street: profileData.address.street || prev.street,
-          neighborhood: profileData.address.neighborhood || prev.neighborhood,
-          city: profileData.address.city || prev.city,
-          state: profileData.address.state || prev.state,
-          number: profileData.address.number || prev.number,
-          complement: profileData.address.complement || prev.complement,
-        }));
+        setShippingAddress(prev => {
+          const newAddress = {
+            zipCode: profileData.address.postal_code || prev.zipCode,
+            street: profileData.address.street || prev.street,
+            neighborhood: profileData.address.neighborhood || prev.neighborhood,
+            city: profileData.address.city || prev.city,
+            state: profileData.address.state || prev.state,
+            number: profileData.address.number || prev.number,
+            complement: profileData.address.complement || prev.complement,
+          };
+          
+          // Se o CEP foi carregado, calcular frete automaticamente
+          if (profileData.address.postal_code) {
+            console.log('🚀 [Checkout] CEP carregado do perfil, calculando frete automaticamente...');
+            // Usar setTimeout para evitar problemas de estado
+            setTimeout(() => {
+              calculateShippingFromCep(profileData.address.postal_code);
+            }, 100);
+          }
+          
+          return {
+            ...prev,
+            ...newAddress,
+          };
+        });
       }
     } catch (error) {
       console.error('Erro ao carregar perfil:', error);
       // Não mostrar erro, usar dados básicos
+    }
+  };
+
+  // Função para calcular frete a partir do CEP
+  const calculateShippingFromCep = async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, '');
+    
+    if (cleanCep.length !== 8) {
+      console.log('❌ [Checkout] CEP inválido para cálculo de frete:', cep);
+      return;
+    }
+
+    setIsCalculatingShipping(true);
+    
+    try {
+      console.log('📦 [Checkout] Calculando frete para CEP:', cleanCep);
+      
+      // Buscar opções de frete do Melhor Envio
+      const shippingResponse = await fetch('/api/shipping/calculate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: {
+            postal_code: '01001000', // CEP da loja
+          },
+          to: {
+            postal_code: cleanCep,
+          },
+          products: cartItems.map(item => ({
+            id: item.productId,
+            width: 20, // Dimensões padrão para simulação
+            height: 20,
+            length: 20,
+            weight: 1,
+            insurance_value: item.price,
+            quantity: item.quantity,
+          })),
+        }),
+      });
+
+      const shippingData = await shippingResponse.json();
+      
+      // Verificar se a resposta da API é válida
+      if (!shippingResponse.ok || !Array.isArray(shippingData)) {
+        console.warn('❌ [Checkout] Erro na API de frete, usando valores padrão');
+        // Usar frete padrão como fallback
+        const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+        const defaultShipping = [{
+          name: 'Frete Padrão',
+          price: total >= 300 ? 0 : 15.00,
+          deadline: '5 dias úteis'
+        }];
+        setShippingOptions(defaultShipping);
+        return;
+      }
+
+      // Processar todas as opções retornadas pela API
+      const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+      const isFreeShipping = total >= 300;
+      const options = shippingData
+        .filter((option: any) => option.price !== null && option.price !== undefined)
+        .map((option: any) => ({
+          name: option.name || option.company?.name || 'Transportadora',
+          company: option.company?.name || 'Correios',
+          price: isFreeShipping ? 0 : parseFloat(option.price || option.custom_price || '0'),
+          deadline: option.delivery_time ? `${option.delivery_time} dias úteis` : (option.custom_delivery_time || '5-10 dias úteis'),
+          service_id: option.id,
+          service_name: option.name,
+        }))
+        .sort((a: any, b: any) => a.price - b.price); // Ordenar por preço
+
+      console.log('✅ [Checkout] Frete calculado automaticamente:', options.length, 'opções encontradas');
+      setShippingOptions(options);
+      
+      // Selecionar automaticamente a primeira opção (mais barata)
+      if (options.length > 0) {
+        setSelectedShipping(options[0]);
+        console.log('✅ [Checkout] Opção de frete selecionada automaticamente:', options[0].name);
+      }
+      
+    } catch (error) {
+      console.error('❌ [Checkout] Erro ao calcular frete automaticamente:', error);
+      
+      // Ainda assim, oferece frete padrão
+      const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+      const defaultShipping = [{
+        name: 'Frete Padrão',
+        price: total >= 300 ? 0 : 15.00,
+        deadline: '5 dias úteis'
+      }];
+      setShippingOptions(defaultShipping);
+    } finally {
+      setIsCalculatingShipping(false);
     }
   };
 
@@ -188,62 +299,8 @@ export default function CheckoutPage() {
             description: `${data.localidade}/${data.uf} - ${data.bairro}`,
           });
 
-          // Buscar opções de frete do Melhor Envio
-          const shippingResponse = await fetch('/api/shipping/calculate', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              from: {
-                postal_code: '01001000', // CEP da loja
-              },
-              to: {
-                postal_code: cep,
-              },
-              products: cartItems.map(item => ({
-                id: item.productId,
-                width: 20, // Dimensões padrão para simulação
-                height: 20,
-                length: 20,
-                weight: 1,
-                insurance_value: item.price,
-                quantity: item.quantity,
-              })),
-            }),          });
-
-          const shippingData = await shippingResponse.json();
-          
-          // Verificar se a resposta da API é válida
-          if (!shippingResponse.ok || !Array.isArray(shippingData)) {
-            console.warn('Erro na API de frete, usando valores padrão');
-            // Usar frete padrão como fallback
-            const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-            const defaultShipping = [{
-              name: 'Frete Padrão',
-              price: total >= 300 ? 0 : 15.00,
-              deadline: '5 dias úteis'
-            }];
-            setShippingOptions(defaultShipping);
-            // Não selecionar automaticamente
-            return;
-          }          // Processar todas as opções retornadas pela API
-          const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-          const isFreeShipping = total >= 300;
-          const options = shippingData
-            .filter((option: any) => option.price !== null && option.price !== undefined)
-            .map((option: any) => ({
-              name: option.name || option.company?.name || 'Transportadora',
-              company: option.company?.name || 'Correios',
-              price: isFreeShipping ? 0 : parseFloat(option.price || option.custom_price || '0'),
-              deadline: option.delivery_time ? `${option.delivery_time} dias úteis` : (option.custom_delivery_time || '5-10 dias úteis'),
-              service_id: option.id,
-              service_name: option.name,
-            }))
-            .sort((a: any, b: any) => a.price - b.price); // Ordenar por preço
-
-          setShippingOptions(options);
-          // Não selecionar automaticamente - deixar o usuário escolher
+          // Usar a nova função para calcular frete
+          await calculateShippingFromCep(cep);
         }
       } catch (error) {
         console.error('Erro ao buscar CEP ou calcular frete:', error);
@@ -259,7 +316,8 @@ export default function CheckoutPage() {
           name: 'Frete Padrão',
           price: total >= 300 ? 0 : 15.00,
           deadline: '5 dias úteis'
-        }];        setShippingOptions(defaultShipping);
+        }];
+        setShippingOptions(defaultShipping);
         // Não selecionar automaticamente
       }
     }
@@ -546,7 +604,14 @@ export default function CheckoutPage() {
 
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="cep" className="text-sm font-medium text-gray-700">CEP *</Label>
+                      <Label htmlFor="cep" className="text-sm font-medium text-gray-700">
+                        CEP * 
+                        {shippingAddress.zipCode && (
+                          <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                            ✓ Carregado automaticamente
+                          </span>
+                        )}
+                      </Label>
                       <Input
                         id="cep"
                         name="cep"
@@ -556,10 +621,17 @@ export default function CheckoutPage() {
                         value={shippingAddress.zipCode}
                         onChange={handleCepChange}
                         maxLength={9}
-                        className="h-12 text-sm sm:text-base font-mono border-2 border-gray-200 focus:border-primary rounded-lg transition-colors text-center"
+                        className={`h-12 text-sm sm:text-base font-mono border-2 focus:border-primary rounded-lg transition-colors text-center ${
+                          shippingAddress.zipCode ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
+                        }`}
                         autoComplete="postal-code"
                         inputMode="numeric"
                       />
+                      {shippingAddress.zipCode && (
+                        <p className="text-xs text-blue-600">
+                          CEP carregado do seu perfil. O frete será calculado automaticamente.
+                        </p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -695,6 +767,24 @@ export default function CheckoutPage() {
                 )}
 
                 {/* Seção de Opções de Frete */}
+                {isCalculatingShipping && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                      </div>
+                      <div>
+                        <p className="text-blue-800 font-medium text-sm">
+                          🚀 Calculando frete automaticamente...
+                        </p>
+                        <p className="text-blue-600 text-xs">
+                          CEP carregado do seu perfil, buscando melhores opções de entrega
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {shippingOptions.length > 0 && (
                   <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
                     <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
