@@ -46,8 +46,8 @@ export async function POST(request: NextRequest) {
     console.log('✅ Preferência criada:', response.id);
 
     // Determinar se deve usar sandbox ou produção
-    // Local sempre usa sandbox, Vercel usa a variável
-    const isSandbox = process.env.NODE_ENV === 'development' || process.env.MERCADO_PAGO_SANDBOX === 'true';
+    // Usar a variável de ambiente MERCADO_PAGO_SANDBOX
+    const isSandbox = process.env.MERCADO_PAGO_SANDBOX === 'true';
 
     return NextResponse.json({
       id: response.id,

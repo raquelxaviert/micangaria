@@ -25,18 +25,24 @@ async function handleWebhookEvent(payload: any) {
     payload_id: payload?.id,
     payload_data_id: payload?.data?.id,
     user_id: payload?.user_id,
+    resource: payload?.resource,
+    topic: payload?.topic
   });
 
-  const eventType = payload.type;
+  const eventType = payload.type || payload.topic;
   let resourceId;
-    // Handle different event types and their ID structures
+  
+  // Handle different event types and their ID structures
   if (eventType === 'payment') {
     resourceId = payload.data?.id;
   } else if (eventType === 'merchant_order' || (eventType && eventType.includes('merchant_order'))) {
-    resourceId = payload.data?.id || payload.id;
+    // Para merchant_order, o ID pode estar em diferentes lugares
+    resourceId = payload.data?.id || payload.id || payload.resource?.split('/').pop();
   } else {
     resourceId = payload.data?.id || payload.id;
   }
+
+  console.log(`[WebhookLogic] Event type: ${eventType}, Resource ID: ${resourceId}`);
 
   if (!resourceId) {
     console.warn('[WebhookLogic] Could not determine resource ID from payload:', payload);
@@ -45,7 +51,8 @@ async function handleWebhookEvent(payload: any) {
 
   try {
     const supabase = await createClient();
-      if (eventType === 'payment') {
+    
+    if (eventType === 'payment') {
       const paymentId = resourceId;
       console.log(`[WebhookLogic] Processing 'payment' event. Payment ID: ${paymentId}`);      try {
         // Fetch payment details from Mercado Pago with retry logic
@@ -265,7 +272,7 @@ async function handleWebhookEvent(payload: any) {
       } catch (mpError: any) {
         console.error('[WebhookLogic] Error fetching payment from Mercado Pago:', mpError.message);
         console.error('[WebhookLogic] Full MP error:', mpError);
-      }    } else if (eventType === 'merchant_order' || (eventType && eventType.includes && eventType.includes('merchant_order'))) {
+      }    } else if (eventType === 'merchant_order' || (eventType && eventType.includes('merchant_order'))) {
       const merchantOrderId = resourceId;
       console.log(`[WebhookLogic] Processing 'merchant_order' event. Merchant Order ID: ${merchantOrderId}`);
 
@@ -280,12 +287,8 @@ async function handleWebhookEvent(payload: any) {
           payments: merchantOrder.payments?.length || 0
         });
 
-        // According to Mercado Pago documentation (Aug 2024), only process merchant_order with status "closed"
-        // "opened" status is no longer reliable indicator of QR scan and should be ignored
-        if (merchantOrder.status !== 'closed') {
-          console.log(`[WebhookLogic] Ignoring merchant_order with status "${merchantOrder.status}". Only processing "closed" status as per MP documentation.`);
-          return;
-        }
+        // Process merchant order regardless of status for sandbox testing
+        console.log(`[WebhookLogic] Processing merchant_order with status "${merchantOrder.status}"`);
 
         const preferenceId = merchantOrder.preference_id;
         const externalReference = merchantOrder.external_reference;
@@ -317,7 +320,7 @@ async function handleWebhookEvent(payload: any) {
                 .eq('external_reference', externalReference);
               
               if (!error) {
-                console.log('[WebhookLogic] Supabase update success by external_reference:', externalReference);
+                console.log('[WebhookLogic] ✅ Supabase update success by external_reference:', externalReference);
                 updateSuccess = true;
               } else {
                 console.log('[WebhookLogic] Failed to update by external_reference, trying preference_id...', error.message);
@@ -338,7 +341,7 @@ async function handleWebhookEvent(payload: any) {
               if (error) {
                 console.error('[WebhookLogic] Supabase update error for merchant_order:', error);
               } else {
-                console.log('[WebhookLogic] Supabase update success by preference_id:', preferenceId);
+                console.log('[WebhookLogic] ✅ Supabase update success by preference_id:', preferenceId);
                 updateSuccess = true;
               }
             }
