@@ -19,19 +19,20 @@ export async function GET(request: NextRequest) {
     
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Verificar se o produto está vendido (tem reserva completed)
-    const { data: soldReservation, error: soldError } = await supabase
-      .from('stock_reservations')
+    // Verificar se o produto foi vendido (tem pedido com status 'paid')
+    const { data: soldOrder, error: orderError } = await supabase
+      .from('orders')
       .select('*')
-      .eq('product_id', productId)
-      .eq('status', 'completed')
+      .eq('status', 'paid')
+      .filter('items', 'cs', `[{"id":"${productId}"}]`)
       .single();
 
-    if (soldError && soldError.code !== 'PGRST116') {
-      console.error('Error checking sold status:', soldError);
+    if (orderError && orderError.code !== 'PGRST116') {
+      console.error('Error checking sold order:', orderError);
     }
 
-    if (soldReservation) {
+    if (soldOrder) {
+      console.log('✅ [ProductStatus] Produto vendido encontrado:', productId);
       return NextResponse.json({
         success: true,
         isReserved: false,
@@ -40,8 +41,8 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Verificar se o produto está reservado (tem reserva active)
-    const { data: activeReservation, error: activeError } = await supabase
+    // Verificar se há reservas ativas para este produto
+    const { data: activeReservation, error: reservationError } = await supabase
       .from('stock_reservations')
       .select('*')
       .eq('product_id', productId)
@@ -49,11 +50,12 @@ export async function GET(request: NextRequest) {
       .gt('expires_at', new Date().toISOString())
       .single();
 
-    if (activeError && activeError.code !== 'PGRST116') {
-      console.error('Error checking active reservation:', activeError);
+    if (reservationError && reservationError.code !== 'PGRST116') {
+      console.error('Error checking active reservation:', reservationError);
     }
 
     if (activeReservation) {
+      console.log('⏰ [ProductStatus] Produto reservado encontrado:', productId);
       return NextResponse.json({
         success: true,
         isReserved: true,
@@ -63,6 +65,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Produto está disponível
+    console.log('✅ [ProductStatus] Produto disponível:', productId);
     return NextResponse.json({
       success: true,
       isReserved: false,
