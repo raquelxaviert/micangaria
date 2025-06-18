@@ -9,7 +9,7 @@ import { CartManager } from '@/lib/ecommerce';
 import { getOptimizedImageUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
 import { useState, useEffect } from 'react';
 import { useImagePreload } from '@/hooks/useImagePreload';
-import { ReliableImage } from '@/components/ui/FastReliableImage';
+import { SimpleFastImage } from '@/components/ui/SimpleFastImage';
 import { useProductStockStatus } from '@/hooks/useStockReservation';
 
 // Interface genérica para produto - suporta tanto Supabase quanto mock
@@ -23,13 +23,15 @@ export interface ProductData {
   gallery_urls?: string[]; // Supabase multiple images
   type: string;
   style: string;
-  colors?: string[];  materials?: string[]; // Materiais do produto
+  colors?: string[];
+  materials?: string[]; // Materiais do produto
   sizes?: string[]; // Tamanhos disponíveis
   isNewArrival?: boolean;
   is_new_arrival?: boolean; // Supabase format
   isOnSale?: boolean;
   is_on_sale?: boolean; // Supabase format
-  is_promotion?: boolean; // Supabase format  promotionDetails?: string;
+  is_promotion?: boolean; // Supabase format
+  promotionDetails?: string;
   promotion_details?: string; // Supabase format
   slug?: string; // URL slug
   // Badge display configuration
@@ -79,16 +81,15 @@ export function ProductCard({
   const isNewArrival = product.isNewArrival || product.is_new_arrival || false;
   const isOnSale = product.isOnSale || product.is_on_sale || product.is_promotion || false;
   const promotionDetails = product.promotion_details;
+  
   // Get total number of images for indicator
   const totalImages = 1 + (Array.isArray(product.gallery_urls) ? product.gallery_urls.length : 0);
-  // Otimizar URL da imagem para o tamanho do card
-  const optimizedImageUrl = getOptimizedImageUrl(imageUrl, IMAGE_CONFIGS.card);
-    // Verificar se o produto está no carrinho
+  
+  // Verificar se o produto está no carrinho
   useEffect(() => {
     setIsInCart(CartManager.isInCart(product.id));
   }, [product.id]);
-  // Preload da imagem se for prioritária
-  const { isPreloaded } = useImagePreload(optimizedImageUrl, priority);
+  
   // Listener para mudanças no carrinho
   useEffect(() => {
     const handleCartChange = () => {
@@ -150,7 +151,8 @@ export function ProductCard({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-                try {
+              
+              try {
                 // Se já está no carrinho, remover
                 if (CartManager.isInCart(product.id)) {
                   CartManager.removeItem(product.id);
@@ -172,7 +174,8 @@ export function ProductCard({
               } catch (error) {
                 console.error('❌ Erro ao adicionar ao carrinho:', error);
               }
-            }}              className={`w-full transition-colors duration-300 ${
+            }}
+            className={`w-full transition-colors duration-300 ${
               isInCart 
                 ? 'bg-green-600 hover:bg-green-700 text-white' 
                 : 'bg-black hover:bg-black/90'
@@ -181,180 +184,182 @@ export function ProductCard({
             }`}
             style={isInCart ? {} : { color: '#F5F0EB' }}
             disabled={isLoading}
-          >              {isLoading ? (
-            <>
-              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
-              <span>Carregando...</span>
-            </>
-          ) : isInCart ? (
-            <>
-              <div className="flex items-center justify-center sm:hidden">
-                <ShoppingCart className="w-3 h-3" />
-                <Check className="w-3 h-3 ml-0.5" />
-              </div>
-              <div className="hidden sm:flex items-center justify-center">
-                <Check className="w-3 h-3 mr-1" />
-                <span>Ver no carrinho</span>
-              </div>
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="w-3 h-3 mr-1" style={{ color: '#F5F0EB' }} />
-              <span className="hidden sm:inline">Adicionar</span>
-              <span className="sm:hidden">+</span>
-            </>
-          )}
+          >
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                <span>Carregando...</span>
+              </>
+            ) : isInCart ? (
+              <>
+                <div className="flex items-center justify-center sm:hidden">
+                  <ShoppingCart className="w-3 h-3" />
+                  <Check className="w-3 h-3 ml-0.5" />
+                </div>
+                <div className="hidden sm:flex items-center justify-center">
+                  <Check className="w-3 h-3 mr-1" />
+                  <span>Ver no carrinho</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-center sm:hidden">
+                  <ShoppingCart className="w-3 h-3" />
+                </div>
+                <div className="hidden sm:flex items-center justify-center">
+                  <ShoppingCart className="w-3 h-3 mr-1" />
+                  <span>Adicionar</span>
+                </div>
+              </>
+            )}
           </Button>
         );
+    }
+  };
 
+  // Determinar configuração de imagem baseada no variant
+  const getImageConfig = () => {
+    switch (variant) {
+      case 'compact':
+        return 'thumbnail';
+      case 'detailed':
+        return 'gallery';
       default:
-        return null;
+        return 'card';
     }
   };
 
   return (
-    <Card className={`group hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-white/80 backdrop-blur-sm hover:bg-white/95 w-full ${className}`}>      <div className="relative">
-        <Link href={`/products/${product.slug || product.id}`} className="block cursor-pointer">          <div className="relative overflow-hidden">            <div className={`product-card-image-container ${variant === 'compact' ? 'compact' : ''}`}>
-              <ReliableImage
-                src={optimizedImageUrl}
-                alt={product.name}
-                className="product-card-image group-hover:scale-110 transition-transform duration-700 w-full h-full"
-                priority={priority}
-              />
-            </div>
+    <Link href={`/products/${product.slug || product.id}`} className="block">
+      <Card className={`group cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${className}`}>
+        <CardContent className="p-0">
+          {/* Image Container */}
+          <div className="relative aspect-square overflow-hidden rounded-t-lg">
+            {/* SIMPLE FAST IMAGE - Versão simplificada e confiável */}
+            <SimpleFastImage
+              src={imageUrl}
+              alt={product.name}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              priority={priority}
+              config={getImageConfig()}
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            />
             
-            {/* Badges superior esquerdo */}
-            <div className="absolute top-2 left-2 flex flex-col gap-1">
-              {isNewArrival && (
-                <Badge className={`bg-green-500 text-white font-medium shadow-md ${
-                  variant === 'compact' ? 'text-xs px-2 py-0.5' : 'text-xs px-2 py-1'
-                }`}>
-                  NOVO
-                </Badge>
-              )}
-              {isOnSale && (
-                <Badge className={`bg-red-500 text-white font-medium shadow-md ${
-                  variant === 'compact' ? 'text-xs px-2 py-0.5' : 'text-xs px-2 py-1'
-                }`}>
-                  {variant === 'compact' ? 'OFERTA' : (promotionDetails || 'OFERTA')}
-                </Badge>
-              )}
-              {/* Badge de status do produto */}
-              {productStatus === 'sold' && (
-                <Badge className={`bg-gray-500 text-white font-medium shadow-md ${
-                  variant === 'compact' ? 'text-xs px-2 py-0.5' : 'text-xs px-2 py-1'
-                }`}>
-                  VENDIDO
-                </Badge>
-              )}
-              {productStatus === 'reserved' && (
-                <Badge className={`bg-orange-500 text-white font-medium shadow-md ${
-                  variant === 'compact' ? 'text-xs px-2 py-0.5' : 'text-xs px-2 py-1'
-                }`}>
-                  RESERVADO
-                </Badge>
-              )}
-            </div>            {/* Multiple images indicator */}
+            {/* Image Counter Badge */}
             {totalImages > 1 && (
-              <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 grid grid-cols-2 gap-0.5">
-                    <div className="w-1 h-1 bg-white rounded-full"></div>
-                    <div className="w-1 h-1 bg-white rounded-full"></div>
-                    <div className="w-1 h-1 bg-white rounded-full"></div>
-                    <div className="w-1 h-1 bg-white rounded-full"></div>
-                  </div>
-                  <span>{totalImages}</span>
-                </div>
+              <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                {totalImages} fotos
               </div>
             )}
 
-            {/* Overlay gradient em detailed */}
-            {variant === 'detailed' && (
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            )}
-          </div>        </Link>
-      </div>
+            {/* Status Badges */}
+            <div className="absolute top-2 left-2 flex flex-col gap-1">
+              {isNewArrival && (
+                <Badge className="bg-green-500 text-white text-xs px-2 py-1">
+                  Novo
+                </Badge>
+              )}
+              {isOnSale && (
+                <Badge className="bg-red-500 text-white text-xs px-2 py-1">
+                  {promotionDetails || 'Oferta'}
+                </Badge>
+              )}
+            </div>
 
-      <CardContent className={`space-y-2 sm:space-y-4 ${variant === 'compact' ? 'p-2 sm:p-3' : 'p-5'}`}>        <Link href={`/products/${product.slug || product.id}`} className="block cursor-pointer">          {/* Todos os badges inline em uma única linha */}
-          <div className="flex items-center gap-1 flex-wrap mb-2">
-            {/* Badge de Material (primeiro material) - apenas se configurado para mostrar */}
-            {product.show_materials_badge === true && product.materials && product.materials.length > 0 && (              <Badge variant="outline" className={`capitalize text-xs leading-none ${
-                variant === 'compact' ? 'px-1.5 py-0.5 h-5' : 'px-2 py-1 h-6'
-              }`}>
-                {product.materials[0]}
-              </Badge>
+            {/* Stock Status Overlay */}
+            {productStatus !== 'available' && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <div className="text-white text-center">
+                  <div className="text-lg font-semibold">
+                    {productStatus === 'sold' ? 'Vendido' : 'Reservado'}
+                  </div>
+                  {productStatus === 'reserved' && (
+                    <div className="text-sm">{timeRemaining}</div>
+                  )}
+                </div>
+              </div>
             )}
-            
-            {/* Badge de Tamanho (primeiro tamanho) - apenas se configurado para mostrar */}
-            {product.show_sizes_badge === true && product.sizes && product.sizes.length > 0 && (              <Badge variant="outline" className={`uppercase text-xs leading-none ${
-                variant === 'compact' ? 'px-1.5 py-0.5 h-5' : 'px-2 py-1 h-6'
+          </div>
+
+          {/* Product Info */}
+          <div className="p-4 space-y-3">
+            {/* Title and Price */}
+            <div className="space-y-1">
+              <h3 className={`font-medium text-gray-900 line-clamp-2 ${
+                variant === 'compact' ? 'text-sm' : 'text-base'
               }`}>
-                {product.sizes[0]}
-              </Badge>
+                {product.name}
+              </h3>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className={`font-bold text-gray-900 ${
+                    variant === 'compact' ? 'text-sm' : 'text-lg'
+                  }`}>
+                    R$ {product.price.toFixed(2).replace('.', ',')}
+                  </span>
+                </div>
+                
+                {showRating && (
+                  <div className="flex items-center gap-1">
+                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                    <span className="text-xs text-gray-600">4.8</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Description */}
+            {showDescription && product.description && (
+              <p className="text-sm text-gray-600 line-clamp-2">
+                {product.description}
+              </p>
             )}
 
-            {/* Badges de Cores - apenas se configurado para mostrar */}
-            {showColors && product.show_colors_badge === true && product.colors && product.colors.length > 0 && (
-              <>
+            {/* Colors Badge */}
+            {showColors && product.colors && product.colors.length > 0 && product.show_colors_badge && (
+              <div className="flex flex-wrap gap-1">
                 {product.colors.slice(0, 3).map((color, index) => (
-                  <Badge
-                    key={index}
-                    variant="outline"
-                    className={`text-xs leading-none capitalize ${
-                      variant === 'compact' ? 'px-1.5 py-0.5 h-5' : 'px-2 py-1 h-6'
-                    }`}
-                  >
+                  <Badge key={index} variant="outline" className="text-xs">
                     {color}
                   </Badge>
                 ))}
                 {product.colors.length > 3 && (
-                  <Badge 
-                    variant="outline" 
-                    className={`text-xs leading-none ${
-                      variant === 'compact' ? 'px-1.5 py-0.5 h-5' : 'px-2 py-1 h-6'
-                    }`}
-                  >
+                  <Badge variant="outline" className="text-xs">
                     +{product.colors.length - 3}
                   </Badge>
                 )}
-              </>
+              </div>
             )}
+
+            {/* Materials Badge */}
+            {product.materials && product.materials.length > 0 && product.show_materials_badge && (
+              <div className="flex flex-wrap gap-1">
+                {product.materials.slice(0, 2).map((material, index) => (
+                  <Badge key={index} variant="outline" className="text-xs bg-gray-50">
+                    {material}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            {/* Sizes Badge */}
+            {product.sizes && product.sizes.length > 0 && product.show_sizes_badge && (
+              <div className="flex flex-wrap gap-1">
+                {product.sizes.map((size, index) => (
+                  <Badge key={index} variant="outline" className="text-xs bg-blue-50 text-blue-700">
+                    {size}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            {/* Action Button */}
+            {renderActionButton()}
           </div>
-
-          {/* Nome do produto */}
-          <h3 className={`font-semibold leading-tight group-hover:text-primary transition-colors duration-300 line-clamp-2 ${
-            variant === 'compact' ? 'text-sm sm:text-base' : 'text-lg'
-          }`}>
-            {product.name}
-          </h3>
-
-          {/* Descrição */}
-          {showDescription && (
-            <p className={`text-muted-foreground line-clamp-2 leading-relaxed ${
-              variant === 'compact' ? 'text-xs' : 'text-sm'
-            }`}>
-              {product.description}
-            </p>
-          )}          {/* Rating (para variante detailed) */}
-          {showRating && variant === 'detailed' && (
-            <div className="flex items-center gap-1 text-yellow-500">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-4 h-4 fill-current" />
-              ))}
-            </div>
-          )}
-        </Link>        {/* Preços */}
-        <div className="space-y-2">
-          <div>
-            <span className={`font-bold text-black ${
-              variant === 'compact' ? 'text-base sm:text-lg' : 'text-2xl'
-            }`}>
-              R$ {product.price.toFixed(2).replace('.', ',')}
-            </span>
-          </div>          {renderActionButton()}
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
