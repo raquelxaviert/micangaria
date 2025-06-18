@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -24,6 +24,10 @@ export interface StockReservation {
   };
 }
 
+// Cache simples para evitar requisições desnecessárias
+const productStatusCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 5000; // 5 segundos
+
 // Hook para verificar status de um produto específico
 export function useProductStockStatus(productId: string) {
   const [isReserved, setIsReserved] = useState(false);
@@ -32,14 +36,41 @@ export function useProductStockStatus(productId: string) {
   const [isLoading, setIsLoading] = useState(true);
   const [expiresAt, setExpiresAt] = useState<Date | null>(null);
   const { user } = useAuth();
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Verificar status do produto
+  // Verificar status do produto com cache
   const checkProductStatus = useCallback(async () => {
     if (!productId) return;
 
+    // Verificar cache primeiro
+    const cached = productStatusCache.get(productId);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      const data = cached.data;
+      setIsReserved(data.isReserved);
+      setIsSold(data.isSold);
+      setExpiresAt(data.expiresAt ? new Date(data.expiresAt) : null);
+      setIsLoading(false);
+      return;
+    }
+
+    // Cancelar requisição anterior se existir
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Criar novo controller
+    abortControllerRef.current = new AbortController();
+
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/stock-reservation/product-status?product_id=${productId}`);
+      const response = await fetch(`/api/stock-reservation/product-status?product_id=${productId}`, {
+        signal: abortControllerRef.current.signal
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
 
       if (data.success) {
@@ -51,8 +82,22 @@ export function useProductStockStatus(productId: string) {
         } else {
           setExpiresAt(null);
         }
+
+        // Salvar no cache
+        productStatusCache.set(productId, {
+          data: {
+            isReserved: data.isReserved,
+            isSold: data.isSold,
+            expiresAt: data.expiresAt
+          },
+          timestamp: Date.now()
+        });
       }
     } catch (error) {
+      if (error.name === 'AbortError') {
+        // Requisição foi cancelada, não fazer nada
+        return;
+      }
       console.error('Error checking product status:', error);
     } finally {
       setIsLoading(false);
@@ -62,6 +107,13 @@ export function useProductStockStatus(productId: string) {
   // Verificar status inicial
   useEffect(() => {
     checkProductStatus();
+    
+    // Cleanup ao desmontar
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [checkProductStatus]);
 
   // Calcular countdown localmente
@@ -78,6 +130,8 @@ export function useProductStockStatus(productId: string) {
       if (diff <= 0) {
         setTimeRemaining('');
         setIsReserved(false);
+        // Limpar cache quando expirar
+        productStatusCache.delete(productId);
         return;
       }
 
@@ -93,7 +147,7 @@ export function useProductStockStatus(productId: string) {
     const interval = setInterval(updateCountdown, 1000);
 
     return () => clearInterval(interval);
-  }, [expiresAt, isReserved]);
+  }, [expiresAt, isReserved, productId]);
 
   return {
     isReserved,

@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { getOptimizedImageUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
+import { getOptimizedImageUrl, IMAGE_CONFIGS, extractGoogleDriveFileId } from '@/lib/imageUtils';
 
 interface SimpleFastImageProps {
   src: string;
@@ -24,7 +24,7 @@ interface SimpleFastImageProps {
  * Características:
  * - Usa Next.js Image padrão (mais confiável)
  * - URLs otimizadas para Google Drive
- * - Fallback para placeholder
+ * - Fallback inteligente para imagens não otimizadas
  * - Sem complexidade desnecessária
  */
 export function SimpleFastImage({
@@ -47,8 +47,8 @@ export function SimpleFastImage({
   // Otimizar URL da imagem
   const optimizedSrc = getOptimizedImageUrl(src, imageConfig);
   
-  // Se não tem src, usar placeholder
-  const finalSrc = optimizedSrc || '/products/placeholder.jpg';
+  // Fallback inteligente: se é URL do Google Drive e não foi otimizada, usar URL direta
+  const finalSrc = optimizedSrc || (extractGoogleDriveFileId(src) ? src : '/products/placeholder.jpg');
 
   return (
     <Image

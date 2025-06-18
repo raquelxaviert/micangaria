@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Trash2, ShoppingCart, CreditCard, Truck } from 'lucide-react';
 import { CartManager, CartItem } from '@/lib/cart';
-import { FastImage } from '@/components/ui/FastImage';
+import { SimpleFastImage } from '@/components/ui/SimpleFastImage';
 import { getOptimizedImageUrl, IMAGE_CONFIGS } from '@/lib/imageUtils';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -176,7 +176,7 @@ export default function CartPage() {
                 <CardContent className="p-4">
                   <div className="flex gap-4">
                     <div className="w-20 h-20 relative rounded-lg overflow-hidden flex-shrink-0 bg-gray-50">
-                      <FastImage
+                      <SimpleFastImage
                         src={getOptimizedImageUrl(item.imageUrl, IMAGE_CONFIGS.thumbnail)}
                         alt={item.name}
                         fill

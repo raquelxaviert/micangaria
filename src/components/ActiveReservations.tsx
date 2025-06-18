@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Clock, AlertTriangle, CheckCircle, X } from 'lucide-react';
 import { useStockReservation } from '@/hooks/useStockReservation';
 import { useToast } from '@/hooks/use-toast';
-import { FastImage } from '@/components/ui/FastImage';
+import { createClient } from '@/lib/supabase/client';
+import { SimpleFastImage } from '@/components/ui/SimpleFastImage';
 
 export function ActiveReservations() {
   const { reservations, loading, cancelReservation } = useStockReservation();
@@ -73,7 +74,7 @@ export function ActiveReservations() {
               >
                 <div className="flex items-start gap-4">
                   {reservation.products && (
-                    <FastImage
+                    <SimpleFastImage
                       src={reservation.products.image_url}
                       alt={reservation.products.title}
                       className="w-16 h-16 object-cover rounded-lg flex-shrink-0"

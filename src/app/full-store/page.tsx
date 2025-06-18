@@ -11,7 +11,7 @@ import CollectionSection from '@/components/CollectionSection';
 import CategoriesSection from '@/components/CategoriesSection';
 import { Product } from '@/lib/placeholder-data';
 import { useState, useEffect } from 'react';
-import { ReliableImage } from '@/components/ui/FastReliableImage';
+import { SimpleFastImage } from '@/components/ui/SimpleFastImage';
 import { ProductCard } from '@/components/ui/ProductCard';
 
 export default function FullStorePage() {

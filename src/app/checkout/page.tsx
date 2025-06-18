@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Truck, CreditCard } from 'lucide-react';
 import { CartManager } from '@/lib/cart';
-import { FastImage } from '@/components/ui/fast-image';
+import { SimpleFastImage } from '@/components/ui/SimpleFastImage';
 import MercadoPagoButton from '@/components/checkout/MercadoPagoButton';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -1021,7 +1021,7 @@ export default function CheckoutPage() {
                     <div className="space-y-4">
                       {cartItems.map((item) => (
                         <div key={item.productId} className="flex items-center space-x-3">
-                          <FastImage
+                          <SimpleFastImage
                             src={item.imageUrl}
                             alt={item.name}
                             className="w-16 h-16 object-cover rounded-lg"

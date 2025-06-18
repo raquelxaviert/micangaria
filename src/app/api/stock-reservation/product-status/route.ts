@@ -19,19 +19,30 @@ export async function GET(request: NextRequest) {
     
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Verificar se o produto foi vendido (tem pedido com status 'paid')
-    const { data: soldOrder, error: orderError } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('status', 'paid')
-      .filter('items', 'cs', `[{"id":"${productId}"}]`)
-      .single();
+    // Fazer uma única consulta mais eficiente usando Promise.all
+    const [soldOrderResult, activeReservationResult] = await Promise.all([
+      // Verificar se o produto foi vendido (tem pedido com status 'paid')
+      supabase
+        .from('orders')
+        .select('id')
+        .eq('status', 'paid')
+        .filter('items', 'cs', `[{"id":"${productId}"}]`)
+        .limit(1)
+        .maybeSingle(),
+      
+      // Verificar se há reservas ativas para este produto
+      supabase
+        .from('stock_reservations')
+        .select('expires_at')
+        .eq('product_id', productId)
+        .eq('status', 'active')
+        .gt('expires_at', new Date().toISOString())
+        .limit(1)
+        .maybeSingle()
+    ]);
 
-    if (orderError && orderError.code !== 'PGRST116') {
-      console.error('Error checking sold order:', orderError);
-    }
-
-    if (soldOrder) {
+    // Verificar se foi vendido
+    if (soldOrderResult.data) {
       console.log('✅ [ProductStatus] Produto vendido encontrado:', productId);
       return NextResponse.json({
         success: true,
@@ -41,26 +52,14 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Verificar se há reservas ativas para este produto
-    const { data: activeReservation, error: reservationError } = await supabase
-      .from('stock_reservations')
-      .select('*')
-      .eq('product_id', productId)
-      .eq('status', 'active')
-      .gt('expires_at', new Date().toISOString())
-      .single();
-
-    if (reservationError && reservationError.code !== 'PGRST116') {
-      console.error('Error checking active reservation:', reservationError);
-    }
-
-    if (activeReservation) {
+    // Verificar se está reservado
+    if (activeReservationResult.data) {
       console.log('⏰ [ProductStatus] Produto reservado encontrado:', productId);
       return NextResponse.json({
         success: true,
         isReserved: true,
         isSold: false,
-        expiresAt: activeReservation.expires_at
+        expiresAt: activeReservationResult.data.expires_at
       });
     }
 
