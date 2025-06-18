@@ -116,7 +116,14 @@ export async function POST(request: Request) {
           subtotal: data.amount - data.shippingOption.price,
           shipping_cost: data.shippingOption.price,
           total: data.amount,
-          items: data.items,
+          items: data.items.map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            currency_id: item.currency_id,
+            imageUrl: item.imageUrl
+          })),
           shipping_option: data.shippingOption,
           customer_info: data.customerInfo,
           shipping_address: data.shippingAddress,

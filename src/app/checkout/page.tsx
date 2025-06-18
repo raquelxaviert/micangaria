@@ -14,6 +14,7 @@ import MercadoPagoButton from '@/components/checkout/MercadoPagoButton';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { CheckoutProgress } from '@/components/checkout/CheckoutProgress';
+import { createClient } from '@/lib/supabase/client';
 
 interface ShippingOption {
   name: string;
@@ -101,8 +102,56 @@ export default function CheckoutPage() {
         name: user.user_metadata?.full_name || '',
         email: user.email || '',
       }));
+      
+      // Carregar dados do perfil se existirem
+      loadUserProfile();
     }
   }, [user]);
+
+  // Função para carregar dados do perfil
+  const loadUserProfile = async () => {
+    if (!user) return;
+
+    try {
+      const supabase = createClient();
+      
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error || !profileData) {
+        return; // Perfil não existe ainda, usar dados básicos
+      }
+
+      // Preencher dados do cliente
+      setCustomerInfo(prev => ({
+        ...prev,
+        name: profileData.full_name || prev.name,
+        email: profileData.email || prev.email,
+        phone: profileData.phone || prev.phone,
+      }));
+
+      // Preencher endereço se existir
+      if (profileData.address) {
+        setShippingAddress(prev => ({
+          ...prev,
+          zipCode: profileData.address.postal_code || prev.zipCode,
+          street: profileData.address.street || prev.street,
+          neighborhood: profileData.address.neighborhood || prev.neighborhood,
+          city: profileData.address.city || prev.city,
+          state: profileData.address.state || prev.state,
+          number: profileData.address.number || prev.number,
+          complement: profileData.address.complement || prev.complement,
+        }));
+      }
+    } catch (error) {
+      console.error('Erro ao carregar perfil:', error);
+      // Não mostrar erro, usar dados básicos
+    }
+  };
+
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const cep = value.replace(/\D/g, '');
@@ -231,13 +280,17 @@ export default function CheckoutPage() {
     try {
       setIsLoading(true);
 
+      // Salvar dados no perfil do usuário (silenciosamente)
+      await saveUserProfile();
+
       // Obter itens do carrinho
       const cartItems = CartManager.getItems().map((item: any) => ({
         id: item.productId,
         title: item.name,
         quantity: item.quantity,
         unit_price: item.price,
-        currency_id: 'BRL'
+        currency_id: 'BRL',
+        imageUrl: item.imageUrl // Incluir URL da imagem
       }));
 
       console.log('Enviando dados para API:', {
@@ -291,51 +344,65 @@ export default function CheckoutPage() {
     } finally {
       setIsLoading(false);
     }
-  };  const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  };
+
+  const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   
   // Frete grátis para compras acima de R$ 300
   const isFreeShipping = total >= 300;
   const shippingCost = selectedShipping ? 
     (isFreeShipping ? 0 : Number(selectedShipping.price || 0)) : 0;
-  const finalTotal = total + shippingCost;return (
+  const finalTotal = total + shippingCost;
+
+  // Função para salvar dados no perfil do usuário
+  const saveUserProfile = async () => {
+    if (!user) return;
+
+    try {
+      const supabase = createClient();
+      
+      // Preparar dados do perfil
+      const profileData = {
+        id: user.id,
+        email: customerInfo.email,
+        full_name: customerInfo.name,
+        phone: customerInfo.phone,
+        address: {
+          street: shippingAddress.street,
+          city: shippingAddress.city,
+          state: shippingAddress.state,
+          postal_code: shippingAddress.zipCode,
+          neighborhood: shippingAddress.neighborhood,
+          number: shippingAddress.number,
+          complement: shippingAddress.complement
+        },
+        updated_at: new Date().toISOString()
+      };
+
+      // Salvar no perfil
+      const { error } = await supabase
+        .from('profiles')
+        .upsert(profileData, { onConflict: 'id' });
+
+      if (error) {
+        console.error('Erro ao salvar perfil:', error);
+        // Não mostrar erro para o usuário, pois não é crítico para o checkout
+      } else {
+        console.log('Perfil atualizado com sucesso durante o checkout');
+      }
+    } catch (error) {
+      console.error('Erro ao salvar perfil durante checkout:', error);
+      // Não mostrar erro para o usuário, pois não é crítico para o checkout
+    }
+  };
+
+  return (
     <div className="min-h-screen" style={{ backgroundColor: '#F5F0EB' }}>
       <div className="container mx-auto px-4 py-6 pb-24">
         <div className="max-w-6xl mx-auto">
           
-          {/* Faixa de Anúncio - Frete Grátis */}
-          {isFreeShipping ? (
-            <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg p-4 mb-6 shadow-lg">
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                  <Truck className="w-5 h-5" />
-                </div>
-                <div className="text-center">
-                  <p className="font-bold text-lg">
-                    🎉 Parabéns! Você ganhou frete grátis!
-                  </p>
-                  <p className="text-sm opacity-90">
-                    Sua compra de R$ {total.toFixed(2)} qualifica para entrega gratuita
-                  </p>
-                </div>
-              </div>
-            </div>
-          ) : total >= 200 ? (
-            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg p-4 mb-6 shadow-lg">
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                  <Truck className="w-5 h-5" />
-                </div>
-                <div className="text-center">
-                  <p className="font-bold text-lg">
-                    ⚡ Faltam apenas R$ {(300 - total).toFixed(2)} para o frete grátis!
-                  </p>
-                  <p className="text-sm opacity-90">
-                    Adicione mais produtos e ganhe entrega gratuita
-                  </p>
-                </div>
-              </div>
-            </div>
-          ) : (
+          {/* Banner de Frete Grátis */}
+          {total >= 300 ? (
             <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg p-4 mb-6 shadow-lg">
               <div className="flex items-center justify-center gap-3">
                 <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
@@ -351,7 +418,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
             </div>
-          )}
+          ) : null}
 
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
             

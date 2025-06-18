@@ -21,7 +21,8 @@ import {
   Edit,
   LogOut,
   ArrowRight,
-  ShoppingBag
+  ShoppingBag,
+  Eye
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -86,9 +87,13 @@ export default function MinhaContaPage() {
         .eq('id', user?.id)
         .single();
 
-      if (profileError && profileError.code !== 'PGRST116') {
-        console.error('Erro ao buscar perfil:', profileError);
-      }
+      // Se a tabela não existe ou não há dados, usar dados básicos do usuário
+      const userProfile = profileData || {
+        id: user?.id || '',
+        email: user?.email || '',
+        full_name: user?.user_metadata?.full_name || '',
+        created_at: user?.created_at || ''
+      };
 
       // Buscar pedidos recentes
       const { data: ordersData, error: ordersError } = await supabase
@@ -102,37 +107,33 @@ export default function MinhaContaPage() {
         console.error('Erro ao buscar pedidos:', ordersError);
       }
 
-      // Buscar estatísticas
+      // Buscar total de pedidos
       const { data: allOrders, error: statsError } = await supabase
         .from('orders')
-        .select('total, status')
+        .select('id')
         .eq('user_id', user?.id);
 
       if (statsError) {
         console.error('Erro ao buscar estatísticas:', statsError);
       }
 
-      // Calcular estatísticas
       const totalOrders = allOrders?.length || 0;
-      const totalSpent = allOrders?.reduce((acc, order) => acc + (order.total || 0), 0) || 0;
-      const favoriteItems = 0; // TODO: Implementar sistema de favoritos
 
-      setProfile(profileData || {
-        id: user?.id || '',
-        email: user?.email || '',
-        full_name: user?.user_metadata?.full_name,
-        created_at: user?.created_at || ''
-      });
+      setProfile(userProfile);
       setRecentOrders(ordersData || []);
-      setStats({ totalOrders, totalSpent, favoriteItems });
+      setStats({ totalOrders, totalSpent: 0, favoriteItems: 0 });
 
     } catch (error) {
       console.error('Erro ao carregar dados do usuário:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar seus dados. Tente novamente.",
-        variant: "destructive",
+      // Em caso de erro, usar dados básicos do usuário
+      setProfile({
+        id: user?.id || '',
+        email: user?.email || '',
+        full_name: user?.user_metadata?.full_name || '',
+        created_at: user?.created_at || ''
       });
+      setRecentOrders([]);
+      setStats({ totalOrders: 0, totalSpent: 0, favoriteItems: 0 });
     } finally {
       setLoading(false);
     }
@@ -276,7 +277,7 @@ export default function MinhaContaPage() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
@@ -286,34 +287,6 @@ export default function MinhaContaPage() {
                     <div>
                       <p className="text-sm text-muted-foreground">Total de Pedidos</p>
                       <p className="text-2xl font-bold">{stats.totalOrders}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <CreditCard className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total Gasto</p>
-                      <p className="text-2xl font-bold">{formatPrice(stats.totalSpent)}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                      <Heart className="w-5 h-5 text-red-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Favoritos</p>
-                      <p className="text-2xl font-bold">{stats.favoriteItems}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -353,24 +326,54 @@ export default function MinhaContaPage() {
                 ) : (
                   <div className="space-y-4">
                     {recentOrders.map((order) => (
-                      <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h4 className="font-medium">
+                      <div key={order.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                            <h4 className="font-medium text-sm sm:text-base">
                               Pedido #{order.external_reference}
                             </h4>
                             {getStatusBadge(order.status)}
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                             <span>{formatDate(order.created_at)}</span>
                             <span>{formatPrice(order.total)}</span>
                             <span>{order.items?.length || 0} item(s)</span>
                           </div>
+                          
+                          {/* Miniaturas dos produtos */}
+                          {order.items && order.items.length > 0 && (
+                            <div className="flex gap-2 mt-3 overflow-x-auto pb-2">
+                              {order.items.slice(0, 3).map((item, index) => (
+                                <div key={index} className="flex-shrink-0">
+                                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 border">
+                                    {item.imageUrl ? (
+                                      <img 
+                                        src={item.imageUrl} 
+                                        alt={item.name}
+                                        className="w-full h-full object-cover"
+                                        loading="lazy"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center">
+                                        <Package className="w-4 h-4 text-gray-400" />
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                              {order.items.length > 3 && (
+                                <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gray-100 border flex items-center justify-center">
+                                  <span className="text-xs text-gray-500">+{order.items.length - 3}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        <Button asChild variant="outline" size="sm">
+                        <Button asChild variant="outline" size="sm" className="self-start sm:self-center">
                           <Link href={`/minha-conta/pedidos/${order.id}`}>
                             <Eye className="w-4 h-4 mr-1" />
-                            Ver Detalhes
+                            <span className="hidden sm:inline">Ver Detalhes</span>
+                            <span className="sm:hidden">Ver</span>
                           </Link>
                         </Button>
                       </div>
@@ -444,6 +447,25 @@ export default function MinhaContaPage() {
                         </div>
                       </div>
                     </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Botão Sair da Conta */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Precisa sair da sua conta?
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleSignOut}
+                    className="w-full md:w-auto"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sair da Conta
                   </Button>
                 </div>
               </CardContent>

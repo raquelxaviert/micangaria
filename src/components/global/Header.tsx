@@ -75,18 +75,17 @@ export function Header() {
   ];
 
   const MenuSidebar = () => (
-    <div className="mt-6 space-y-6 pb-6">
-      {/* Barra de Pesquisa Mobile */}
+    <div className="mt-6 space-y-6 pb-6">      {/* Barra de Pesquisa Mobile */}
       <div>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           <Input
             type="search"
-            placeholder="Buscar produtos..."
+            placeholder="Buscar produtos"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleSearchKeyDown}
-            className="pl-10 pr-4 py-2 w-full bg-muted/50 border-0 rounded-xl focus:bg-background transition-colors"
+            className="pl-10 pr-4 py-2 w-full bg-white/80 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all duration-200"
           />
         </div>
       </div>
@@ -211,24 +210,17 @@ export function Header() {
               />
             </Link>
           </div>
-          
-          {/* Barra de pesquisa moderna */}
+            {/* Barra de pesquisa moderna e minimalista */}
           <form onSubmit={handleSearch} className="flex-1 max-w-md mx-4">
-            <div className="relative flex">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
               <Input
                 type="text"
-                placeholder="Buscar produtos..."
+                placeholder="Buscar produtos"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pr-12 bg-background border-primary/20 focus:border-primary"
+                className="pl-10 pr-4 py-2 bg-white/80 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all duration-200 hover:bg-white"
               />
-              <Button 
-                type="submit" 
-                size="sm" 
-                className="absolute right-1.5 top-1/2 transform -translate-y-1/2 px-3 bg-primary hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                <Search size={16} />
-              </Button>
             </div>
           </form>
           
@@ -236,15 +228,16 @@ export function Header() {
           <nav className="flex items-center gap-2">
             <ClientOnly>
               {user ? (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleSignOut}
-                  className="hover:bg-primary hover:text-[#F5F0EB]"
-                  title={`Sair (${user.user_metadata?.full_name?.split(' ')[0] || 'Usuário'})`}
-                >
-                  <LogOut size={20} />
-                </Button>
+                <Link href="/minha-conta">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="hover:bg-primary hover:text-[#F5F0EB]"
+                    title={`Minha Conta (${user.user_metadata?.full_name?.split(' ')[0] || 'Usuário'})`}
+                  >
+                    <User size={20} />
+                  </Button>
+                </Link>
               ) : (
                 <Button
                   variant="ghost"
@@ -320,15 +313,16 @@ export function Header() {
               {/* Botão de Usuário no Mobile */}
               <ClientOnly>
                 {user ? (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleSignOut}
-                    className="hover:bg-primary hover:text-[#F5F0EB]"
-                    title={`Sair (${user.user_metadata?.full_name?.split(' ')[0] || 'Usuário'})`}
-                  >
-                    <LogOut size={20} />
-                  </Button>
+                  <Link href="/minha-conta">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="hover:bg-primary hover:text-[#F5F0EB]"
+                      title={`Minha Conta (${user.user_metadata?.full_name?.split(' ')[0] || 'Usuário'})`}
+                    >
+                      <User size={20} />
+                    </Button>
+                  </Link>
                 ) : (
                   <Button
                     variant="ghost"
